@@ -51,7 +51,6 @@ function getDateRanges() {
 
 const AI_SOURCES = ['chatgpt', 'openai', 'perplexity', 'claude', 'gemini', 'copilot', 'you.com', 'phind', 'bard'];
 
-// AUTH ROUTES
 app.get('/auth/login', (req, res) => {
   const oauth2Client = getOAuthClient();
   const url = oauth2Client.generateAuthUrl({
@@ -84,27 +83,23 @@ app.get('/auth/logout', (req, res) => {
   res.json({ success: true });
 });
 
-// API ROUTES
 app.get('/api/overview', requireAuth, async (req, res) => {
   try {
     const client = getAnalyticsClient(req.session.tokens);
     const { current, previous } = getDateRanges();
-    const [response] = await client.runReport({
-      property: `properties/${PROPERTY_ID}`,
-      dateRanges: [
-        { startDate: current.startDate, endDate: current.endDate, name: 'current' },
-        { startDate: previous.startDate, endDate: previous.endDate, name: 'previous' }
-      ],
-      metrics: [
-        { name: 'sessions' }, { name: 'totalUsers' }, { name: 'bounceRate' },
-        { name: 'averageSessionDuration' }, { name: 'screenPageViews' }, { name: 'engagementRate' }
-      ]
-    });
 
-    const data = { current: {}, previous: {} };
-    response.rows?.forEach(row => {
-      const period = row.dimensionValues[0].value;
-      data[period] = {
+    const fetchPeriod = async (startDate, endDate) => {
+      const [r] = await client.runReport({
+        property: `properties/${PROPERTY_ID}`,
+        dateRanges: [{ startDate, endDate }],
+        metrics: [
+          { name: 'sessions' }, { name: 'totalUsers' }, { name: 'bounceRate' },
+          { name: 'averageSessionDuration' }, { name: 'screenPageViews' }, { name: 'engagementRate' }
+        ]
+      });
+      const row = r.rows?.[0];
+      if (!row) return {};
+      return {
         sessions: parseInt(row.metricValues[0].value),
         users: parseInt(row.metricValues[1].value),
         bounceRate: parseFloat(row.metricValues[2].value) * 100,
@@ -112,8 +107,14 @@ app.get('/api/overview', requireAuth, async (req, res) => {
         pageViews: parseInt(row.metricValues[4].value),
         engagementRate: parseFloat(row.metricValues[5].value) * 100
       };
-    });
-    res.json({ success: true, data, dateRanges: { current, previous } });
+    };
+
+    const [curr, prev] = await Promise.all([
+      fetchPeriod(current.startDate, current.endDate),
+      fetchPeriod(previous.startDate, previous.endDate)
+    ]);
+
+    res.json({ success: true, data: { current: curr, previous: prev }, dateRanges: { current, previous } });
   } catch (err) {
     console.error('Overview error:', err.message);
     res.status(500).json({ success: false, error: err.message });
@@ -124,22 +125,27 @@ app.get('/api/organic', requireAuth, async (req, res) => {
   try {
     const client = getAnalyticsClient(req.session.tokens);
     const { current, previous } = getDateRanges();
-    const [response] = await client.runReport({
-      property: `properties/${PROPERTY_ID}`,
-      dateRanges: [
-        { startDate: current.startDate, endDate: current.endDate, name: 'current' },
-        { startDate: previous.startDate, endDate: previous.endDate, name: 'previous' }
-      ],
-      dimensions: [{ name: 'sessionDefaultChannelGroup' }, { name: 'dateRange' }],
-      metrics: [{ name: 'sessions' }]
-    });
+
+    const fetchPeriod = async (startDate, endDate) => {
+      const [r] = await client.runReport({
+        property: `properties/${PROPERTY_ID}`,
+        dateRanges: [{ startDate, endDate }],
+        dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+        metrics: [{ name: 'sessions' }]
+      });
+      const result = {};
+      r.rows?.forEach(row => { result[row.dimensionValues[0].value] = parseInt(row.metricValues[0].value); });
+      return result;
+    };
+
+    const [curr, prev] = await Promise.all([
+      fetchPeriod(current.startDate, current.endDate),
+      fetchPeriod(previous.startDate, previous.endDate)
+    ]);
 
     const channels = {};
-    response.rows?.forEach(row => {
-      const channel = row.dimensionValues[0].value;
-      const period = row.dimensionValues[1].value;
-      if (!channels[channel]) channels[channel] = { current: 0, previous: 0 };
-      channels[channel][period] = parseInt(row.metricValues[0].value);
+    [...new Set([...Object.keys(curr), ...Object.keys(prev)])].forEach(k => {
+      channels[k] = { current: curr[k] || 0, previous: prev[k] || 0 };
     });
     res.json({ success: true, data: channels });
   } catch (err) {
@@ -151,27 +157,28 @@ app.get('/api/traffic-trend', requireAuth, async (req, res) => {
   try {
     const client = getAnalyticsClient(req.session.tokens);
     const { current, previous } = getDateRanges();
-    const [response] = await client.runReport({
-      property: `properties/${PROPERTY_ID}`,
-      dateRanges: [
-        { startDate: current.startDate, endDate: current.endDate, name: 'current' },
-        { startDate: previous.startDate, endDate: previous.endDate, name: 'previous' }
-      ],
-      dimensions: [{ name: 'week' }, { name: 'dateRange' }],
-      metrics: [{ name: 'sessions' }, { name: 'totalUsers' }],
-      orderBys: [{ dimension: { dimensionName: 'week' } }]
-    });
 
-    const weeks = { current: [], previous: [] };
-    response.rows?.forEach(row => {
-      const period = row.dimensionValues[1].value;
-      weeks[period].push({
+    const fetchPeriod = async (startDate, endDate) => {
+      const [r] = await client.runReport({
+        property: `properties/${PROPERTY_ID}`,
+        dateRanges: [{ startDate, endDate }],
+        dimensions: [{ name: 'week' }],
+        metrics: [{ name: 'sessions' }, { name: 'totalUsers' }],
+        orderBys: [{ dimension: { dimensionName: 'week' } }]
+      });
+      return r.rows?.map(row => ({
         week: row.dimensionValues[0].value,
         sessions: parseInt(row.metricValues[0].value),
         users: parseInt(row.metricValues[1].value)
-      });
-    });
-    res.json({ success: true, data: weeks });
+      })) || [];
+    };
+
+    const [curr, prev] = await Promise.all([
+      fetchPeriod(current.startDate, current.endDate),
+      fetchPeriod(previous.startDate, previous.endDate)
+    ]);
+
+    res.json({ success: true, data: { current: curr, previous: prev } });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -205,24 +212,29 @@ app.get('/api/top-pages', requireAuth, async (req, res) => {
   try {
     const client = getAnalyticsClient(req.session.tokens);
     const { current, previous } = getDateRanges();
-    const [response] = await client.runReport({
-      property: `properties/${PROPERTY_ID}`,
-      dateRanges: [
-        { startDate: current.startDate, endDate: current.endDate, name: 'current' },
-        { startDate: previous.startDate, endDate: previous.endDate, name: 'previous' }
-      ],
-      dimensions: [{ name: 'pagePath' }, { name: 'dateRange' }],
-      metrics: [{ name: 'screenPageViews' }],
-      orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-      limit: 20
-    });
+
+    const fetchPeriod = async (startDate, endDate) => {
+      const [r] = await client.runReport({
+        property: `properties/${PROPERTY_ID}`,
+        dateRanges: [{ startDate, endDate }],
+        dimensions: [{ name: 'pagePath' }],
+        metrics: [{ name: 'screenPageViews' }],
+        orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+        limit: 10
+      });
+      const result = {};
+      r.rows?.forEach(row => { result[row.dimensionValues[0].value] = parseInt(row.metricValues[0].value); });
+      return result;
+    };
+
+    const [curr, prev] = await Promise.all([
+      fetchPeriod(current.startDate, current.endDate),
+      fetchPeriod(previous.startDate, previous.endDate)
+    ]);
 
     const pages = {};
-    response.rows?.forEach(row => {
-      const p = row.dimensionValues[0].value;
-      const period = row.dimensionValues[1].value;
-      if (!pages[p]) pages[p] = { current: 0, previous: 0 };
-      pages[p][period] = parseInt(row.metricValues[0].value);
+    [...new Set([...Object.keys(curr), ...Object.keys(prev)])].forEach(k => {
+      pages[k] = { current: curr[k] || 0, previous: prev[k] || 0 };
     });
     res.json({ success: true, data: pages });
   } catch (err) {
@@ -234,36 +246,37 @@ app.get('/api/ai-referrals', requireAuth, async (req, res) => {
   try {
     const client = getAnalyticsClient(req.session.tokens);
     const { current, previous } = getDateRanges();
-    const [response] = await client.runReport({
-      property: `properties/${PROPERTY_ID}`,
-      dateRanges: [
-        { startDate: current.startDate, endDate: current.endDate, name: 'current' },
-        { startDate: previous.startDate, endDate: previous.endDate, name: 'previous' }
-      ],
-      dimensions: [{ name: 'sessionSource' }, { name: 'dateRange' }],
-      metrics: [{ name: 'sessions' }]
-    });
 
-    const currentMap = {}, previousMap = {};
-    let totalCurrent = 0, totalPrevious = 0;
+    const fetchPeriod = async (startDate, endDate) => {
+      const [r] = await client.runReport({
+        property: `properties/${PROPERTY_ID}`,
+        dateRanges: [{ startDate, endDate }],
+        dimensions: [{ name: 'sessionSource' }],
+        metrics: [{ name: 'sessions' }]
+      });
+      const result = {};
+      r.rows?.forEach(row => {
+        const source = row.dimensionValues[0].value.toLowerCase();
+        const sessions = parseInt(row.metricValues[0].value);
+        if (AI_SOURCES.some(ai => source.includes(ai))) {
+          result[source] = (result[source] || 0) + sessions;
+        }
+      });
+      return result;
+    };
 
-    response.rows?.forEach(row => {
-      const source = row.dimensionValues[0].value.toLowerCase();
-      const period = row.dimensionValues[1].value;
-      const sessions = parseInt(row.metricValues[0].value);
-      const isAI = AI_SOURCES.some(ai => source.includes(ai));
-      if (isAI) {
-        if (period === 'current') { currentMap[source] = (currentMap[source] || 0) + sessions; totalCurrent += sessions; }
-        else { previousMap[source] = (previousMap[source] || 0) + sessions; totalPrevious += sessions; }
-      }
-    });
+    const [currMap, prevMap] = await Promise.all([
+      fetchPeriod(current.startDate, current.endDate),
+      fetchPeriod(previous.startDate, previous.endDate)
+    ]);
 
     res.json({
       success: true,
       data: {
-        current: Object.entries(currentMap).map(([source, sessions]) => ({ source, sessions })).sort((a, b) => b.sessions - a.sessions),
-        previous: Object.entries(previousMap).map(([source, sessions]) => ({ source, sessions })),
-        totalCurrent, totalPrevious
+        current: Object.entries(currMap).map(([source, sessions]) => ({ source, sessions })).sort((a, b) => b.sessions - a.sessions),
+        previous: Object.entries(prevMap).map(([source, sessions]) => ({ source, sessions })),
+        totalCurrent: Object.values(currMap).reduce((s, v) => s + v, 0),
+        totalPrevious: Object.values(prevMap).reduce((s, v) => s + v, 0)
       }
     });
   } catch (err) {
