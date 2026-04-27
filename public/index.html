@@ -21,7 +21,7 @@
   .login-screen.visible { display: flex; }
   .login-card { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: var(--radius); padding: 3rem; text-align: center; max-width: 420px; width: 90%; }
   .login-logo { margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; }
-  .login-logo img { height: 40px; width: auto; filter: invert(1); }
+  .login-logo img { height: 40px; width: auto;  }
   .login-title { font-size: 20px; font-weight: 600; color: var(--white); margin-bottom: 8px; }
   .login-sub { font-size: 13px; color: var(--gray-400); margin-bottom: 2rem; line-height: 1.6; }
   .login-btn { display: inline-flex; align-items: center; gap: 10px; background: var(--lime); color: var(--black); font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: var(--radius-sm); border: none; cursor: pointer; text-decoration: none; transition: background .2s; }
@@ -35,7 +35,7 @@
   .header { background: var(--black); border-bottom: 1px solid var(--gray-700); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
   .header-logo { display: flex; align-items: center; gap: 12px; }
 
-  .header-logo img { height: 28px; width: auto; filter: invert(1); }
+  .header-logo img { height: 28px; width: auto;  }
   .logo-text { font-size: 13px; font-weight: 600; color: var(--white); letter-spacing: 0.5px; }
   .logo-sub { font-size: 11px; color: var(--gray-400); font-weight: 400; }
   .header-right { display: flex; align-items: center; gap: 12px; }
@@ -165,7 +165,7 @@
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
-    <div class="login-logo"><img src="/nxrd-logo.png" alt="NXRD"></div>
+    <div class="login-logo"><img src="/nxrd-logo.jpg" alt="NXRD"></div>
     <div class="login-title">Briskfil Analytics</div>
     <div class="login-sub">Sign in with your Google account to access the live analytics dashboard. You need access to the Briskfil GA4 property.</div>
     <a href="/auth/login" class="login-btn">
@@ -181,7 +181,7 @@
 
 <header class="header">
   <div class="header-logo">
-    <img src="/nxrd-logo.png" alt="NXRD">
+    <img src="/nxrd-logo.jpg" alt="NXRD">
     <div class="logo-sub">Analytics Report — Briskfil</div>
   </div>
   <div class="header-right">
