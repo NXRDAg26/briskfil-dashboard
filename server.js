@@ -301,6 +301,25 @@ app.delete('/api/ai-visibility/:id', (req, res) => {
   res.json({ success: true });
 });
 
+
+// LINKEDIN TRACKER
+let linkedInLog = [];
+
+app.get('/api/linkedin', (req, res) => res.json({ success: true, data: linkedInLog }));
+
+app.post('/api/linkedin', (req, res) => {
+  const { type, topic, impressions, engagement, followers, date } = req.body;
+  const entry = { id: Date.now(), type: type || 'post', topic, impressions: parseInt(impressions) || 0, engagement: parseFloat(engagement) || 0, followers: parseInt(followers) || 0, date: date || new Date().toISOString().split('T')[0] };
+  linkedInLog.unshift(entry);
+  linkedInLog = linkedInLog.slice(0, 200);
+  res.json({ success: true, data: linkedInLog });
+});
+
+app.delete('/api/linkedin/:id', (req, res) => {
+  linkedInLog = linkedInLog.filter(e => e.id !== parseInt(req.params.id));
+  res.json({ success: true, data: linkedInLog });
+});
+
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 const PORT = process.env.PORT || 3000;
