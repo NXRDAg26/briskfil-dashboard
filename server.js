@@ -51,6 +51,8 @@ function getDateRanges() {
 
 const AI_SOURCES = ['chatgpt', 'openai', 'perplexity', 'claude', 'gemini', 'copilot', 'you.com', 'phind', 'bard'];
 
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+
 app.get('/auth/login', (req, res) => {
   const oauth2Client = getOAuthClient();
   const url = oauth2Client.generateAuthUrl({
@@ -82,6 +84,8 @@ app.get('/auth/logout', (req, res) => {
   req.session.destroy();
   res.json({ success: true });
 });
+
+// ── ANALYTICS API ─────────────────────────────────────────────────────────────
 
 app.get('/api/overview', requireAuth, async (req, res) => {
   try {
@@ -284,13 +288,22 @@ app.get('/api/ai-referrals', requireAuth, async (req, res) => {
   }
 });
 
+// ── AI VISIBILITY TRACKER ─────────────────────────────────────────────────────
+
 let aiVisibilityLog = [];
 
 app.get('/api/ai-visibility', (req, res) => res.json({ success: true, data: aiVisibilityLog }));
 
 app.post('/api/ai-visibility', (req, res) => {
   const { platform, query, cited, notes, date } = req.body;
-  const entry = { id: Date.now(), platform, query, cited: cited === true || cited === 'true', notes: notes || '', date: date || new Date().toISOString().split('T')[0] };
+  const entry = {
+    id: Date.now(),
+    platform,
+    query,
+    cited: cited === true || cited === 'true',
+    notes: notes || '',
+    date: date || new Date().toISOString().split('T')[0]
+  };
   aiVisibilityLog.unshift(entry);
   aiVisibilityLog = aiVisibilityLog.slice(0, 100);
   res.json({ success: true, data: entry });
@@ -301,15 +314,23 @@ app.delete('/api/ai-visibility/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// ── LINKEDIN TRACKER ──────────────────────────────────────────────────────────
 
-// LINKEDIN TRACKER
 let linkedInLog = [];
 
 app.get('/api/linkedin', (req, res) => res.json({ success: true, data: linkedInLog }));
 
 app.post('/api/linkedin', (req, res) => {
   const { type, topic, impressions, engagement, followers, date } = req.body;
-  const entry = { id: Date.now(), type: type || 'post', topic, impressions: parseInt(impressions) || 0, engagement: parseFloat(engagement) || 0, followers: parseInt(followers) || 0, date: date || new Date().toISOString().split('T')[0] };
+  const entry = {
+    id: Date.now(),
+    type: type || 'post',
+    topic,
+    impressions: parseInt(impressions) || 0,
+    engagement: parseFloat(engagement) || 0,
+    followers: parseInt(followers) || 0,
+    date: date || new Date().toISOString().split('T')[0]
+  };
   linkedInLog.unshift(entry);
   linkedInLog = linkedInLog.slice(0, 200);
   res.json({ success: true, data: linkedInLog });
@@ -319,6 +340,14 @@ app.delete('/api/linkedin/:id', (req, res) => {
   linkedInLog = linkedInLog.filter(e => e.id !== parseInt(req.params.id));
   res.json({ success: true, data: linkedInLog });
 });
+
+// ── CITATION TOOL ─────────────────────────────────────────────────────────────
+
+app.get('/citation', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'citation.html'));
+});
+
+// ── CATCH-ALL (keep this last) ────────────────────────────────────────────────
 
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
