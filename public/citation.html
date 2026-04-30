@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citation Generator — Briskfil</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0a; --white: #ffffff; --lime: #c8f026; --lime-dim: #a8cc10;
+  --gray-900: #111111; --gray-800: #1a1a1a; --gray-700: #242424; --gray-600: #2e2e2e;
+  --gray-500: #3d3d3d; --gray-400: #666666; --gray-300: #999999; --gray-200: #cccccc;
+  --positive: #4ade80; --negative: #f87171; --radius: 12px; --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--gray-900);
+  color: var(--white);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--black);
+  border-bottom: 1px solid var(--gray-700);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-logo { display: flex; align-items: center; gap: 12px; }
+.header-logo img { height: 28px; width: auto; }
+.logo-sub { font-size: 11px; color: var(--gray-400); font-weight: 400; }
+
+.header-btn {
+  background: var(--gray-700);
+  border: 1px solid var(--gray-600);
+  color: var(--gray-200);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-btn:hover { background: var(--lime); color: var(--black); border-color: var(--lime); }
+
+/* ── CONTAINER ── */
+.container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+.page-title { margin-bottom: 2rem; }
+.page-title h1 { font-size: 22px; font-weight: 600; }
+.page-title p { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
+
+.period-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gray-800);
+  border: 1px solid var(--gray-700);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--gray-300);
+  margin-top: 8px;
+}
+
+.period-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); }
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--gray-700); }
+
+/* ── CARDS ── */
+.card {
+  background: var(--gray-800);
+  border: 1px solid var(--gray-700);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 16px;
+}
+
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+.card-title { font-size: 14px; font-weight: 600; color: var(--white); }
+.card-subtitle { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+.chart-badge {
+  background: var(--gray-700);
+  border: 1px solid var(--gray-600);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 10px;
+  color: var(--gray-300);
+}
+
+.chart-badge.lime {
+  background: rgba(200,240,38,.1);
+  border-color: rgba(200,240,38,.3);
+  color: var(--lime);
+}
+
+/* ── FORM ── */
+.form-label {
+  font-size: 10px;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+  margin-top: 14px;
+}
+
+.form-label:first-child { margin-top: 0; }
+
+.form-label .req { color: var(--negative); }
+
+.form-input {
+  width: 100%;
+  background: var(--gray-700);
+  border: 1px solid var(--gray-600);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color .2s;
+}
+
+.form-input::placeholder { color: var(--gray-500); }
+.form-input:focus { border-color: var(--lime); }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* ── STYLE SELECTOR ── */
+.style-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+
+.scard {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-600);
+  background: var(--gray-700);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.scard:hover { border-color: var(--lime); }
+
+.scard.active {
+  border-color: var(--lime);
+  background: rgba(200,240,38,.06);
+}
+
+.scard-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-200);
+  margin-bottom: 3px;
+}
+
+.scard.active .scard-name { color: var(--lime); }
+
+.scard-desc {
+  font-size: 11px;
+  color: var(--gray-400);
+  line-height: 1.4;
+}
+
+/* ── BUTTON ── */
+.add-btn {
+  background: var(--lime);
+  color: var(--black);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 24px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+  transition: background .2s;
+}
+
+.add-btn:hover { background: var(--lime-dim); }
+
+.error-msg {
+  font-size: 12px;
+  color: var(--negative);
+  margin-top: 8px;
+  display: none;
+}
+
+/* ── OUTPUT BOXES ── */
+.outbox {
+  background: var(--gray-700);
+  border: 1px solid var(--gray-600);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.out-label {
+  font-size: 10px;
+  color: var(--lime);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.out-text {
+  font-size: 12px;
+  color: var(--gray-200);
+  line-height: 1.7;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.schema-text {
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 11px;
+  color: #a5b4fc;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.copy-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+
+.copy-btn {
+  background: transparent;
+  border: 1px solid var(--gray-600);
+  border-radius: var(--radius-sm);
+  color: var(--gray-400);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.copy-btn:hover { border-color: var(--lime); color: var(--lime); }
+
+/* ── SCORE ── */
+.score-wrap { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 16px; }
+.score-breakdown { flex: 1; padding-top: 6px; }
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 9px;
+  gap: 10px;
+}
+
+.score-item-label { font-size: 11px; color: var(--gray-300); min-width: 60px; }
+
+.score-bar-bg {
+  flex: 1;
+  height: 3px;
+  background: var(--gray-600);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--lime);
+  transition: width .6s ease;
+}
+
+.score-num {
+  font-size: 11px;
+  color: var(--lime);
+  font-weight: 600;
+  min-width: 28px;
+  text-align: right;
+}
+
+.tip-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.tip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--lime);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.tip-text { font-size: 11px; color: var(--gray-400); line-height: 1.5; }
+.tip-text strong { color: var(--gray-200); font-weight: 600; }
+
+/* ── PLATFORM TABS ── */
+.platform-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+
+.ptab {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid var(--gray-600);
+  background: transparent;
+  color: var(--gray-400);
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: all .15s;
+}
+
+.ptab:hover { border-color: var(--lime); color: var(--lime); }
+
+.ptab.active {
+  background: rgba(200,240,38,.1);
+  color: var(--lime);
+  border-color: rgba(200,240,38,.4);
+}
+
+/* ── CHECKLIST ── */
+.checklist-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--gray-700);
+}
+
+.checklist-item:last-child { border-bottom: none; }
+
+.check-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(200,240,38,.1);
+  border: 1px solid rgba(200,240,38,.3);
+  color: var(--lime);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.check-title { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+.check-desc { font-size: 11px; color: var(--gray-400); line-height: 1.6; }
+
+/* ── RESULTS (hidden until generated) ── */
+.results { display: none; }
+
+/* ── FOOTER ── */
+.footer {
+  border-top: 1px solid var(--gray-700);
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+}
+
+.footer-brand { font-size: 11px; color: var(--gray-400); }
+.footer-brand span { color: var(--lime); font-weight: 600; }
+.footer-note { font-size: 10px; color: var(--gray-500); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .container { padding: 1rem; }
+  .header { padding: 0 1rem; }
+  .row2 { grid-template-columns: 1fr; }
+  .style-grid { grid-template-columns: 1fr; }
+  .score-wrap { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo">
+    <img src="/nxrd-logo.jpg" alt="NXRD">
+    <div class="logo-sub">Citation Generator — Briskfil</div>
+  </div>
+  <div>
+    <a href="/" class="header-btn">← Back to dashboard</a>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="container">
+
+  <div class="page-title">
+    <h1>Citation generator</h1>
+    <p>Generate citations, AI prompts, schema markup and a submission checklist in one click</p>
+    <div class="period-label"><span class="period-dot"></span>Helps AI platforms like ChatGPT, Claude and Perplexity discover and cite your content</div>
+  </div>
+
+  <!-- STEP 1: INPUTS -->
+  <div class="section-title">Step 1 — enter your content details</div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Your content</div>
+        <div class="card-subtitle">Only URL and page title are required — everything else improves your score</div>
+      </div>
+      <div class="chart-badge lime">Free tool</div>
+    </div>
+
+    <label class="form-label">Page URL <span class="req">*</span></label>
+    <input class="form-input" type="url" id="url" placeholder="https://briskfil.com/your-article" />
+
+    <label class="form-label">Page title <span class="req">*</span></label>
+    <input class="form-input" type="text" id="title" placeholder="e.g. Industrial Dust Extraction Solutions" />
+
+    <label class="form-label">Topic or keywords</label>
+    <input class="form-input" type="text" id="keywords" placeholder="e.g. industrial filtration, dust extraction, B2B" />
+
+    <div class="row2">
+      <div>
+        <label class="form-label">Author surname</label>
+        <input class="form-input" type="text" id="alast" placeholder="Silva" />
+      </div>
+      <div>
+        <label class="form-label">First name / initials</label>
+        <input class="form-input" type="text" id="afirst" placeholder="A." />
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label class="form-label">Website name</label>
+        <input class="form-input" type="text" id="site" placeholder="Briskfil" />
+      </div>
+      <div>
+        <label class="form-label">Publish date</label>
+        <input class="form-input" type="text" id="pubdate" placeholder="12 March 2024" />
+      </div>
+    </div>
+
+    <label class="form-label" style="margin-top:20px;margin-bottom:10px;">What are you citing this for?</label>
+    <div class="style-grid">
+      <div class="scard active" data-s="APA">
+        <div class="scard-name">General use / AI tools</div>
+        <div class="scard-desc">Best for getting cited by ChatGPT, Claude, Perplexity and other AI platforms. Most widely recognised format.</div>
+      </div>
+      <div class="scard" data-s="Harvard">
+        <div class="scard-name">Business and reports</div>
+        <div class="scard-desc">Common in business, consultancy and professional reports. Standard across UK industry.</div>
+      </div>
+      <div class="scard" data-s="MLA">
+        <div class="scard-name">Journalism and media</div>
+        <div class="scard-desc">Used by journalists, publishers and content writers. Standard for editorial citation.</div>
+      </div>
+      <div class="scard" data-s="Chicago">
+        <div class="scard-name">Publishing and books</div>
+        <div class="scard-desc">Preferred by book publishers and long form editorial. Common in humanities and print.</div>
+      </div>
+      <div class="scard" data-s="Vancouver">
+        <div class="scard-name">Medical and scientific</div>
+        <div class="scard-desc">Standard in healthcare, clinical research and scientific journals.</div>
+      </div>
+      <div class="scard" data-s="IEEE">
+        <div class="scard-name">Technical and engineering</div>
+        <div class="scard-desc">Used in engineering, electronics and technical white papers.</div>
+      </div>
+    </div>
+
+    <button class="add-btn" id="genbtn">Generate everything</button>
+    <p class="error-msg" id="err"></p>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+
+    <!-- CITATION -->
+    <div class="section-title">Your citation</div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Formatted citation</div>
+          <div class="card-subtitle">Copy and use this anywhere you need to reference your content</div>
+        </div>
+        <div class="chart-badge lime" id="cit-style-badge">APA 7th</div>
+      </div>
+      <div class="outbox">
+        <p class="out-label" id="cit-label">Citation</p>
+        <p class="out-text" id="cit-text"></p>
+        <div class="copy-row">
+          <button class="copy-btn" data-target="cit-text">Copy citation</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEALTH SCORE -->
+    <div class="section-title">Citation health score</div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">How citable is this page?</div>
+          <div class="card-subtitle">Based on the information you provided — the higher the score the more likely AI platforms will cite it</div>
+        </div>
+      </div>
+      <div class="score-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80" style="flex-shrink:0">
+          <circle cx="40" cy="40" r="32" fill="none" stroke="#242424" stroke-width="7"/>
+          <circle id="score-ring" cx="40" cy="40" r="32" fill="none" stroke="#c8f026" stroke-width="7"
+            stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="201"
+            transform="rotate(-90 40 40)" style="transition:stroke-dashoffset .8s ease"/>
+          <text x="40" y="45" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff" font-family="Poppins,sans-serif" id="score-num-text">0</text>
+        </svg>
+        <div class="score-breakdown" id="score-breakdown"></div>
+      </div>
+      <div id="score-tips"></div>
+    </div>
+
+    <!-- AI PROMPTS -->
+    <div class="section-title">AI prompt generator</div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Ready-to-paste prompts</div>
+          <div class="card-subtitle">Copy these directly into ChatGPT, Claude or Perplexity to encourage them to find and cite your page</div>
+        </div>
+        <div class="chart-badge lime">High impact</div>
+      </div>
+      <div class="platform-tabs" id="ptabs">
+        <button class="ptab active" data-p="general">All platforms</button>
+        <button class="ptab" data-p="chatgpt">ChatGPT</button>
+        <button class="ptab" data-p="claude">Claude</button>
+        <button class="ptab" data-p="perplexity">Perplexity</button>
+      </div>
+      <div class="outbox">
+        <p class="out-label">Paste this prompt directly into the AI platform</p>
+        <p class="out-text" id="prompt-text"></p>
+        <div class="copy-row">
+          <button class="copy-btn" data-target="prompt-text">Copy prompt</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCHEMA MARKUP -->
+    <div class="section-title">Schema markup</div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Structured data for your website</div>
+          <div class="card-subtitle">Paste this into the &lt;head&gt; section of your page — it tells AI crawlers and search engines exactly what your content is about</div>
+        </div>
+        <div class="chart-badge">JSON-LD</div>
+      </div>
+      <div class="outbox">
+        <p class="out-label">Copy and paste into your page &lt;head&gt;</p>
+        <p class="out-text schema-text" id="schema-text"></p>
+        <div class="copy-row">
+          <button class="copy-btn" data-target="schema-text">Copy code</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHECKLIST -->
+    <div class="section-title">What to do next</div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Submission checklist</div>
+          <div class="card-subtitle">Follow these steps to maximise your chances of being cited by AI platforms</div>
+        </div>
+      </div>
+      <div id="checklist"></div>
+    </div>
+
+  </div>
+  <!-- end results -->
+
+</div>
+<!-- end container -->
+
+<footer class="footer">
+  <div class="footer-brand">Powered by <span>NXRD</span> — nx-rd.com</div>
+  <div class="footer-note">Built for Briskfil. Helping your content get found and cited by AI.</div>
+</footer>
+
+<script>
+  let cStyle = 'APA';
+  let promptData = {};
+  let currentPlatform = 'general';
+
+  document.querySelectorAll('.scard').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.scard').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+      cStyle = c.dataset.s;
+    });
+  });
+
+  document.querySelectorAll('.ptab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.ptab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      currentPlatform = t.dataset.p;
+      updatePrompt();
+    });
+  });
+
+  function updatePrompt() {
+    const el = document.getElementById('prompt-text');
+    if (el) el.textContent = promptData[currentPlatform] || promptData['general'] || '';
+  }
+
+  function accessDate(short) {
+    const d = new Date();
+    const ml = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return short
+      ? d.getDate() + ' ' + ms[d.getMonth()] + ' ' + d.getFullYear()
+      : d.getDate() + ' ' + ml[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  function pubYear(s) {
+    if (!s) return new Date().getFullYear();
+    const m = s.match(/\b(19|20)\d{2}\b/);
+    return m ? m[0] : new Date().getFullYear();
+  }
+
+  function stripYear(s) {
+    if (!s) return '';
+    return s.replace(/\b(19|20)\d{2}\b/, '').trim().replace(/^[,.\s]+|[,.\s]+$/g, '');
+  }
+
+  const styleLabels = {
+    APA: 'APA 7th edition', Harvard: 'Harvard', MLA: 'MLA 9th edition',
+    Chicago: 'Chicago', Vancouver: 'Vancouver', IEEE: 'IEEE'
+  };
+
+  document.getElementById('genbtn').addEventListener('click', () => {
+    const url      = document.getElementById('url').value.trim();
+    const title    = document.getElementById('title').value.trim();
+    const al       = document.getElementById('alast').value.trim();
+    const af       = document.getElementById('afirst').value.trim();
+    const siteRaw  = document.getElementById('site').value.trim();
+    const site     = siteRaw || (url ? url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0] : '');
+    const pd       = document.getElementById('pubdate').value.trim();
+    const kw       = document.getElementById('keywords').value.trim();
+    const err      = document.getElementById('err');
+
+    err.style.display = 'none';
+    if (!url)   { err.textContent = 'Please enter a URL.';         err.style.display = 'block'; return; }
+    if (!title) { err.textContent = 'Please enter the page title.'; err.style.display = 'block'; return; }
+
+    const hasA      = al || af;
+    const authorStr = al && af ? al + ', ' + af : (al || af || '');
+    const py        = pubYear(pd);
+    const acc       = accessDate(false);
+    const accS      = accessDate(true);
+
+    let cit = '';
+    if (cStyle === 'APA')      { const a = hasA ? authorStr + '. ' : ''; const d = pd ? '(' + py + ', ' + stripYear(pd) + ')' : '(' + py + ')'; cit = a + d + '. ' + title + '. ' + site + '. ' + url; }
+    if (cStyle === 'Harvard')  { const a = hasA ? authorStr + ' ' : ''; cit = a + '(' + py + ') \u2018' + title + '\u2019, ' + site + '. Available at: ' + url + ' (Accessed: ' + acc + ').'; }
+    if (cStyle === 'MLA')      { const a = hasA ? (al && af ? al + ', ' + af : authorStr) + '. ' : ''; const d = pd ? pd + ', ' : ''; cit = a + '\u201c' + title + '.\u201d ' + site + ', ' + d + url + '. Accessed ' + acc + '.'; }
+    if (cStyle === 'Chicago')  { const a = hasA ? (af ? af + ' ' : '') + al + '. ' : ''; const d = pd ? pd + '. ' : ''; cit = a + '\u201c' + title + '.\u201d ' + site + '. ' + d + url + '.'; }
+    if (cStyle === 'Vancouver') { const a = hasA ? al + ' ' + (af ? af.charAt(0) : '') + '. ' : ''; cit = a + title + ' [Internet]. ' + site + '; ' + py + ' [cited ' + accS + ']. Available from: ' + url; }
+    if (cStyle === 'IEEE')     { const a = hasA ? (af ? af.charAt(0) + '. ' : '') + al + ', ' : ''; cit = a + '\u201c' + title + ',\u201d ' + site + '. [Online]. Available: ' + url + '. [Accessed: ' + acc + '].'; }
+
+    document.getElementById('cit-label').textContent      = styleLabels[cStyle] + ' citation';
+    document.getElementById('cit-style-badge').textContent = styleLabels[cStyle];
+    document.getElementById('cit-text').textContent        = cit;
+
+    // ── SCORE ──
+    const maxMap   = { 'URL': 25, 'Title': 25, 'Author': 20, 'Date': 20, 'Keywords': 10 };
+    const scores   = { 'URL': url ? 25 : 0, 'Title': title ? 25 : 0, 'Author': hasA ? 20 : 0, 'Date': pd ? 20 : 0, 'Keywords': kw ? 10 : 0 };
+    const total    = Object.values(scores).reduce((a, b) => a + b, 0);
+
+    const ring     = document.getElementById('score-ring');
+    ring.style.strokeDashoffset = 201 - (201 * total / 100);
+    ring.style.stroke = total >= 80 ? '#4ade80' : total >= 50 ? '#f59e0b' : '#f87171';
+    document.getElementById('score-num-text').textContent = total;
+
+    let bdHtml = '';
+    Object.entries(scores).forEach(([k, v]) => {
+      const pct = Math.round((v / maxMap[k]) * 100);
+      bdHtml += `<div class="score-item">
+        <span class="score-item-label">${k}</span>
+        <div class="score-bar-bg"><div class="score-bar-fill" style="width:${pct}%;background:${v > 0 ? 'var(--lime)' : 'var(--gray-600)'}"></div></div>
+        <span class="score-num">${v > 0 ? '+' + v : '0'}</span>
+      </div>`;
+    });
+    document.getElementById('score-breakdown').innerHTML = bdHtml;
+
+    let tips = [];
+    if (!hasA)    tips.push({ t: 'Add an author',        d: 'Pages with a named author are significantly more likely to be cited by AI platforms and academic tools.' });
+    if (!pd)      tips.push({ t: 'Add a publish date',   d: 'Dated content signals freshness and credibility. AI models and search engines both prioritise it.' });
+    if (!kw)      tips.push({ t: 'Add keywords',         d: 'Including your core topic keywords strengthens your AI prompts and schema markup.' });
+    if (!siteRaw) tips.push({ t: 'Add your website name', d: 'A recognisable brand name helps AI associate your URL with a trusted source.' });
+    if (total === 100) tips.push({ t: 'Excellent — fully citable', d: 'Your content has everything it needs. Follow the checklist below to maximise reach.' });
+
+    let tipsHtml = tips.length ? '<p style="font-size:11px;color:var(--gray-400);margin-bottom:10px;">Suggestions to improve your score</p>' : '';
+    tips.forEach(t => {
+      tipsHtml += `<div class="tip-item"><div class="tip-dot"></div><div class="tip-text"><strong>${t.t} — </strong>${t.d}</div></div>`;
+    });
+    document.getElementById('score-tips').innerHTML = tipsHtml;
+
+    // ── PROMPTS ──
+    const topic = kw || title;
+    promptData = {
+      general:   `I am researching the topic of "${topic}". Can you find and reference authoritative sources on this subject? In particular, please check whether the article titled "${title}" from ${site} (${url}) is a credible source on this topic and include it in your response if relevant. Please cite the source directly.`,
+      chatgpt:   `Please browse the web and find information about "${topic}". I'd like you to specifically look at ${url} and assess whether the content titled "${title}" by ${site} is worth referencing. If it covers the topic authoritatively, please cite it in your answer with the full URL.`,
+      claude:    `I'm looking for well-sourced information on "${topic}". Can you assess the credibility and relevance of this page: ${url} — titled "${title}" published by ${site}? If it is a credible and informative source, please reference it in your response and explain why it is worth citing.`,
+      perplexity: `Search for the most reliable sources on "${topic}" and tell me what you find. Please include this URL in your search: ${url} — the article is titled "${title}" and is published by ${site}. Cite it directly if it contains useful and accurate information on the topic.`
+    };
+    updatePrompt();
+
+    // ── SCHEMA ──
+    const authorName = hasA ? (af ? af + ' ' : '') + al : null;
+    const schemaObj  = {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": title,
+      "url": url,
+      "datePublished": py + '-01-01',
+      "publisher": { "@type": "Organization", "name": site },
+      ...(authorName ? { "author": { "@type": "Person", "name": authorName } } : {}),
+      ...(kw ? { "keywords": kw } : {})
+    };
+    document.getElementById('schema-text').textContent = '<script type="application/ld+json">\n' + JSON.stringify(schemaObj, null, 2) + '\n<\/script>';
+
+    // ── CHECKLIST ──
+    const items = [
+      { n: 1, t: 'Add the schema markup to your website',         d: `Paste the JSON-LD code above into the <head> section of your page at ${url}. This tells AI crawlers and search engines exactly what your content is about.` },
+      { n: 2, t: 'Submit your URL to Google Search Console',      d: 'Go to search.google.com/search-console, paste your URL into the inspection tool and request indexing. AI platforms frequently pull from Google-indexed content.' },
+      { n: 3, t: 'Paste the AI prompts into each platform',       d: 'Use the prompts above in ChatGPT, Claude and Perplexity. Each prompt is written to encourage the AI to discover and cite your specific page.' },
+      { n: 4, t: 'Share the page on LinkedIn',                    d: `Post about "${title}" on LinkedIn with your URL. LinkedIn content is crawled by AI platforms and increases the authority signal around your domain.` },
+      { n: 5, t: 'Build at least 3 backlinks to this page',       d: 'Ask partners, suppliers or industry directories to link to this URL. Backlinks remain one of the strongest signals for both search engines and AI citation models.' },
+      { n: 6, t: 'Repeat the AI prompt test in 30 days',          d: 'AI platforms update their knowledge regularly. Paste the prompts again in a month and log the result in the AI citation tracker on the main dashboard to track progress.' }
+    ];
+
+    document.getElementById('checklist').innerHTML = items.map(i =>
+      `<div class="checklist-item">
+        <div class="check-num">${i.n}</div>
+        <div><div class="check-title">${i.t}</div><div class="check-desc">${i.d}</div></div>
+      </div>`
+    ).join('');
+
+    // show results and scroll
+    const resultsEl = document.getElementById('results');
+    resultsEl.style.display = 'block';
+    setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  });
+
+  // ── COPY BUTTONS ──
+  document.addEventListener('click', e => {
+    if (!e.target.classList.contains('copy-btn')) return;
+    const target = document.getElementById(e.target.dataset.target);
+    if (!target) return;
+    navigator.clipboard.writeText(target.textContent).then(() => {
+      const orig = e.target.textContent;
+      e.target.textContent = 'Copied ✓';
+      setTimeout(() => { e.target.textContent = orig; }, 2000);
+    });
+  });
+</script>
+</body>
+</html>
