@@ -347,6 +347,12 @@ app.get('/citation', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'citation.html'));
 });
 
+// ── LINKEDIN GROWTH TOOL ──────────────────────────────────────────────────────
+
+app.get('/linkedin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'linkedin-growth-tool.html'));
+});
+
 // ── CATCH-ALL (keep this last) ────────────────────────────────────────────────
 
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
