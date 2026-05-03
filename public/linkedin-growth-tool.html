@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkedIn Growth — Briskfil</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8eaf0;
+    --muted: #7a8099;
+    --accent: #3b82f6;
+    --accent-dim: rgba(59,130,246,0.12);
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.12);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.12);
+    --coral: #f97316;
+    --coral-dim: rgba(249,115,22,0.12);
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,0.12);
+    --radius: 10px;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+  /* LAYOUT */
+  .shell { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-logo .brand { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.04em; }
+  .sidebar-logo .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .nav-section { padding: 0 12px; margin-bottom: 8px; }
+  .nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 8px; margin-bottom: 6px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    transition: all 0.15s;
+    font-family: var(--font);
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent-dim); color: var(--accent); }
+  .nav-item .icon { font-size: 15px; flex-shrink: 0; }
+
+  .main { flex: 1; overflow-x: hidden; }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .client-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-dim); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+  .client-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .client-meta { font-size: 11px; color: var(--muted); }
+
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .pill {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: opacity 0.15s;
+  }
+  .pill:hover { opacity: 0.8; }
+  .pill-blue { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(59,130,246,0.25); }
+  .pill-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+  .pill-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+  .pill-coral { background: var(--coral-dim); color: var(--coral); border: 1px solid rgba(249,115,22,0.25); }
+  .pill-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+
+  .content { padding: 28px; }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* SECTION HEADERS */
+  .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+
+  /* METRIC GRID */
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .metric-card .label { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .metric-card .val { font-size: 22px; font-weight: 600; color: var(--text); line-height: 1; }
+  .metric-card .delta { font-size: 11px; margin-top: 5px; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+  .neutral { color: var(--muted); }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-color: var(--border2); }
+
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+  .card-meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .card-body { font-size: 13px; color: #a0a8be; line-height: 1.65; margin-bottom: 12px; }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--accent);
+    border: 1px solid rgba(59,130,246,0.2);
+    cursor: pointer;
+    font-family: var(--font);
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .action-btn:hover { background: var(--accent-dim); border-color: rgba(59,130,246,0.4); }
+
+  /* BAR CHART */
+  .bar-list { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; }
+  .bar-label { font-size: 12px; color: var(--muted); width: 170px; flex-shrink: 0; }
+  .bar-track { flex: 1; background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: var(--accent); }
+  .bar-val { font-size: 12px; color: var(--muted); width: 34px; text-align: right; flex-shrink: 0; }
+
+  /* ACTION LIST */
+  .action-list { display: flex; flex-direction: column; gap: 0; }
+  .action-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .action-row:last-child { border-bottom: none; }
+  .action-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0; margin-top: 1px;
+  }
+  .action-body { flex: 1; }
+  .action-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .action-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .action-priority { font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 500; flex-shrink: 0; margin-top: 3px; }
+
+  /* HASHTAG GRID */
+  .hashtag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-bottom: 20px; }
+  .hashtag-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .hashtag-tile:hover { border-color: var(--border2); }
+  .hashtag-name { font-size: 13px; font-weight: 500; color: var(--accent); }
+  .hashtag-vol { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* IMAGE ANALYSIS */
+  .upload-zone {
+    border: 2px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-bottom: 20px;
+  }
+  .upload-zone:hover { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+  .upload-zone input { display: none; }
+  .upload-icon { font-size: 32px; margin-bottom: 10px; }
+  .upload-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .img-preview { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px; display: none; max-height: 300px; object-fit: cover; }
+
+  .analysis-output {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    font-size: 13px;
+    color: #a0a8be;
+    line-height: 1.7;
+    min-height: 100px;
+    display: none;
+  }
+  .analysis-output.loading { color: var(--muted); font-style: italic; }
+
+  /* VIDEO PROGRAM */
+  .video-week {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .video-week-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .video-week-header:hover { background: var(--surface2); }
+  .video-week-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .video-week-badge { font-size: 11px; }
+  .video-week-body { padding: 0 18px 18px; display: none; }
+  .video-week-body.open { display: block; padding-top: 14px; }
+
+  .video-shot {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .video-shot:last-child { border-bottom: none; }
+  .shot-num { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-dim); color: var(--accent); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .shot-content { flex: 1; }
+  .shot-label { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .shot-desc { font-size: 12px; color: var(--muted); }
+
+  /* EVENTS */
+  .event-row {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .event-row:last-child { border-bottom: none; }
+  .event-date {
+    width: 52px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .event-month { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--muted); letter-spacing: 0.06em; }
+  .event-day { font-size: 20px; font-weight: 600; color: var(--text); line-height: 1; }
+  .event-body { flex: 1; }
+  .event-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .event-loc { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .event-angle { font-size: 12px; color: #a0a8be; line-height: 1.55; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+  /* GRID 2 COL */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+  /* TEXTAREA */
+  textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 12px 14px;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+  }
+  textarea:focus { border-color: var(--accent); }
+
+  /* LOADING SPINNER */
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  /* COPY TOAST */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.25s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  select, input[type=text], input[type=date] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .generated-output {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.75;
+    white-space: pre-wrap;
+    min-height: 80px;
+    margin-top: 14px;
+  }
+
+  .output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .output-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .progress-bar-outer { background: var(--surface2); border-radius: 4px; height: 4px; overflow: hidden; margin-top: 8px; }
+  .progress-bar-inner { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; transition: width 0.3s; }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">Briskfil</div>
+      <div class="sub">LinkedIn Growth — NXRD</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <button class="nav-item active" onclick="nav('overview',this)"><span class="icon">◎</span> Dashboard</button>
+      <button class="nav-item" onclick="nav('events',this)"><span class="icon">◈</span> Live events</button>
+    </div>
+
+    <div class="nav-section" style="margin-top:12px;">
+      <div class="nav-label">Content</div>
+      <button class="nav-item" onclick="nav('trends',this)"><span class="icon">▲</span> Trends</button>
+      <button class="nav-item" onclick="nav('content',this)"><span class="icon">✦</span> Post ideas</button>
+      <button class="nav-item" onclick="nav('generator',this)"><span class="icon">⚡</span> Post generator</button>
+      <button class="nav-item" onclick="nav('hashtags',this)"><span class="icon">#</span> Hashtags</button>
+    </div>
+
+    <div class="nav-section" style="margin-top:12px;">
+      <div class="nav-label">Production</div>
+      <button class="nav-item" onclick="nav('video',this)"><span class="icon">▶</span> Video program</button>
+      <button class="nav-item" onclick="nav('image',this)"><span class="icon">⬡</span> Image analysis</button>
+    </div>
+
+    <div class="nav-section" style="margin-top:12px;">
+      <div class="nav-label">Strategy</div>
+      <button class="nav-item" onclick="nav('actions',this)"><span class="icon">◉</span> Growth actions</button>
+    </div>
+  </nav>
+
+  <!-- MAIN AREA -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="client-avatar">BF</div>
+        <div>
+          <div class="client-name">Briskfil</div>
+          <div class="client-meta">Compressed Air · Industrial Gases · Energy Efficiency · Esposende, Portugal</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="pill pill-green">3x / week target</span>
+        <span class="pill pill-amber">Baseline phase</span>
+        <span class="pill pill-blue" id="today-date"></span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== OVERVIEW ===== -->
+      <div id="panel-overview" class="panel active">
+
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="label">Posting frequency</div>
+            <div class="val" style="font-size:16px; margin-top:4px;">Low</div>
+            <div class="delta down">Target: 3 posts per week</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Best performing format</div>
+            <div class="val" style="font-size:16px; margin-top:4px;">Carousel</div>
+            <div class="delta up">3.8x avg reach in B2B industrial</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Primary audience</div>
+            <div class="val" style="font-size:16px; margin-top:4px;">Engineers</div>
+            <div class="delta neutral">+ Plant managers, procurement</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Short video priority</div>
+            <div class="val" style="font-size:16px; margin-top:4px;">High</div>
+            <div class="delta up">LinkedIn native video +76% in 2026</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Page profile score</div>
+            <div class="val" style="font-size:16px; margin-top:4px;">Incomplete</div>
+            <div class="delta down">Keywords missing in about section</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Employee advocacy</div>
+            <div class="val" style="font-size:16px; margin-top:4px;">Not active</div>
+            <div class="delta down">Activate for 2x organic reach</div>
+          </div>
+        </div>
+
+        <div class="section-title">Content format performance — B2B industrial benchmark 2026</div>
+        <div class="card">
+          <div class="bar-list">
+            <div class="bar-row"><span class="bar-label">Carousel / document post</span><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><span class="bar-val">88%</span></div>
+            <div class="bar-row"><span class="bar-label">Short-form native video</span><div class="bar-track"><div class="bar-fill" style="width:76%"></div></div><span class="bar-val">76%</span></div>
+            <div class="bar-row"><span class="bar-label">Text insight / opinion post</span><div class="bar-track"><div class="bar-fill" style="width:61%"></div></div><span class="bar-val">61%</span></div>
+            <div class="bar-row"><span class="bar-label">Case study / before + after</span><div class="bar-track"><div class="bar-fill" style="width:55%"></div></div><span class="bar-val">55%</span></div>
+            <div class="bar-row"><span class="bar-label">Product / facility image</span><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div><span class="bar-val">38%</span></div>
+            <div class="bar-row"><span class="bar-label">External link post</span><div class="bar-track"><div class="bar-fill" style="width:14%"></div></div><span class="bar-val">14%</span></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-title">LinkedIn algorithm signals — what matters in 2026</div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">Relevance beats volume</div>
+            <div class="card-body">LinkedIn's 2026 algorithm rewards consistent relevance to a defined audience over high post frequency. Briskfil should own 3 to 4 core topics and repeat them. Plant engineers and procurement managers need to associate the brand with compressed air expertise before they ever have a buying need.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Early engagement is critical</div>
+            <div class="card-body">The first 60 to 90 minutes after posting determine whether a post gets wide distribution. Saves and comments carry more weight than likes. Activate the Briskfil team to engage immediately after each post goes live. Two or three internal engagements in the first hour doubles reach consistently.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Company page plus people strategy</div>
+            <div class="card-body">The strongest B2B LinkedIn presence in 2026 combines Company Page posts with personal posts from key team members. If the Briskfil founder or technical leads can share their own expertise, the combined reach significantly outperforms the Company Page alone.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Native content always wins</div>
+            <div class="card-body">LinkedIn supresses posts that drive users off the platform. All carousels, videos, and images should be uploaded natively. Avoid leading with links. If a blog post or article is worth sharing, put the key insight in the post body and add the link as the first comment.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== EVENTS ===== -->
+      <div id="panel-events" class="panel">
+        <div class="section-title">Upcoming global events — content hooks for Briskfil · May to July 2026</div>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:20px;">Each event is a real-world conversation already happening in Briskfil's target market. Use these as hooks to join relevant discussions and position the brand as an expert voice.</p>
+
+        <div class="card">
+          <div class="action-list">
+
+            <div class="event-row">
+              <div class="event-date"><div class="event-month">MAY</div><div class="event-day">12</div></div>
+              <div class="event-body">
+                <div class="event-name">Industrial Decarbonisation Europe 2026</div>
+                <div class="event-loc">Amsterdam, Netherlands</div>
+                <div class="event-angle">Covers decarbonising hard-to-abate sectors and supply chain transparency. Briskfil angle: compressed air is one of the most overlooked energy costs in industrial decarbonisation. Post on how air system efficiency maps directly to Scope 2 reduction targets before or during the event to ride the hashtag wave.</div>
+                <div style="margin-top:8px; display:flex; gap:8px;">
+                  <button class="pill pill-blue" onclick="genEventPost('Industrial Decarbonisation Europe 2026, Amsterdam. Write a LinkedIn post for Briskfil that ties compressed air energy efficiency to industrial decarbonisation and Scope 2 emissions, referencing this event as context.')">Generate post</button>
+                  <span class="pill pill-amber">Decarbonisation</span>
+                  <span class="pill pill-coral">Energy</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="event-row">
+              <div class="event-date"><div class="event-month">MAY</div><div class="event-day">26</div></div>
+              <div class="event-body">
+                <div class="event-name">Smart Manufacturing &amp; Industry 4.0 Summit</div>
+                <div class="event-loc">Orlando, FL — global conversation</div>
+                <div class="event-angle">Industry 4.0 and smart factory themes dominate the global industrial LinkedIn feed during this period. Briskfil angle: IoT-enabled compressed air monitoring is a practical and affordable entry point into Industry 4.0 for Portuguese manufacturers. Post a carousel on real-time air quality monitoring as an Industry 4.0 first step.</div>
+                <div style="margin-top:8px; display:flex; gap:8px;">
+                  <button class="pill pill-blue" onclick="genEventPost('Smart Manufacturing and Industry 4.0 Summit, May 2026. Write a LinkedIn post for Briskfil positioning IoT-enabled compressed air monitoring as a practical first step into Industry 4.0 for Portuguese manufacturers.')">Generate post</button>
+                  <span class="pill pill-amber">Industry 4.0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="event-row">
+              <div class="event-date"><div class="event-month">JUN</div><div class="event-day">3</div></div>
+              <div class="event-body">
+                <div class="event-name">Venice Climate Week 2026</div>
+                <div class="event-loc">Venice, Italy</div>
+                <div class="event-angle">Global climate action narrative intensifies during this week. Urban decarbonisation and clean energy deployment are the main themes. Briskfil angle: efficiency in existing industrial infrastructure is the fastest decarbonisation route. Use the momentum to publish your "compressed air as the fourth utility" opinion post.</div>
+                <div style="margin-top:8px; display:flex; gap:8px;">
+                  <button class="pill pill-blue" onclick="genEventPost('Venice Climate Week 2026, June 3. Write a short provocative LinkedIn post for Briskfil linking industrial air system efficiency to climate action, pointing out that most manufacturers overlook compressed air as a major energy cost.')">Generate post</button>
+                  <span class="pill pill-green">Climate action</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="event-row">
+              <div class="event-date"><div class="event-month">JUN</div><div class="event-day">20</div></div>
+              <div class="event-body">
+                <div class="event-name">London Climate Action Week 2026</div>
+                <div class="event-loc">London, UK — 700+ events, 45k participants</div>
+                <div class="event-angle">One of the largest climate weeks globally. ESG reporting and industrial sustainability dominate B2B LinkedIn during this period. Briskfil angle: tie a compressed air audit case study to CSRD and EU Green Deal compliance language. Position Briskfil as the partner that makes regulatory compliance commercially attractive, not just a cost.</div>
+                <div style="margin-top:8px; display:flex; gap:8px;">
+                  <button class="pill pill-blue" onclick="genEventPost('London Climate Action Week 2026, June 20-28. Write a LinkedIn post for Briskfil connecting compressed air audit services to CSRD compliance and EU Green Deal reporting obligations for Portuguese manufacturers.')">Generate post</button>
+                  <span class="pill pill-coral">ESG</span>
+                  <span class="pill pill-amber">CSRD</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="event-row">
+              <div class="event-date"><div class="event-month">JUN</div><div class="event-day">22</div></div>
+              <div class="event-body">
+                <div class="event-name">Automate 2026 — Robotics &amp; Automation Show</div>
+                <div class="event-loc">Chicago, USA — North America's leading automation event</div>
+                <div class="event-angle">Automation, robotics, and smart factory themes flood LinkedIn globally during Automate week. Briskfil angle: automated factories demand clean, reliable compressed air. Every robotic line depends on consistent air quality. Post a technical insight on how automation investment is undermined by poor air system management.</div>
+                <div style="margin-top:8px; display:flex; gap:8px;">
+                  <button class="pill pill-blue" onclick="genEventPost('Automate 2026 robotics and automation show, Chicago, June 22-25. Write a LinkedIn post for Briskfil on how automated manufacturing lines depend on reliable compressed air quality, and how poor air management undermines automation investment.')">Generate post</button>
+                  <span class="pill pill-blue">Automation</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="event-row">
+              <div class="event-date"><div class="event-month">JUN</div><div class="event-day">26</div></div>
+              <div class="event-body">
+                <div class="event-name">Water in Industry 2026 (WIN2026)</div>
+                <div class="event-loc">Delft, Netherlands</div>
+                <div class="event-angle">Industrial water management and sustainable process fluids. Briskfil angle: industrial fluid filtration and vacuum systems are directly adjacent to water treatment applications. Use this event to expand the content territory beyond compressed air and introduce Briskfil's fluid filtration capabilities to a new audience segment.</div>
+                <div style="margin-top:8px; display:flex; gap:8px;">
+                  <button class="pill pill-blue" onclick="genEventPost('Water in Industry 2026 conference, Delft Netherlands, June 26-30. Write a LinkedIn post for Briskfil introducing industrial fluid filtration as a solution for sustainable water management in manufacturing processes.')">Generate post</button>
+                  <span class="pill pill-green">Filtration</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="event-post-output" style="display:none;">
+          <div class="output-header">
+            <span class="output-label">Generated post</span>
+            <button class="copy-btn" onclick="copyOutput('event-post-text')">Copy</button>
+          </div>
+          <div class="generated-output" id="event-post-text">Generating...</div>
+        </div>
+      </div>
+
+      <!-- ===== TRENDS ===== -->
+      <div id="panel-trends" class="panel">
+        <div class="section-title">Live topic trends — May 2026</div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-badges"><span class="pill pill-blue">Rising fast</span><span class="pill pill-green">Energy regulation</span></div>
+            </div>
+          </div>
+          <div class="card-title">Compressed air energy audits and ISO 11011 compliance</div>
+          <div class="card-meta">Trending in: plant engineering, energy management, procurement</div>
+          <div class="card-body">EU energy efficiency directives and CSRD reporting requirements are driving plant managers to audit compressed air systems as a priority. ISO 11011 audits are becoming a procurement requirement for large manufacturers. Briskfil's 35 years of expertise maps directly to this conversation and there is very little competition for this specific topic in the Portuguese market on LinkedIn.</div>
+          <button class="action-btn" onclick="triggerGen('Write a LinkedIn carousel post for Briskfil on the topic of compressed air energy audits and ISO 11011 compliance. Target plant engineers and energy managers in Portugal and Europe. Include a compelling hook slide, five content slides with a clear insight each, and a CTA slide. Use punchy, plain language throughout.')">Generate post on this ↗</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-badges"><span class="pill pill-amber">Growing</span><span class="pill pill-blue">Industry 4.0</span></div>
+            </div>
+          </div>
+          <div class="card-title">Real-time compressed air monitoring and predictive maintenance</div>
+          <div class="card-meta">Trending in: smart manufacturing, OEE, IoT sensors</div>
+          <div class="card-body">Manufacturers are moving from reactive to predictive maintenance across all utilities. IoT-enabled air quality monitoring is one of the lowest-barrier entries into Industry 4.0 for mid-size Portuguese manufacturers. LinkedIn data shows this content category growing at over 40% year on year in the industrial B2B segment as of early 2026.</div>
+          <button class="action-btn" onclick="triggerGen('Write a LinkedIn post for Briskfil on real-time compressed air monitoring using IoT sensors and how it connects to Industry 4.0 and predictive maintenance. Show the commercial benefit in plain language. Under 250 words, insight-led tone, soft CTA at the end.')">Generate post on this ↗</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-badges"><span class="pill pill-coral">Evergreen</span><span class="pill pill-green">Education</span></div>
+            </div>
+          </div>
+          <div class="card-title">The true cost of compressed air leaks</div>
+          <div class="card-meta">Trending in: cost reduction, plant operations, sustainability</div>
+          <div class="card-body">A proven B2B content formula: quantify a hidden cost your audience has not calculated before, then show you can solve it. Specific numbers around leak costs consistently generate high save rates from plant operators who forward these posts internally to management. Simple, high utility, and directly commercial for Briskfil.</div>
+          <button class="action-btn" onclick="triggerGen('Write a LinkedIn post for Briskfil about the hidden cost of compressed air leaks in industrial facilities. Lead with a striking statistic about energy waste, explain the mechanism in plain terms, and end with a soft CTA for a free assessment. Under 220 words.')">Generate post on this ↗</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-badges"><span class="pill pill-blue">Rising</span><span class="pill pill-amber">ESG regulation</span></div>
+            </div>
+          </div>
+          <div class="card-title">EU Green Deal, CSRD reporting, and industrial Scope 2 emissions</div>
+          <div class="card-meta">Trending in: sustainability, ESG, industrial compliance</div>
+          <div class="card-body">Portuguese manufacturers are under growing regulatory pressure to report and reduce emissions. Compressed air efficiency is one of the most accessible decarbonisation levers in any plant. Briskfil can own this specific positioning in the Portuguese market, where very few industrial services companies are communicating the connection between operational efficiency and regulatory compliance.</div>
+          <button class="action-btn" onclick="triggerGen('Write a LinkedIn post for Briskfil connecting compressed air efficiency and audit services to EU Green Deal obligations and CSRD Scope 2 emissions reporting for Portuguese and European manufacturers. Position Briskfil as the practical compliance partner. Under 280 words.')">Generate post on this ↗</button>
+        </div>
+
+        <div id="gen-output" style="display:none; margin-top:4px;">
+          <div class="output-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="output-label">Generated post</span>
+              <span id="gen-spinner" style="display:none;"><span class="spinner"></span></span>
+            </div>
+            <button class="copy-btn" onclick="copyOutput('gen-text')">Copy</button>
+          </div>
+          <div class="generated-output" id="gen-text"></div>
+        </div>
+      </div>
+
+      <!-- ===== CONTENT IDEAS ===== -->
+      <div id="panel-content" class="panel">
+        <div class="section-title">Ready-to-brief post concepts for Briskfil</div>
+
+        <div class="card">
+          <div class="card-badges" style="margin-bottom:10px;"><span class="pill pill-blue">Carousel</span><span class="pill pill-green">Education</span></div>
+          <div class="card-title">5 signs your compressed air system is costing you money</div>
+          <div class="card-body">Each slide covers one diagnostic signal: unusual pressure drops, visible condensation, excessive compressor cycling, warm discharge air, high energy bills versus output. Final slide positions Briskfil's on-site audit as the next step. Designed for high save rates among maintenance engineers and plant managers who will forward it internally.</div>
+          <button class="action-btn" onclick="triggerGen('Write full LinkedIn carousel copy for Briskfil: 5 signs your compressed air system is costing you money. Include an attention-grabbing hook slide, five content slides each with a headline and a 2-3 line explanation, and a closing CTA slide. Clear, technical but accessible language. No jargon without explanation.')">Write full carousel ↗</button>
+        </div>
+
+        <div class="card">
+          <div class="card-badges" style="margin-bottom:10px;"><span class="pill pill-amber">Text post</span><span class="pill pill-coral">Thought leadership</span></div>
+          <div class="card-title">Case study: we helped a manufacturer save euros per year in air costs</div>
+          <div class="card-body">Anonymised mini case study format. Describes the audit process, three specific findings, and quantified savings. Ends with a question to drive comments. This format consistently outperforms promotional posts in B2B because it tells a story, uses real numbers, and demonstrates capability without selling directly. Ideal for warming cold audiences.</div>
+          <button class="action-btn" onclick="triggerGen('Write a LinkedIn text post for Briskfil in the style of a mini case study about a compressed air audit that uncovered significant energy waste at a Portuguese manufacturing facility. Make up plausible but realistic numbers. Story structure: problem, discovery, result. Under 260 words, punchy conversational tone, end with a question to drive comments.')">Write this post ↗</button>
+        </div>
+
+        <div class="card">
+          <div class="card-badges" style="margin-bottom:10px;"><span class="pill pill-coral">Short video</span><span class="pill pill-green">Behind the scenes</span></div>
+          <div class="card-title">What a compressed air quality test looks like on site</div>
+          <div class="card-body">60-second walkthrough of a client site visit. No selling, pure process transparency. Engineers engage heavily with this format because it validates expertise visually and builds trust faster than written posts. Can be filmed on a smartphone. This gives the videographer a concrete brief for on-site content capture.</div>
+          <button class="action-btn" onclick="triggerGen('Write a full short-form video script and production brief for Briskfil. The video shows what a compressed air quality test looks like on a client site. Include: spoken intro line, 5 key shots to capture with camera instructions, voiceover or on-camera lines for each shot, and a closing caption for LinkedIn. Approximately 60 seconds total run time.')">Write video brief ↗</button>
+        </div>
+
+        <div class="card">
+          <div class="card-badges" style="margin-bottom:10px;"><span class="pill pill-blue">Carousel</span><span class="pill pill-green">Education</span></div>
+          <div class="card-title">ISO 8573 explained: a plain-language guide for plant managers</div>
+          <div class="card-body">Demystifies the international purity classification standard in language the buying audience understands. One slide per class covering particles, water, and oil. Written for non-engineers. Extremely high save and share rate on LinkedIn because it becomes a reference resource. Positions Briskfil as the expert who makes technical compliance approachable.</div>
+          <button class="action-btn" onclick="triggerGen('Write full LinkedIn carousel copy for Briskfil explaining ISO 8573 compressed air purity classes in plain language aimed at plant managers and procurement leads, not just engineers. Include an intro slide, one slide per purity class (particles, water, oil), a practical implications slide, and a CTA slide. Keep it genuinely accessible.')">Write full carousel ↗</button>
+        </div>
+
+        <div class="card">
+          <div class="card-badges" style="margin-bottom:10px;"><span class="pill pill-coral">Opinion post</span><span class="pill pill-amber">Lead gen</span></div>
+          <div class="card-title">Most factories treat compressed air as free. It is not.</div>
+          <div class="card-body">Short, provocative opinion post. Opens a counterintuitive argument, walks through the data on compressed air as the fourth utility after electricity, gas, and water, and invites comments. Designed to generate shares from plant engineers who want their management to see it. High viral potential in the B2B industrial segment.</div>
+          <button class="action-btn" onclick="triggerGen('Write a short provocative LinkedIn post for Briskfil on the theme that most factories treat compressed air as free when it is actually one of the most expensive utilities in a plant. Under 200 words. Bold opening line, clear evidence-based middle, ends with a question or insight that drives comments. No fluff.')">Write this post ↗</button>
+        </div>
+
+        <div id="content-output" style="display:none; margin-top:4px;">
+          <div class="output-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="output-label">Generated content</span>
+              <span id="content-spinner" style="display:none;"><span class="spinner"></span></span>
+            </div>
+            <button class="copy-btn" onclick="copyOutput('content-text')">Copy</button>
+          </div>
+          <div class="generated-output" id="content-text"></div>
+        </div>
+      </div>
+
+      <!-- ===== POST GENERATOR ===== -->
+      <div id="panel-generator" class="panel">
+        <div class="section-title">Custom post generator</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Brief the AI on what you need and it will generate a LinkedIn post tailored for Briskfil's voice and audience.</p>
+
+        <div class="two-col" style="margin-bottom:16px;">
+          <div>
+            <div class="section-title">Post format</div>
+            <select id="gen-format" style="width:100%;">
+              <option>Text post (under 250 words)</option>
+              <option>Text post (long form, 400-600 words)</option>
+              <option>Carousel script (6-8 slides)</option>
+              <option>Short video script (60 seconds)</option>
+              <option>Short video script (90 seconds)</option>
+              <option>Opinion post (provocative, under 200 words)</option>
+              <option>Case study post</option>
+              <option>Announcement post</option>
+              <option>Lead magnet post (comment trigger)</option>
+            </select>
+          </div>
+          <div>
+            <div class="section-title">Target audience</div>
+            <select id="gen-audience" style="width:100%;">
+              <option>Plant engineers and maintenance managers</option>
+              <option>Procurement and purchasing leads</option>
+              <option>Energy and sustainability managers</option>
+              <option>Factory directors and operations leads</option>
+              <option>C-suite / business owners (SME manufacturers)</option>
+              <option>Food and pharma production managers</option>
+              <option>Automotive manufacturing teams</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <div class="section-title">Topic or brief</div>
+          <textarea id="gen-brief" rows="4" placeholder="e.g. A post about how compressed air leaks are costing manufacturers thousands per year without them realising it. Hook the reader with a specific cost figure and end with a CTA for our free audit."></textarea>
+        </div>
+
+        <div class="two-col" style="margin-bottom:20px;">
+          <div>
+            <div class="section-title">Tone</div>
+            <select id="gen-tone" style="width:100%;">
+              <option>Expert but plain-spoken</option>
+              <option>Provocative and direct</option>
+              <option>Educational and approachable</option>
+              <option>Story-led / conversational</option>
+              <option>Technical and authoritative</option>
+            </select>
+          </div>
+          <div>
+            <div class="section-title">CTA type</div>
+            <select id="gen-cta" style="width:100%;">
+              <option>Soft — invite comment or question</option>
+              <option>Medium — book a call or assessment</option>
+              <option>Lead gen — comment to receive resource</option>
+              <option>None — thought leadership only</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="gen-btn" onclick="runGenerator()">Generate post</button>
+
+        <div id="gen2-output" style="display:none; margin-top:20px;">
+          <div class="output-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="output-label">Generated post</span>
+              <span id="gen2-spinner" style="display:none;"><span class="spinner"></span></span>
+            </div>
+            <button class="copy-btn" onclick="copyOutput('gen2-text')">Copy</button>
+          </div>
+          <div class="generated-output" id="gen2-text"></div>
+        </div>
+      </div>
+
+      <!-- ===== HASHTAGS ===== -->
+      <div id="panel-hashtags" class="panel">
+        <div class="section-title">Hashtag strategy — Briskfil</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Use 5 to 8 hashtags per post. Mix all three tiers. Avoid over-hashtagging — LinkedIn suppresses posts with more than 10. The goal is to appear in relevant feeds, not to stuff every possible tag.</p>
+
+        <div class="section-title">Tier 1 — broad reach</div>
+        <div class="hashtag-grid" style="margin-bottom:24px;">
+          <div class="hashtag-tile"><div class="hashtag-name">#Manufacturing</div><div class="hashtag-vol">Over 2 million followers</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#EnergyEfficiency</div><div class="hashtag-vol">Over 800k followers</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#Industry40</div><div class="hashtag-vol">Over 700k followers</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#Sustainability</div><div class="hashtag-vol">Over 5 million followers</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#Engineering</div><div class="hashtag-vol">Over 3 million followers</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#Industrial</div><div class="hashtag-vol">Over 400k followers</div></div>
+        </div>
+
+        <div class="section-title">Tier 2 — niche authority</div>
+        <div class="hashtag-grid" style="margin-bottom:24px;">
+          <div class="hashtag-tile"><div class="hashtag-name">#CompressedAir</div><div class="hashtag-vol">Niche, high intent</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#IndustrialGases</div><div class="hashtag-vol">Strong B2B audience</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#PredictiveMaintenance</div><div class="hashtag-vol">Plant engineers</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#EnergyManagement</div><div class="hashtag-vol">Procurement and ops</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#PlantEngineering</div><div class="hashtag-vol">Decision makers</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#SmartManufacturing</div><div class="hashtag-vol">Industry 4.0 audience</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#IndustrialDecarbonisation</div><div class="hashtag-vol">Growing fast in 2026</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#CompressedAirQuality</div><div class="hashtag-vol">High specificity</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#ISO8573</div><div class="hashtag-vol">Technical search</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#AirFiltration</div><div class="hashtag-vol">Adjacent sector</div></div>
+        </div>
+
+        <div class="section-title">Tier 3 — brand and local</div>
+        <div class="hashtag-grid" style="margin-bottom:28px;">
+          <div class="hashtag-tile"><div class="hashtag-name">#Briskfil</div><div class="hashtag-vol">Own brand hashtag — always include</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#Portugal</div><div class="hashtag-vol">Local visibility</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#PortugalManufacturing</div><div class="hashtag-vol">Domestic B2B audience</div></div>
+          <div class="hashtag-tile"><div class="hashtag-name">#NXRD</div><div class="hashtag-vol">Agency attribution</div></div>
+        </div>
+
+        <div class="section-title">Recommended post stacks by content type</div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:10px;">Energy audit / leak post</div>
+            <p style="font-size:12px;color:var(--accent);line-height:1.9;">#CompressedAir #EnergyEfficiency #Manufacturing #EnergyManagement #PlantEngineering #Briskfil #Portugal</p>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:10px;">Industry 4.0 / IoT post</div>
+            <p style="font-size:12px;color:var(--accent);line-height:1.9;">#Industry40 #SmartManufacturing #PredictiveMaintenance #IoT #CompressedAir #Engineering #Briskfil</p>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:10px;">Sustainability / ESG post</div>
+            <p style="font-size:12px;color:var(--accent);line-height:1.9;">#Sustainability #IndustrialDecarbonisation #EnergyEfficiency #Manufacturing #ESG #Briskfil #Portugal</p>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:10px;">Technical / education post</div>
+            <p style="font-size:12px;color:var(--accent);line-height:1.9;">#CompressedAirQuality #ISO8573 #Engineering #Industrial #Manufacturing #PlantEngineering #Briskfil</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== VIDEO PROGRAM ===== -->
+      <div id="panel-video" class="panel">
+        <div class="section-title">Short video program — 8-week brief for videographer</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">A structured production program built around Briskfil's core content themes. Each video is designed for LinkedIn native upload, 60 to 90 seconds maximum. Shot list and spoken brief included for each video. All can be filmed on site with a smartphone plus a lapel mic.</p>
+
+        <!-- WEEK 1 -->
+        <div class="video-week">
+          <div class="video-week-header" onclick="toggleWeek(this)">
+            <span class="video-week-title">Week 1 — What we do: site visit walkthrough</span>
+            <span class="pill pill-blue">60 sec</span>
+          </div>
+          <div class="video-week-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Objective: introduce Briskfil to a cold audience by showing the work, not describing it. No pitch. Pure process.</p>
+            <div class="video-shot">
+              <div class="shot-num">1</div>
+              <div class="shot-content"><div class="shot-label">Opening — exterior of client facility</div><div class="shot-desc">Camera: wide establishing shot of industrial site. No branding on site needed. Voiceover: "This is what a compressed air audit looks like in practice."</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">2</div>
+              <div class="shot-content"><div class="shot-label">Shot — engineer connecting test equipment</div><div class="shot-desc">Camera: close-up of equipment connection at pipe junction. Voiceover: "We start by connecting our particle count and moisture analyser directly to the distribution line."</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">3</div>
+              <div class="shot-content"><div class="shot-label">Shot — reading the display</div><div class="shot-desc">Camera: close-up of equipment readout or tablet display. Voiceover: "Within minutes we can tell you if your air meets ISO 8573 purity standards — or where it is failing."</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">4</div>
+              <div class="shot-content"><div class="shot-label">Shot — engineer to camera</div><div class="shot-desc">Camera: medium shot, direct to camera on site. Line: "Most clients are surprised by what we find. Compressed air problems rarely announce themselves — until they become expensive ones."</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">5</div>
+              <div class="shot-content"><div class="shot-label">Caption for post</div><div class="shot-desc">We spent the morning at a client site in northern Portugal. This is what 35 years of compressed air expertise looks like in practice. [Link in comments for a free air quality assessment.]</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WEEK 2 -->
+        <div class="video-week">
+          <div class="video-week-header" onclick="toggleWeek(this)">
+            <span class="video-week-title">Week 2 — The cost of doing nothing: energy waste explained</span>
+            <span class="pill pill-amber">90 sec</span>
+          </div>
+          <div class="video-week-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Objective: quantify the commercial pain of inaction. Hook the plant manager or financial director who controls the budget.</p>
+            <div class="video-shot">
+              <div class="shot-num">1</div>
+              <div class="shot-content"><div class="shot-label">Hook — direct to camera, office setting</div><div class="shot-desc">Line: "In most manufacturing plants, compressed air is the fourth biggest energy cost. Most finance directors have never looked at it." Hold 2 seconds. Cut.</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">2</div>
+              <div class="shot-content"><div class="shot-label">Visual — diagram or whiteboard animation</div><div class="shot-desc">Simple hand-drawn or filmed whiteboard: circle labelled "air system" with arrows to energy cost, productivity, and equipment life. Voiceover narrates each arrow briefly.</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">3</div>
+              <div class="shot-content"><div class="shot-label">Stat card — on screen text</div><div class="shot-desc">Text overlay: "A single 3mm leak in a compressed air line can cost over 1,500 euros per year." Hold for 3 seconds. Voiceover: "And most plants have more than one."</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">4</div>
+              <div class="shot-content"><div class="shot-label">Close — engineer direct to camera</div><div class="shot-desc">Line: "An audit pays for itself. We have seen clients recover the cost within three months of our first visit." Soft smile. Cut.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WEEK 3 -->
+        <div class="video-week">
+          <div class="video-week-header" onclick="toggleWeek(this)">
+            <span class="video-week-title">Week 3 — Client result: before and after</span>
+            <span class="pill pill-green">60 sec</span>
+          </div>
+          <div class="video-week-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Objective: social proof without a named client. Anonymised story format. Numbers are the hero.</p>
+            <div class="video-shot">
+              <div class="shot-num">1</div>
+              <div class="shot-content"><div class="shot-label">Setup — narrator on camera</div><div class="shot-desc">Line: "Last quarter we worked with a food manufacturing client in central Portugal. Their compressed air system looked fine on paper. It was not."</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">2</div>
+              <div class="shot-content"><div class="shot-label">Finding 1 — text card or cut to site</div><div class="shot-desc">Card or voiceover over site footage: "We found 7 leaks across the distribution network. Estimated cost: over 9,000 euros per year."</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">3</div>
+              <div class="shot-content"><div class="shot-label">Finding 2 — continuation</div><div class="shot-desc">Card: "Moisture contamination in the line was causing intermittent equipment faults. The client had been paying for repairs, not fixing the root cause."</div></div>
+            </div>
+            <div class="video-shot">
+              <div class="shot-num">4</div>
+              <div class="shot-content"><div class="shot-label">Resolution — narrator</div><div class="shot-desc">Line: "We fixed the system in two visits. The client saved more in the first year than they spent on five years of reactive maintenance. That is what we do."</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WEEK 4-8 COLLAPSED -->
+        <div class="video-week">
+          <div class="video-week-header" onclick="toggleWeek(this)">
+            <span class="video-week-title">Week 4 — Industry 4.0: what IoT monitoring actually looks like</span>
+            <span class="pill pill-blue">75 sec</span>
+          </div>
+          <div class="video-week-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Objective: position Briskfil at the intersection of traditional expertise and smart factory technology. Attract a forward-looking audience.</p>
+            <div class="video-shot"><div class="shot-num">1</div><div class="shot-content"><div class="shot-label">Hook — provocative open</div><div class="shot-desc">Line: "Industry 4.0 does not have to mean a complete factory overhaul. Sometimes it starts with knowing, in real time, exactly what your compressed air system is doing."</div></div></div>
+            <div class="video-shot"><div class="shot-num">2</div><div class="shot-content"><div class="shot-label">Demo — sensor installation footage</div><div class="shot-desc">Camera: close-up of sensor being mounted on air line. Screen shows live data feed. Voiceover: "We install monitoring at key points in the distribution network."</div></div></div>
+            <div class="video-shot"><div class="shot-num">3</div><div class="shot-content"><div class="shot-label">Dashboard view</div><div class="shot-desc">Camera: screen recording or screen share of monitoring dashboard showing pressure, flow, and particle count in real time. 5 seconds of live data scrolling.</div></div></div>
+            <div class="video-shot"><div class="shot-num">4</div><div class="shot-content"><div class="shot-label">Payoff</div><div class="shot-desc">Line: "When something changes, you know immediately. Before it becomes a problem. Before it stops a production line. That is Industry 4.0 working for you."</div></div></div>
+          </div>
+        </div>
+
+        <div class="video-week">
+          <div class="video-week-header" onclick="toggleWeek(this)">
+            <span class="video-week-title">Week 5 — Expert explainer: ISO 8573 in 60 seconds</span>
+            <span class="pill pill-blue">60 sec</span>
+          </div>
+          <div class="video-week-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Objective: establish Briskfil as the plain-language expert. Education posts with a compliance angle perform well with procurement and quality teams.</p>
+            <div class="video-shot"><div class="shot-num">1</div><div class="shot-content"><div class="shot-label">Hook</div><div class="shot-desc">Line: "ISO 8573. It is the international standard for compressed air purity. Most plant managers have heard of it. Very few know what it actually requires of their system."</div></div></div>
+            <div class="video-shot"><div class="shot-num">2</div><div class="shot-content"><div class="shot-label">Explain — with simple visual aid</div><div class="shot-desc">Simple printed card or whiteboard with three rows: particles, water, oil. Narrator points to each. 2 lines on each. Plain language only.</div></div></div>
+            <div class="video-shot"><div class="shot-num">3</div><div class="shot-content"><div class="shot-label">Stakes</div><div class="shot-desc">Line: "If you are in food, pharma, or automotive, your customers may already require you to be compliant. Do you know if you are?"</div></div></div>
+            <div class="video-shot"><div class="shot-num">4</div><div class="shot-content"><div class="shot-label">CTA</div><div class="shot-desc">Line: "We test for ISO 8573 compliance as part of every audit. Comment below or reach out directly if you want to know where you stand."</div></div></div>
+          </div>
+        </div>
+
+        <div class="video-week">
+          <div class="video-week-header" onclick="toggleWeek(this)">
+            <span class="video-week-title">Weeks 6, 7, 8 — Rolling themes (generate full briefs)</span>
+            <span class="pill pill-amber">Flexible</span>
+          </div>
+          <div class="video-week-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Use the generator below to produce full shot lists for the remaining weeks based on upcoming events or trending topics.</p>
+            <div style="display:grid;gap:8px;">
+              <button class="action-btn" onclick="triggerGen('Write a full 60-second LinkedIn short video production brief for Briskfil on the theme of EU Green Deal and how compressed air efficiency helps Portuguese manufacturers meet decarbonisation targets. Include: hook line, 4 shots with camera directions and spoken lines, on-screen text suggestions, and a LinkedIn caption.')">Week 6: EU Green Deal angle ↗</button>
+              <button class="action-btn" onclick="triggerGen('Write a full 75-second LinkedIn short video production brief for Briskfil on the theme of vacuum systems and industrial fluid filtration for food and pharma manufacturing. Include: hook line, 4-5 shots with camera directions and spoken lines, and a LinkedIn caption.')">Week 7: Vacuum and fluid filtration ↗</button>
+              <button class="action-btn" onclick="triggerGen('Write a full 60-second LinkedIn short video production brief for Briskfil that is a company origin story piece: 35 years of compressed air expertise, why Briskfil was founded in 2021, and the mission to bring best-in-class industrial gas consulting to Portugal. Interview format suggestion included.')">Week 8: Company story ↗</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="video-output" style="display:none; margin-top:4px;">
+          <div class="output-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="output-label">Generated brief</span>
+              <span id="video-spinner" style="display:none;"><span class="spinner"></span></span>
+            </div>
+            <button class="copy-btn" onclick="copyOutput('video-text')">Copy</button>
+          </div>
+          <div class="generated-output" id="video-text"></div>
+        </div>
+      </div>
+
+      <!-- ===== IMAGE ANALYSIS ===== -->
+      <div id="panel-image" class="panel">
+        <div class="section-title">Image analysis — LinkedIn creative review</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Upload any image you plan to post for Briskfil — carousel slide, photo from site, graphic, or cover image — and the AI will assess it for LinkedIn performance, brand alignment, and improvement recommendations.</p>
+
+        <div class="upload-zone" onclick="document.getElementById('img-upload').click()">
+          <input type="file" id="img-upload" accept="image/*" onchange="handleImageUpload(event)">
+          <div class="upload-icon">⬡</div>
+          <div>Click to upload an image for analysis</div>
+          <div class="upload-hint">JPG, PNG, WebP — carousel slides, photography, graphics, cover images</div>
+        </div>
+
+        <img id="img-preview" class="img-preview" alt="Preview">
+
+        <div style="margin-bottom:16px; display:none;" id="analysis-context-row">
+          <div class="section-title">Context for analysis</div>
+          <div class="two-col">
+            <select id="img-type">
+              <option>LinkedIn post image</option>
+              <option>Carousel slide</option>
+              <option>Company page cover image</option>
+              <option>Short video thumbnail</option>
+              <option>On-site photography</option>
+              <option>Product or equipment photo</option>
+              <option>Branded graphic / designed asset</option>
+            </select>
+            <select id="img-goal">
+              <option>Maximum organic reach</option>
+              <option>Brand authority and credibility</option>
+              <option>Lead generation</option>
+              <option>Educate and explain</option>
+              <option>Behind the scenes / trust building</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="analyse-btn" onclick="analyseImage()" style="display:none;">Analyse image</button>
+
+        <div class="analysis-output" id="analysis-output"></div>
+      </div>
+
+      <!-- ===== GROWTH ACTIONS ===== -->
+      <div id="panel-actions" class="panel">
+        <div class="section-title">Prioritised growth actions — May 2026</div>
+
+        <div class="card">
+          <div class="action-list">
+
+            <div class="action-row">
+              <div class="action-icon" style="background:var(--red-dim);">⚡</div>
+              <div class="action-body">
+                <div class="action-title">Set and lock in a 3x per week posting schedule</div>
+                <div class="action-desc">Mon, Wed, Fri at 08:30 CET. This window hits the pre-work scroll for European industrial professionals. Consistency is the highest-impact lever available right now. One week of gaps resets algorithmic momentum and requires rebuilding. Even a short text post on a slow day outperforms silence.</div>
+              </div>
+              <span class="action-priority pill pill-red">Critical</span>
+            </div>
+
+            <div class="action-row">
+              <div class="action-icon" style="background:var(--red-dim);">◎</div>
+              <div class="action-body">
+                <div class="action-title">Complete the company page: tagline, about section, specialities</div>
+                <div class="action-desc">LinkedIn indexes these fields for search. Use terms: "compressed air quality", "industrial gas consulting", "energy efficiency audit", "ISO 8573", "Industry 4.0 Portugal". Add a high-quality cover image. An incomplete page signals low credibility to both the algorithm and potential clients who land on the page from a post.</div>
+              </div>
+              <span class="action-priority pill pill-red">Critical</span>
+            </div>
+
+            <div class="action-row">
+              <div class="action-icon" style="background:var(--amber-dim);">▲</div>
+              <div class="action-body">
+                <div class="action-title">Activate the first short video — on-site site visit</div>
+                <div class="action-desc">Film and post Week 1 of the video program this month. LinkedIn is now actively pushing native short video in the feed. Early adopters in B2B industrial are seeing significantly higher organic reach on video versus text and image posts. The site visit brief is ready — it just needs a camera and a site visit.</div>
+              </div>
+              <span class="action-priority pill pill-amber">High</span>
+            </div>
+
+            <div class="action-row">
+              <div class="action-icon" style="background:var(--amber-dim);">◈</div>
+              <div class="action-body">
+                <div class="action-title">Deploy employee advocacy on every post</div>
+                <div class="action-desc">Ask the Briskfil team to engage within 60 minutes of each post going live. Comments carry more algorithmic weight than likes. A comment from a team member saying something specific about the post counts as a meaningful signal. Two or three people doing this consistently doubles organic reach with zero additional spend.</div>
+              </div>
+              <span class="action-priority pill pill-amber">High</span>
+            </div>
+
+            <div class="action-row">
+              <div class="action-icon" style="background:var(--amber-dim);">⬡</div>
+              <div class="action-body">
+                <div class="action-title">Follow and engage with 20 target accounts this month</div>
+                <div class="action-desc">Identify 20 ideal client companies: Portuguese food manufacturers, automotive suppliers, pharma facilities, and large industrial parks. Follow their pages. Comment meaningfully on their posts once a week. This places Briskfil in front of their followers and warms relationships before any direct outreach. Takes 15 minutes per week.</div>
+              </div>
+              <span class="action-priority pill pill-amber">High</span>
+            </div>
+
+            <div class="action-row">
+              <div class="action-icon" style="background:var(--green-dim);">✦</div>
+              <div class="action-body">
+                <div class="action-title">Publish one lead magnet post this month</div>
+                <div class="action-desc">"Comment AUDIT below and I will send you our compressed air energy waste calculator." Comment-triggered lead gen is one of the fastest ways to build a warm prospect list on LinkedIn without paid spend. The act of commenting creates a notification touchpoint and a natural reason to connect and message.</div>
+              </div>
+              <span class="action-priority pill pill-green">Medium</span>
+            </div>
+
+            <div class="action-row">
+              <div class="action-icon" style="background:var(--green-dim);">◉</div>
+              <div class="action-body">
+                <div class="action-title">Use upcoming events as real-time content hooks</div>
+                <div class="action-desc">Industrial Decarbonisation Europe (12 May), Venice Climate Week (3 June), London Climate Action Week (20-28 June), and Automate 2026 (22 June) all create LinkedIn conversation waves Briskfil can ride. See the Live Events panel for specific post briefs aligned to each event. Posting during peak event discussion windows increases discoverability significantly.</div>
+              </div>
+              <span class="action-priority pill pill-green">Medium</span>
+            </div>
+
+            <div class="action-row">
+              <div class="action-icon" style="background:var(--accent-dim);">▶</div>
+              <div class="action-body">
+                <div class="action-title">Build a monthly LinkedIn performance report</div>
+                <div class="action-desc">Track impressions, reach, follower growth, and top posts each month. After 90 days you will have enough pattern data to double down on what is working and cut what is not. Keep it simple: a single page with five numbers and a note on the best and worst post of the month. Review with the client at the start of each month.</div>
+              </div>
+              <span class="action-priority pill pill-blue">Ongoing</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// -- NAVIGATION --
+function nav(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// -- DATE --
+document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
+// -- VIDEO ACCORDION --
+function toggleWeek(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// -- TOAST --
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// -- COPY --
+function copyOutput(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.textContent).then(() => toast('Copied to clipboard'));
+}
+
+// -- CLAUDE API CALL --
+async function callClaude(prompt, outputId, spinnerId, wrapId) {
+  const out = document.getElementById(outputId);
+  const wrap = document.getElementById(wrapId);
+  const spin = spinnerId ? document.getElementById(spinnerId) : null;
+
+  if (wrap) { wrap.style.display = 'block'; }
+  if (out) { out.textContent = 'Generating...'; }
+  if (spin) spin.style.display = 'inline-block';
+
+  const systemPrompt = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011 specialisation), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Their target audience is plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers, especially in food, pharma, automotive, and general industrial sectors. Write in a direct, expert, plain-English style. No jargon without explanation. No hype. No emojis. No hyphens. Authoritative but approachable. Every post should feel like it was written by a genuine expert, not a marketing agency.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'No response received.';
+    if (out) out.textContent = text;
+  } catch(e) {
+    if (out) out.textContent = 'Error generating content. Please try again.';
+  }
+
+  if (spin) spin.style.display = 'none';
+}
+
+// -- TRIGGERS --
+function triggerGen(prompt) {
+  callClaude(prompt, 'gen-text', 'gen-spinner', 'gen-output');
+  document.getElementById('gen-output').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function genEventPost(prompt) {
+  callClaude(prompt, 'event-post-text', null, 'event-post-output');
+  document.getElementById('event-post-output').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// -- POST GENERATOR --
+function runGenerator() {
+  const format = document.getElementById('gen-format').value;
+  const audience = document.getElementById('gen-audience').value;
+  const brief = document.getElementById('gen-brief').value.trim();
+  const tone = document.getElementById('gen-tone').value;
+  const cta = document.getElementById('gen-cta').value;
+
+  if (!brief) { toast('Please add a topic or brief first'); return; }
+
+  const prompt = `Write a LinkedIn post for Briskfil with these specifications:
+
+Format: ${format}
+Target audience: ${audience}
+Tone: ${tone}
+CTA type: ${cta}
+
+Brief: ${brief}
+
+Deliver only the finished post copy, ready to use. No preamble, no notes, no explanation.`;
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+
+  callClaude(prompt, 'gen2-text', 'gen2-spinner', 'gen2-output').then(() => {
+    btn.disabled = false;
+    btn.textContent = 'Generate post';
+  });
+}
+
+// -- IMAGE ANALYSIS --
+let imageBase64 = null;
+
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const preview = document.getElementById('img-preview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    imageBase64 = e.target.result.split(',')[1];
+    document.getElementById('analysis-context-row').style.display = 'block';
+    document.getElementById('analyse-btn').style.display = 'inline-block';
+    document.getElementById('analysis-output').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyseImage() {
+  if (!imageBase64) return;
+
+  const imgType = document.getElementById('img-type').value;
+  const imgGoal = document.getElementById('img-goal').value;
+  const out = document.getElementById('analysis-output');
+
+  out.style.display = 'block';
+  out.textContent = 'Analysing image...';
+  out.classList.add('loading');
+
+  const systemPrompt = `You are a LinkedIn creative director and content strategist working for NXRD, a digital marketing agency. You are reviewing creative assets for Briskfil, a Portuguese B2B industrial consultancy specialising in compressed air quality, industrial gas consulting, and energy efficiency. You will review images for LinkedIn performance, brand alignment with a professional industrial B2B brand, and provide specific actionable improvement recommendations.`;
+
+  const userPrompt = `Please analyse this image for LinkedIn performance. Context: this is a ${imgType} for Briskfil (B2B industrial consultancy, Portugal). Goal: ${imgGoal}.
+
+Please assess:
+1. First impression and scroll-stop potential
+2. Brand alignment (professional, credible, industrial B2B)
+3. Technical quality (resolution, composition, lighting if applicable)
+4. Text legibility and hierarchy (if text is present)
+5. Emotional response it is likely to generate in a plant engineer or procurement manager scrolling LinkedIn
+6. Three specific improvements they could make before posting
+7. Overall rating out of 10 for LinkedIn performance
+
+Be direct and specific. No fluff.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
+            { type: 'text', text: userPrompt }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'Could not analyse image.';
+    out.textContent = text;
+    out.classList.remove('loading');
+  } catch(e) {
+    out.textContent = 'Error analysing image. Please try again.';
+    out.classList.remove('loading');
+  }
+}
+</script>
+
+</body>
+</html>
