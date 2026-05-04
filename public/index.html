@@ -657,6 +657,9 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
           </div>
         </div>
 
+      </div>
+      <!-- end cit-results -->
+
     </div>
   </div>
   <!-- end citation panel -->
@@ -1137,6 +1140,84 @@ document.addEventListener('click', e => {
     setTimeout(() => { e.target.textContent = orig; }, 2000);
   });
 });
+
+/* ══════════════════════════════════════════════════════════════
+   BLOG SUGGESTER
+══════════════════════════════════════════════════════════════ */
+async function runBlogSuggester() {
+  const topic = document.getElementById('blog-topic').value.trim();
+  const audience = document.getElementById('blog-audience').value.trim();
+  const brand = document.getElementById('blog-brand').value.trim();
+  const current = document.getElementById('blog-current').value;
+
+  if (!topic) { alert('Please enter a topic area'); return; }
+
+  const btn = document.getElementById('blog-gen-btn');
+  btn.textContent = 'Generating...';
+  btn.disabled = true;
+
+  const output = document.getElementById('blog-output');
+  const text = document.getElementById('blog-output-text');
+  output.style.display = 'block';
+  text.textContent = 'Building your blog strategy...';
+
+  const currentMap = {
+    none: 'not currently blogging',
+    occasional: 'posting occasionally (less than once a month)',
+    monthly: 'posting roughly once a month',
+    biweekly: 'posting fortnightly',
+    weekly: 'posting weekly'
+  };
+
+  const prompt = `You are an expert B2B content strategist and SEO consultant. Generate a complete blog content strategy for ${brand || 'this business'} with the following details:
+
+Topic area: ${topic}
+Target audience: ${audience || 'industrial professionals and B2B buyers'}
+Current blogging frequency: ${currentMap[current] || 'not specified'}
+
+Your response must include ALL of the following sections:
+
+1. RECOMMENDED POSTING FREQUENCY
+Recommend how many blog posts per week or month they should publish, with a clear rationale based on their industry competitiveness, target audience search behaviour, and the goal of getting cited by AI platforms like ChatGPT, Claude, and Perplexity. Be specific and realistic for a small to mid-size B2B business.
+
+2. WHY THIS FREQUENCY BUILDS AI CITATION AUTHORITY
+2 to 3 sentences on how consistent, high-quality blogging signals authority to AI models and improves the likelihood of being cited as a source.
+
+3. 4-WEEK BLOG CALENDAR
+A week-by-week content plan with 1 to 2 article titles per week. For each article include:
+- The title (specific and search-intent driven)
+- The target keyword phrase (2 to 4 words)
+- The audience segment it targets
+- One sentence on why this article will get cited by AI platforms
+
+4. 10 HIGH-PRIORITY ARTICLE TITLES FOR THE NEXT QUARTER
+These should be the highest-value articles for AI citation, covering educational, comparison, and problem-solving formats. Mix short-tail and long-tail keyword targets.
+
+5. QUICK WINS — 3 ARTICLES TO PUBLISH FIRST
+The three articles most likely to generate AI citations and inbound traffic within 60 days. Explain why each one is a quick win.
+
+Write in plain, direct language. No fluff. Format with clear section headers. No bullet points — use numbered lists and paragraphs.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const result = data.content?.map(b => b.text || '').join('') || 'No response received.';
+    text.textContent = result;
+  } catch(e) {
+    text.textContent = 'Error generating blog strategy. Please try again.';
+  }
+
+  btn.textContent = 'Generate blog strategy';
+  btn.disabled = false;
+}
 
 /* ══ BOOT ══ */
 checkAuth();
