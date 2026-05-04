@@ -17,21 +17,12 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: var(--white); min-height: 100vh; }
 
-/* ── LOGIN ── */
-.login-screen { display: none; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; gap: 2rem; }
-.login-screen.visible { display: flex; }
-.login-card { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: var(--radius); padding: 3rem; text-align: center; max-width: 420px; width: 90%; }
-.login-logo { margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; }
-.login-logo img { height: 40px; width: auto; }
-.login-title { font-size: 20px; font-weight: 600; color: var(--white); margin-bottom: 8px; }
-.login-sub { font-size: 13px; color: var(--gray-400); margin-bottom: 2rem; line-height: 1.6; }
+/* ── LOGIN BTN — used in inline analytics auth prompt ── */
 .login-btn { display: inline-flex; align-items: center; gap: 10px; background: var(--lime); color: var(--black); font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: var(--radius-sm); border: none; cursor: pointer; text-decoration: none; transition: background .2s; }
 .login-btn:hover { background: var(--lime-dim); }
-.login-footer { font-size: 11px; color: var(--gray-500); margin-top: 1.5rem; }
 
 /* ── DASHBOARD ── */
-.dashboard { display: none; }
-.dashboard.visible { display: block; }
+.dashboard { display: block; }
 
 /* ── HEADER ── */
 .header { background: var(--black); border-bottom: 1px solid var(--gray-700); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
@@ -286,32 +277,20 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 </head>
 <body>
 
-<!-- LOGIN -->
-<div class="login-screen" id="loginScreen">
-  <div class="login-card">
-    <div class="login-logo"><img src="/nxrd-logo.jpg" alt="NXRD"></div>
-    <div class="login-title">Briskfil Analytics</div>
-    <div class="login-sub">Sign in with your Google account to access the live analytics dashboard. You need access to the Briskfil GA4 property.</div>
-    <a href="/auth/login" class="login-btn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-      Sign in with Google
-    </a>
-    <div class="login-footer">Powered by NXRD — nx-rd.com</div>
-  </div>
-</div>
-
-<!-- DASHBOARD -->
-<div class="dashboard" id="dashboard">
+<!-- DASHBOARD — always visible, no login gate -->
+<div class="dashboard visible" id="dashboard">
 
   <header class="header">
     <div class="header-logo">
       <img src="/nxrd-logo.jpg" alt="NXRD">
-      <div class="logo-sub">Analytics Report — Briskfil</div>
+      <div class="logo-sub">Marketing Dashboard — Briskfil</div>
     </div>
     <div class="header-right">
-      <span class="last-updated" id="lastUpdated">Loading...</span>
-      <button class="header-btn" onclick="loadAll()">Refresh</button>
-      <button class="header-btn logout" onclick="logout()">Sign out</button>
+      <span class="last-updated" id="lastUpdated"></span>
+      <span id="auth-status-pill" style="display:none;"></span>
+      <button class="header-btn" id="header-signin-btn" style="display:none;" onclick="window.location='/auth/login'">Sign in for Analytics</button>
+      <button class="header-btn" id="header-refresh-btn" style="display:none;" onclick="loadAll()">Refresh</button>
+      <button class="header-btn logout" id="header-signout-btn" style="display:none;" onclick="logout()">Sign out</button>
     </div>
   </header>
 
@@ -329,14 +308,26 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
   <div class="panel active" id="panel-analytics">
     <div class="container">
 
-      <div class="page-title">
-        <h1>Briskfil website analytics</h1>
-        <p>Live data from Google Analytics 4 — Property 307311147</p>
-        <div class="period-label"><span class="period-dot"></span><span id="periodText">Loading period...</span></div>
+      <!-- Inline sign-in prompt shown only when not authenticated -->
+      <div id="analytics-signin-prompt" style="display:none; background:var(--gray-800); border:1px solid var(--gray-700); border-radius:var(--radius); padding:2.5rem; text-align:center; margin-bottom:2rem;">
+        <div style="font-size:28px;margin-bottom:12px;">📊</div>
+        <div style="font-size:16px;font-weight:600;color:var(--white);margin-bottom:8px;">Analytics requires Google sign-in</div>
+        <div style="font-size:13px;color:var(--gray-400);margin-bottom:1.5rem;line-height:1.6;max-width:400px;margin-left:auto;margin-right:auto;">The Analytics tab connects to the Briskfil GA4 property. All other tabs — LinkedIn Growth, Post Scheduler, and Citation Generator — are available without signing in.</div>
+        <a href="/auth/login" class="login-btn" style="display:inline-flex;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Sign in with Google
+        </a>
       </div>
 
-      <div class="section-title">Overview</div>
-      <div class="metrics-grid" id="metricsGrid"><div class="loading"><div class="spinner"></div> Loading metrics...</div></div>
+      <div id="analytics-content">
+        <div class="page-title">
+          <h1>Briskfil website analytics</h1>
+          <p>Live data from Google Analytics 4 — Property 307311147</p>
+          <div class="period-label"><span class="period-dot"></span><span id="periodText">Loading period...</span></div>
+        </div>
+
+        <div class="section-title">Overview</div>
+        <div class="metrics-grid" id="metricsGrid"><div class="loading"><div class="spinner"></div> Loading metrics...</div></div>
 
       <div class="section-title">Traffic trend</div>
       <div class="chart-grid-2">
@@ -432,6 +423,7 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
         </div>
       </div>
 
+      </div><!-- end analytics-content -->
     </div>
   </div>
   <!-- end analytics panel -->
@@ -828,28 +820,51 @@ function pct(a,b){if(!b)return null;return Math.round(((a-b)/b)*100);}
 function deltaHtml(c,p){const d=pct(c,p);if(d===null)return'';const cls=d>=0?'up':'down';return`<span class="metric-delta ${cls}">${d>=0?'↑':'↓'} ${Math.abs(d)}%</span>`;}
 
 async function checkAuth(){
-  const r=await fetch('/auth/status');
-  const j=await r.json();
-  if(j.authenticated){
-    document.getElementById('loginScreen').classList.remove('visible');
-    document.getElementById('dashboard').classList.add('visible');
-    loadAll();
-  } else {
-    document.getElementById('loginScreen').classList.add('visible');
-    document.getElementById('dashboard').classList.remove('visible');
+  try {
+    const r = await fetch('/auth/status');
+    const j = await r.json();
+    const isAuth = j.authenticated;
+
+    // Header buttons
+    document.getElementById('header-signin-btn').style.display = isAuth ? 'none' : 'inline-block';
+    document.getElementById('header-refresh-btn').style.display = isAuth ? 'inline-block' : 'none';
+    document.getElementById('header-signout-btn').style.display = isAuth ? 'inline-block' : 'none';
+
+    // Analytics panel: show content or sign-in prompt
+    document.getElementById('analytics-signin-prompt').style.display = isAuth ? 'none' : 'block';
+    document.getElementById('analytics-content').style.display = isAuth ? 'block' : 'none';
+
+    if (isAuth) {
+      document.getElementById('lastUpdated').textContent = 'Loading...';
+      loadAll();
+    }
+  } catch(e) {
+    // If auth check fails, just show the sign-in prompt
+    document.getElementById('analytics-signin-prompt').style.display = 'block';
+    document.getElementById('analytics-content').style.display = 'none';
+    document.getElementById('header-signin-btn').style.display = 'inline-block';
   }
 }
 
 async function logout(){
   await fetch('/auth/logout');
-  document.getElementById('dashboard').classList.remove('visible');
-  document.getElementById('loginScreen').classList.add('visible');
+  document.getElementById('analytics-signin-prompt').style.display = 'block';
+  document.getElementById('analytics-content').style.display = 'none';
+  document.getElementById('header-signin-btn').style.display = 'inline-block';
+  document.getElementById('header-refresh-btn').style.display = 'none';
+  document.getElementById('header-signout-btn').style.display = 'none';
+  document.getElementById('lastUpdated').textContent = '';
 }
 
 async function fetchData(endpoint){
   const r=await fetch(endpoint);
   const j=await r.json();
-  if(j.needsAuth){checkAuth();return null;}
+  if(j.needsAuth){
+    document.getElementById('analytics-signin-prompt').style.display = 'block';
+    document.getElementById('analytics-content').style.display = 'none';
+    document.getElementById('header-signin-btn').style.display = 'inline-block';
+    return null;
+  }
   if(!j.success)throw new Error(j.error||'Unknown error');
   return j;
 }
