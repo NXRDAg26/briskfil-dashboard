@@ -604,8 +604,58 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
           <div id="cit-checklist"></div>
         </div>
 
-      </div>
-      <!-- end cit-results -->
+        <!-- BLOG SUGGESTER -->
+        <div class="section-title">Blog content planner</div>
+        <div class="cit-card" id="blog-suggester-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">What to write and how often</div>
+              <div class="chart-subtitle">AI-generated blog strategy based on your page topic and keywords — builds the citation authority needed to get found by AI platforms</div>
+            </div>
+            <div class="chart-badge lime">AI powered</div>
+          </div>
+
+          <p style="font-size:13px;color:var(--gray-400);margin-bottom:1.25rem;line-height:1.6;">Enter your topic area and target audience below. The AI will generate a recommended posting frequency, a 4-week blog calendar, and a list of high-priority article titles optimised to get your site cited by ChatGPT, Claude, and Perplexity.</p>
+
+          <div class="cit-grid-2" style="margin-bottom:10px;">
+            <div class="form-group">
+              <label class="form-label">Topic area</label>
+              <input class="form-input" id="blog-topic" type="text" placeholder="e.g. compressed air quality, nitrogen generation, water treatment">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target audience</label>
+              <input class="form-input" id="blog-audience" type="text" placeholder="e.g. plant engineers, food manufacturers, oil and gas operators">
+            </div>
+          </div>
+          <div class="cit-grid-2" style="margin-bottom:16px;">
+            <div class="form-group">
+              <label class="form-label">Business / website name</label>
+              <input class="form-input" id="blog-brand" type="text" placeholder="e.g. Briskfil">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Current posting frequency</label>
+              <select class="form-select" id="blog-current">
+                <option value="none">Not blogging yet</option>
+                <option value="occasional">Occasional (less than 1 per month)</option>
+                <option value="monthly">Monthly (1 per month)</option>
+                <option value="biweekly">Fortnightly (2 per month)</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="gen-btn" id="blog-gen-btn" style="margin-top:0;" onclick="runBlogSuggester()">Generate blog strategy</button>
+
+          <div id="blog-output" style="display:none;margin-top:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <span style="font-size:10px;color:var(--lime);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Blog strategy</span>
+              <button class="copy-btn" data-target="blog-output-text">Copy all</button>
+            </div>
+            <div class="outbox">
+              <p class="out-text" id="blog-output-text" style="white-space:pre-wrap;"></p>
+            </div>
+          </div>
+        </div>
 
     </div>
   </div>
