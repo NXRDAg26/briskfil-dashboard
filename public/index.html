@@ -1417,6 +1417,24 @@ document.getElementById('post-modal').addEventListener('click', e => {
 });
 
 initCal();
+
+// -- RECEIVE POSTS FROM LINKEDIN GROWTH TOOL IFRAME --
+window.addEventListener('message', e => {
+  if (!e.data || e.data.type !== 'BRISKFIL_ADD_POST') return;
+  const post = e.data.post;
+  if (!post || !post.id) return;
+  const posts = getPosts();
+  // Avoid duplicates
+  if (!posts.find(p => p.id === post.id)) {
+    posts.push(post);
+    savePosts(posts);
+  }
+  // If scheduler tab is active, re-render
+  if (document.getElementById('panel-scheduler').classList.contains('active')) {
+    renderCalendar();
+    renderPostList();
+  }
+});
 </script>
 </body>
 </html>
