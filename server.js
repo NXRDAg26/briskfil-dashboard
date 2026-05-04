@@ -353,6 +353,105 @@ app.get('/linkedin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'linkedin-growth-tool.html'));
 });
 
+// ── AI GENERATE PROXY ─────────────────────────────────────────────────────────
+// Routes all Claude API calls through the server so the API key is never
+// exposed in the browser and iframe CSP restrictions are avoided.
+
+app.post('/api/generate', async (req, res) => {
+  const { system, prompt, max_tokens } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ success: false, error: 'prompt is required' });
+  }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ success: false, error: 'ANTHROPIC_API_KEY not configured on server' });
+  }
+
+  try {
+    const body = {
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: max_tokens || 1000,
+      messages: [{ role: 'user', content: prompt }]
+    };
+    if (system) body.system = system;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({ success: false, error: data.error?.message || 'Anthropic API error' });
+    }
+
+    const text = (data.content || []).map(b => b.text || '').join('');
+    res.json({ success: true, text });
+  } catch (err) {
+    console.error('Generate error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Vision endpoint — accepts a base64 image alongside the prompt
+app.post('/api/generate-vision', async (req, res) => {
+  const { system, prompt, imageBase64, max_tokens } = req.body;
+
+  if (!prompt || !imageBase64) {
+    return res.status(400).json({ success: false, error: 'prompt and imageBase64 are required' });
+  }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ success: false, error: 'ANTHROPIC_API_KEY not configured on server' });
+  }
+
+  try {
+    const body = {
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: max_tokens || 1000,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
+          { type: 'text', text: prompt }
+        ]
+      }]
+    };
+    if (system) body.system = system;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({ success: false, error: data.error?.message || 'Anthropic API error' });
+    }
+
+    const text = (data.content || []).map(b => b.text || '').join('');
+    res.json({ success: true, text });
+  } catch (err) {
+    console.error('Vision error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ── CATCH-ALL (keep this last) ────────────────────────────────────────────────
 
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
