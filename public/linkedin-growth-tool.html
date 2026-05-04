@@ -917,15 +917,37 @@
         <!-- GENERATED OUTPUT + ACTIONS -->
         <div id="gen2-output" style="display:none; margin-top:20px;">
 
-          <!-- POST COPY -->
+          <!-- BILINGUAL OUTPUT HEADER -->
           <div class="output-header">
             <div style="display:flex;align-items:center;gap:10px;">
               <span class="output-label">Generated post</span>
               <span id="gen2-spinner" style="display:none;"><span class="spinner"></span></span>
             </div>
-            <button class="copy-btn" onclick="copyOutput('gen2-text')">Copy text</button>
+            <div style="display:flex;gap:6px;">
+              <button class="copy-btn" onclick="copyOutput('gen2-text-pt')">Copy PT</button>
+              <button class="copy-btn" onclick="copyOutput('gen2-text-en')">Copy EN</button>
+            </div>
           </div>
-          <div class="generated-output" id="gen2-text"></div>
+
+          <!-- DUAL COLUMN OUTPUT -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;" id="gen2-dual">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <span style="font-size:18px;">🇵🇹</span>
+                <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Português</span>
+              </div>
+              <div class="generated-output" id="gen2-text-pt" style="min-height:120px;"></div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <span style="font-size:18px;">🇬🇧</span>
+                <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">English</span>
+              </div>
+              <div class="generated-output" id="gen2-text-en" style="min-height:120px;"></div>
+            </div>
+          </div>
+          <!-- Hidden combined field used by sendToScheduler -->
+          <div id="gen2-text" style="display:none;"></div>
 
           <!-- ACTION STRIP -->
           <div id="gen2-actions" style="margin-top:16px; display:none;">
@@ -1466,42 +1488,81 @@ function runGenerator() {
 
   if (!brief) { toast('Please add a topic or brief first'); return; }
 
-  const prompt = `Write a LinkedIn post for Briskfil with these specifications:
-
-Format: ${format}
+  const baseSpec = `Format: ${format}
 Target audience: ${audience}
 Tone: ${tone}
 CTA type: ${cta}
+Brief: ${brief}`;
 
-Brief: ${brief}
+  const promptPT = `Write a LinkedIn post for Briskfil with these specifications:
 
-Deliver only the finished post copy, ready to use. No preamble, no notes, no explanation.`;
+${baseSpec}
+
+Write the post entirely in European Portuguese (Portugal). Use natural, professional Portuguese as spoken in Portugal — not Brazilian Portuguese. No jargon without explanation. No emojis. No hyphens. Deliver only the finished post copy, ready to use. No preamble, no notes, no explanation.`;
+
+  const promptEN = `Write a LinkedIn post for Briskfil with these specifications:
+
+${baseSpec}
+
+Write the post entirely in English. Direct, expert, plain-English style. No jargon without explanation. No emojis. No hyphens. Deliver only the finished post copy, ready to use. No preamble, no notes, no explanation.`;
 
   const btn = document.getElementById('gen-btn');
   btn.disabled = true;
   btn.textContent = 'Generating...';
 
-  // Pre-fill schedule title from brief
+  // Pre-fill schedule title
   const titleGuess = brief.split('.')[0].replace(/^(write|create|generate|a|an)\s+/i,'').slice(0,60);
   document.getElementById('sched-title').value = titleGuess;
 
   // Set default date to next Mon/Wed/Fri
   const today = new Date();
-  const dow = today.getDay(); // 0=Sun
-  const daysToNext = [1,1,1,3,2,1,2][dow]; // next posting day offset
+  const dow = today.getDay();
+  const daysToNext = [1,1,1,3,2,1,2][dow];
   const nextDate = new Date(today);
   nextDate.setDate(today.getDate() + daysToNext);
   document.getElementById('sched-date').value = nextDate.toISOString().split('T')[0];
 
   document.getElementById('gen2-actions').style.display = 'none';
   document.getElementById('sched-confirm').style.display = 'none';
+  document.getElementById('gen2-output').style.display = 'block';
+  document.getElementById('gen2-text-pt').textContent = 'A gerar...';
+  document.getElementById('gen2-text-en').textContent = 'Generating...';
+  document.getElementById('gen2-spinner').style.display = 'inline-block';
 
-  callClaude(prompt, 'gen2-text', 'gen2-spinner', 'gen2-output').then(() => {
+  const systemPrompt = document.querySelector ? null : undefined; // system is in callClaude
+
+  // Run both language calls in parallel
+  Promise.all([
+    callClaudeRaw(promptPT),
+    callClaudeRaw(promptEN)
+  ]).then(([ptText, enText]) => {
+    document.getElementById('gen2-text-pt').textContent = ptText;
+    document.getElementById('gen2-text-en').textContent = enText;
+    // Store combined for scheduler
+    document.getElementById('gen2-text').textContent = `🇵🇹 PORTUGUÊS\n\n${ptText}\n\n---\n\n🇬🇧 ENGLISH\n\n${enText}`;
+    document.getElementById('gen2-spinner').style.display = 'none';
     btn.disabled = false;
     btn.textContent = 'Generate post';
     document.getElementById('gen2-actions').style.display = 'block';
     document.getElementById('gen2-actions').scrollIntoView({ behavior:'smooth', block:'start' });
   });
+}
+
+// Bare API call that returns the text string directly (used by runGenerator parallel calls)
+async function callClaudeRaw(prompt) {
+  const systemPrompt = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Their primary competitor is Atlas Copco — a global industrial giant. Briskfil's competitive advantage is independence: they are manufacturer-agnostic, genuinely expert, and give clients impartial advice rather than selling proprietary products. Their target audience is plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers, especially in food, pharma, automotive, electronics, biogas, water treatment, laser cutting, oil and gas, wine and viticulture, and medical oxygen sectors.`;
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: systemPrompt, prompt, max_tokens: 1000 })
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'Server error');
+    return data.text || '';
+  } catch(e) {
+    return 'Error generating: ' + e.message;
+  }
 }
 
 // -- DRIVE LINK PREVIEW --
