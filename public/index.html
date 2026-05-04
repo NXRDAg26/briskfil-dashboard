@@ -256,7 +256,31 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 
 .cit-results { display: none; }
 
-/* ── RESPONSIVE ── */
+/* ── SEO TOOL ── */
+.seo-stab { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500; color: var(--gray-400); background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px; cursor: pointer; transition: all .2s; white-space: nowrap; margin-bottom: -1px; }
+.seo-stab:hover { color: var(--gray-200); }
+.seo-stab.active { color: var(--lime); border-bottom-color: var(--lime); }
+.seo-sub { display: none; }
+.seo-sub.active { display: block; }
+.seo-issue-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-700); }
+.seo-issue-row:last-child { border-bottom: none; }
+.seo-issue-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.seo-issue-body { flex: 1; }
+.seo-issue-title { font-size: 12px; font-weight: 600; color: var(--white); margin-bottom: 2px; }
+.seo-issue-desc { font-size: 11px; color: var(--gray-400); line-height: 1.5; }
+.seo-priority { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
+.seo-score-card { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: var(--radius); padding: 14px 16px; }
+.seo-score-label { font-size: 11px; color: var(--gray-400); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.seo-score-val { font-size: 24px; font-weight: 700; line-height: 1; }
+.seo-score-note { font-size: 11px; margin-top: 4px; }
+.tech-item { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--gray-700); cursor: pointer; }
+.tech-item:last-child { border-bottom: none; }
+.tech-checkbox { width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--gray-600); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; font-size: 11px; transition: all .15s; }
+.tech-checkbox.checked { background: var(--lime); border-color: var(--lime); color: var(--black); }
+.tech-item-body { flex: 1; }
+.tech-item-title { font-size: 12px; font-weight: 600; color: var(--white); margin-bottom: 2px; }
+.tech-item-desc { font-size: 11px; color: var(--gray-400); line-height: 1.5; }
+.tech-impact { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
 @media (max-width: 900px) {
   .chart-grid-2, .ai-grid, .cit-grid-2 { grid-template-columns: 1fr; }
   .chart-card.wide { grid-column: span 1; }
@@ -300,6 +324,7 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
     <button class="nav-tab" onclick="switchTab('citation', this)">Citation generator</button>
     <button class="nav-tab" onclick="switchTab('linkedin', this)">LinkedIn growth</button>
     <button class="nav-tab" onclick="switchTab('scheduler', this)">Post scheduler</button>
+    <button class="nav-tab" onclick="switchTab('seo', this)">SEO</button>
   </nav>
 
   <!-- ══════════════════════════════════════════════════════
@@ -777,6 +802,242 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════
+       SEO PANEL
+  ══════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-seo">
+    <div class="container">
+
+      <div class="page-title">
+        <h1>SEO — Briskfil.com</h1>
+        <p>Page-by-page performance audit, fix recommendations, and a monthly growth plan</p>
+        <div class="period-label"><span class="period-dot"></span>AI-powered analysis · enter a URL to audit any page</div>
+      </div>
+
+      <!-- ── SUB TABS ── -->
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--gray-700);margin-bottom:1.5rem;">
+        <button class="seo-stab active" onclick="seoTab('audit',this)">Page auditor</button>
+        <button class="seo-stab" onclick="seoTab('planner',this)">Monthly growth plan</button>
+        <button class="seo-stab" onclick="seoTab('keywords',this)">Keyword targets</button>
+        <button class="seo-stab" onclick="seoTab('technical',this)">Technical checklist</button>
+      </div>
+
+      <!-- ── PAGE AUDITOR ── -->
+      <div id="seo-panel-audit" class="seo-sub active">
+
+        <div class="chart-card" style="margin-bottom:16px;">
+          <div class="chart-header">
+            <div><div class="chart-title">Audit a page</div><div class="chart-subtitle">Enter any Briskfil.com URL to get a full SEO breakdown and prioritised fix list</div></div>
+            <div class="chart-badge lime">AI powered</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label">Page URL</label>
+              <input class="form-input" id="seo-url" type="url" placeholder="https://briskfil.com/compressed-air-quality" style="font-family:monospace;font-size:12px;">
+            </div>
+            <button class="add-btn" onclick="runSeoAudit()" id="seo-audit-btn">Audit page</button>
+          </div>
+
+          <!-- QUICK PAGE BUTTONS -->
+          <div style="margin-bottom:4px;">
+            <div class="form-label" style="margin-bottom:8px;">Quick select — known Briskfil pages</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="header-btn" onclick="quickAudit('https://briskfil.com')">Homepage</button>
+              <button class="header-btn" onclick="quickAudit('https://briskfil.com/compressed-air-quality')">Compressed air quality</button>
+              <button class="header-btn" onclick="quickAudit('https://briskfil.com/nitrogen-generation')">Nitrogen generation</button>
+              <button class="header-btn" onclick="quickAudit('https://briskfil.com/oxygen-generation')">Oxygen generation</button>
+              <button class="header-btn" onclick="quickAudit('https://briskfil.com/energy-efficiency')">Energy efficiency</button>
+              <button class="header-btn" onclick="quickAudit('https://briskfil.com/services')">Services</button>
+              <button class="header-btn" onclick="quickAudit('https://briskfil.com/contact')">Contact</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- AUDIT RESULTS -->
+        <div id="seo-audit-results" style="display:none;">
+
+          <!-- SCORE HEADER -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;" id="seo-score-grid"></div>
+
+          <!-- AUDIT DETAIL -->
+          <div class="chart-grid-2">
+            <div class="chart-card" id="seo-issues-card">
+              <div class="chart-header"><div><div class="chart-title">Issues found</div><div class="chart-subtitle">Prioritised by ranking impact</div></div></div>
+              <div id="seo-issues-list"></div>
+            </div>
+            <div class="chart-card" id="seo-wins-card">
+              <div class="chart-header"><div><div class="chart-title">What is working</div><div class="chart-subtitle">Strengths to maintain and build on</div></div></div>
+              <div id="seo-wins-list"></div>
+            </div>
+          </div>
+
+          <div class="chart-card" style="margin-top:16px;" id="seo-actions-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Fix list</div><div class="chart-subtitle">Exact actions to improve this page — copy directly into a task list or brief</div></div>
+              <button class="copy-btn" onclick="copySeoOutput('seo-actions-text')">Copy all</button>
+            </div>
+            <div class="out-text" id="seo-actions-text" style="font-size:12px;color:var(--gray-200);line-height:1.8;white-space:pre-wrap;"></div>
+          </div>
+
+          <div class="chart-card" style="margin-top:16px;" id="seo-meta-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Suggested meta title and description</div><div class="chart-subtitle">Optimised for target keywords and click-through rate</div></div>
+              <button class="copy-btn" onclick="copySeoOutput('seo-meta-text')">Copy</button>
+            </div>
+            <div class="out-text" id="seo-meta-text" style="font-size:12px;color:var(--gray-200);line-height:1.8;white-space:pre-wrap;"></div>
+          </div>
+
+        </div>
+
+        <div id="seo-audit-loading" style="display:none;" class="loading"><div class="spinner"></div> Analysing page...</div>
+
+      </div>
+
+      <!-- ── MONTHLY GROWTH PLAN ── -->
+      <div id="seo-panel-planner" class="seo-sub" style="display:none;">
+
+        <div class="chart-card" style="margin-bottom:16px;">
+          <div class="chart-header">
+            <div><div class="chart-title">Monthly SEO growth plan generator</div><div class="chart-subtitle">AI builds a month-by-month action plan tailored to Briskfil's sector and current SEO maturity</div></div>
+            <div class="chart-badge lime">AI powered</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">Current stage</label>
+              <select class="form-select" id="seo-stage">
+                <option value="new">Just starting out (0 to 3 months)</option>
+                <option value="early">Early traction (3 to 12 months)</option>
+                <option value="growing" selected>Growing (1 to 2 years)</option>
+                <option value="established">Established (2 plus years)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Monthly effort available</label>
+              <select class="form-select" id="seo-effort">
+                <option value="minimal">Minimal (2 to 4 hours per month)</option>
+                <option value="moderate" selected>Moderate (1 day per month)</option>
+                <option value="active">Active (2 to 3 days per month)</option>
+                <option value="intensive">Intensive (weekly attention)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Plan length</label>
+              <select class="form-select" id="seo-plan-months">
+                <option value="3">3 months</option>
+                <option value="6" selected>6 months</option>
+                <option value="12">12 months</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Primary SEO goals (optional — describe in plain language)</label>
+            <input class="form-input" id="seo-goals" type="text" placeholder="e.g. Rank for nitrogen generation Portugal, appear when food manufacturers search for on-site gas, beat Atlas Copco locally">
+          </div>
+
+          <button class="add-btn" onclick="runSeoPlanner()" id="seo-plan-btn">Generate growth plan</button>
+        </div>
+
+        <div id="seo-plan-loading" style="display:none;" class="loading"><div class="spinner"></div> Building your plan...</div>
+
+        <div id="seo-plan-output" style="display:none;">
+          <div class="chart-header" style="margin-bottom:12px;">
+            <div><div class="chart-title">Your SEO growth plan</div></div>
+            <button class="copy-btn" onclick="copySeoOutput('seo-plan-text')">Copy plan</button>
+          </div>
+          <div class="chart-card">
+            <div class="out-text" id="seo-plan-text" style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── KEYWORD TARGETS ── -->
+      <div id="seo-panel-keywords" class="seo-sub" style="display:none;">
+
+        <div class="chart-card" style="margin-bottom:16px;">
+          <div class="chart-header">
+            <div><div class="chart-title">Keyword target generator</div><div class="chart-subtitle">AI identifies the highest-value keyword targets for Briskfil across all service areas and sectors</div></div>
+            <div class="chart-badge lime">AI powered</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">Service area or sector</label>
+              <select class="form-select" id="kw-sector">
+                <option>All services (full keyword map)</option>
+                <option>Compressed air quality and audits</option>
+                <option>Nitrogen generation (PSA and membrane)</option>
+                <option>Oxygen generation</option>
+                <option>Water treatment applications</option>
+                <option>Food and beverage packaging gas</option>
+                <option>Wine and viticulture nitrogen</option>
+                <option>Laser cutting nitrogen</option>
+                <option>Oil and gas nitrogen applications</option>
+                <option>Medical oxygen generation</option>
+                <option>Energy efficiency audits</option>
+                <option>Industrial fluid filtration</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target geography</label>
+              <select class="form-select" id="kw-geo">
+                <option>Portugal (national)</option>
+                <option>Iberian Peninsula (Portugal and Spain)</option>
+                <option>Europe (broader reach)</option>
+                <option>International (English language)</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="add-btn" onclick="runKeywordGen()" id="kw-gen-btn">Generate keyword targets</button>
+        </div>
+
+        <div id="kw-loading" style="display:none;" class="loading"><div class="spinner"></div> Researching keywords...</div>
+
+        <div id="kw-output" style="display:none;">
+          <div class="chart-header" style="margin-bottom:12px;">
+            <div><div class="chart-title" id="kw-output-title">Keyword targets</div></div>
+            <button class="copy-btn" onclick="copySeoOutput('kw-text')">Copy</button>
+          </div>
+          <div class="chart-card">
+            <div class="out-text" id="kw-text" style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── TECHNICAL CHECKLIST ── -->
+      <div id="seo-panel-technical" class="seo-sub" style="display:none;">
+
+        <div class="chart-card" style="margin-bottom:16px;">
+          <div class="chart-header">
+            <div><div class="chart-title">Technical SEO checklist — Briskfil.com</div><div class="chart-subtitle">Core technical requirements for ranking in 2026. Check each item against the live site.</div></div>
+            <div id="tech-progress-text" style="font-size:12px;color:var(--gray-400);"></div>
+          </div>
+          <div id="tech-checklist"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Instant technical audit</div><div class="chart-subtitle">AI reviews your site's technical SEO signals and produces a prioritised fix list</div></div>
+            <div class="chart-badge lime">AI powered</div>
+          </div>
+          <button class="add-btn" onclick="runTechAudit()" id="tech-audit-btn" style="margin-bottom:14px;">Run technical audit</button>
+          <div id="tech-audit-loading" style="display:none;" class="loading"><div class="spinner"></div> Auditing technical signals...</div>
+          <div id="tech-audit-output" style="display:none;">
+            <div class="out-text" id="tech-audit-text" style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+  <!-- end seo panel -->
+
   <footer class="footer">
     <div class="footer-brand">Powered by <span>NXRD</span> — nx-rd.com</div>
     <div class="footer-note">Data sourced from Google Analytics 4. Refreshes on page load.</div>
@@ -792,17 +1053,15 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 function switchTab(tab, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  ['analytics','citation','linkedin','scheduler'].forEach(p => {
+  ['analytics','citation','linkedin','scheduler','seo'].forEach(p => {
     document.getElementById('panel-'+p).classList.toggle('active', p === tab);
   });
-  // Lazy-load the LinkedIn iframe on first click
   if (tab === 'linkedin') {
     const iframe = document.getElementById('linkedin-iframe');
-    if (!iframe.src || iframe.src === window.location.href) {
-      iframe.src = '/linkedin';
-    }
+    if (!iframe.src || iframe.src === window.location.href) iframe.src = '/linkedin';
   }
   if (tab === 'scheduler') { renderCalendar(); renderPostList(); }
+  if (tab === 'seo') { initTechChecklist(); }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1446,6 +1705,417 @@ window.addEventListener('message', e => {
     renderPostList();
   }
 });
+
+/* ══════════════════════════════════════════════════════════════
+   SEO TOOL
+══════════════════════════════════════════════════════════════ */
+
+// -- SUB TAB SWITCHING --
+function seoTab(name, btn) {
+  document.querySelectorAll('.seo-stab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.seo-sub').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  const panel = document.getElementById('seo-panel-' + name);
+  if (panel) { panel.style.display = 'block'; panel.classList.add('active'); }
+  if (name === 'technical') initTechChecklist();
+}
+
+// -- GENERIC SEO API CALL --
+async function seoGenerate(prompt, outputId, loadingId, wrapId) {
+  const loading = document.getElementById(loadingId);
+  const wrap = document.getElementById(wrapId);
+  const out = document.getElementById(outputId);
+  if (loading) loading.style.display = 'flex';
+  if (wrap) wrap.style.display = 'none';
+
+  const system = `You are an expert SEO strategist and technical SEO consultant working for NXRD, a UK-based digital marketing agency. You are auditing and building SEO strategy for Briskfil (briskfil.com), a Portuguese B2B industrial consultancy based in Esposende, Portugal, founded in 2021. Briskfil specialises in: compressed air quality analysis, on-site nitrogen generation (PSA and membrane), on-site oxygen generation, industrial fluid filtration, energy efficiency audits (ISO 11011), Industry 4.0 consulting, and machinery maintenance. Their target customers are plant engineers, procurement managers, energy managers, and factory directors across Portugal and Europe, in sectors including food and beverage, wine, water treatment, laser cutting, metal fabrication, oil and gas, pharmaceutical, electronics, and medical oxygen. Their primary competitor is Atlas Copco. The website is built on WordPress. Be direct, specific, and actionable. Use clear section headers. Write in plain English. No generic advice — every recommendation must be specific to Briskfil's industry, sector, and competitive situation.`;
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, prompt, max_tokens: 1000 })
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'Server error');
+    if (out) out.textContent = data.text || '';
+    if (loading) loading.style.display = 'none';
+    if (wrap) wrap.style.display = 'block';
+    return data.text || '';
+  } catch(e) {
+    if (out) out.textContent = 'Error: ' + e.message;
+    if (loading) loading.style.display = 'none';
+    if (wrap) wrap.style.display = 'block';
+    return '';
+  }
+}
+
+// -- COPY --
+function copySeoOutput(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    // brief flash confirmation
+    const orig = el.style.opacity;
+    el.style.opacity = '0.5';
+    setTimeout(() => { el.style.opacity = orig || '1'; }, 300);
+  });
+}
+
+// -- PAGE AUDITOR --
+function quickAudit(url) {
+  document.getElementById('seo-url').value = url;
+  runSeoAudit();
+}
+
+async function runSeoAudit() {
+  const url = document.getElementById('seo-url').value.trim();
+  if (!url) { alert('Please enter a URL'); return; }
+
+  const btn = document.getElementById('seo-audit-btn');
+  btn.disabled = true; btn.textContent = 'Auditing...';
+
+  document.getElementById('seo-audit-results').style.display = 'none';
+  document.getElementById('seo-audit-loading').style.display = 'flex';
+
+  const prompt = `Perform a comprehensive SEO audit of this page: ${url}
+
+Return your response in this exact structure:
+
+SCORE SUMMARY
+Overall SEO score: [X/100]
+Content quality: [X/10]
+Technical signals: [X/10]
+Keyword targeting: [X/10]
+User experience: [X/10]
+One sentence explaining the overall score.
+
+CRITICAL ISSUES (fix within 7 days)
+List up to 4 critical issues. For each: issue name | specific problem on this URL | exact fix required.
+
+IMPORTANT IMPROVEMENTS (fix within 30 days)
+List up to 5 improvements. Same format.
+
+QUICK WINS (easy improvements, high impact)
+List up to 4. Same format.
+
+WHAT IS WORKING WELL
+List up to 5 genuine strengths of this page's SEO. Be specific.
+
+COMPLETE FIX LIST
+Write a numbered list of every action needed on this page in priority order. Be specific enough that a developer or content editor could action each item without asking a follow-up question.
+
+SUGGESTED META TITLE
+Write the optimised meta title (under 60 characters) for this page.
+
+SUGGESTED META DESCRIPTION
+Write the optimised meta description (under 155 characters) for this page.
+
+BASE YOUR ANALYSIS on what you know about Briskfil's business, their target keywords (compressed air quality, nitrogen generation Portugal, on-site gas generation, industrial gas audits, etc.), and best SEO practice for B2B industrial websites in 2026.`;
+
+  const system = `You are an expert SEO strategist working for NXRD on the Briskfil.com account. Briskfil is a Portuguese B2B industrial gas consultancy. Be specific about this site and industry — no generic advice.`;
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, prompt, max_tokens: 1000 })
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error);
+    parseSeoAudit(data.text || '', url);
+  } catch(e) {
+    document.getElementById('seo-audit-loading').style.display = 'none';
+    alert('Error: ' + e.message);
+  }
+
+  btn.disabled = false; btn.textContent = 'Audit page';
+}
+
+function parseSeoAudit(text, url) {
+  document.getElementById('seo-audit-loading').style.display = 'none';
+  document.getElementById('seo-audit-results').style.display = 'block';
+
+  // Extract scores with regex
+  const overallMatch = text.match(/Overall SEO score:\s*(\d+)/i);
+  const contentMatch = text.match(/Content quality:\s*(\d+)/i);
+  const techMatch    = text.match(/Technical signals:\s*(\d+)/i);
+  const kwMatch      = text.match(/Keyword targeting:\s*(\d+)/i);
+  const uxMatch      = text.match(/User experience:\s*(\d+)/i);
+
+  const scores = [
+    { label:'Overall score', val: overallMatch?overallMatch[1]+'/100':'—', color: scoreColor(overallMatch?parseInt(overallMatch[1]):0,100) },
+    { label:'Content quality', val: contentMatch?contentMatch[1]+'/10':'—', color: scoreColor(contentMatch?parseInt(contentMatch[1]):0,10) },
+    { label:'Technical signals', val: techMatch?techMatch[1]+'/10':'—', color: scoreColor(techMatch?parseInt(techMatch[1]):0,10) },
+    { label:'Keyword targeting', val: kwMatch?kwMatch[1]+'/10':'—', color: scoreColor(kwMatch?parseInt(kwMatch[1]):0,10) },
+    { label:'User experience', val: uxMatch?uxMatch[1]+'/10':'—', color: scoreColor(uxMatch?parseInt(uxMatch[1]):0,10) },
+    { label:'Page audited', val: new URL(url.startsWith('http')?url:'https://'+url).pathname||'/', color:'var(--gray-200)' }
+  ];
+
+  document.getElementById('seo-score-grid').innerHTML = scores.map(s => `
+    <div class="seo-score-card">
+      <div class="seo-score-label">${s.label}</div>
+      <div class="seo-score-val" style="color:${s.color};font-size:${s.label==='Page audited'?'13px':'24px'}">${s.val}</div>
+    </div>`).join('');
+
+  // Issues section — extract lines from CRITICAL ISSUES and IMPORTANT IMPROVEMENTS
+  const issueBlocks = extractSection(text, ['CRITICAL ISSUES','IMPORTANT IMPROVEMENTS','QUICK WINS']);
+  const lines = issueBlocks.split('\n').filter(l => l.trim() && l.includes('|'));
+  const priorities = ['critical','critical','critical','critical','important','important','important','important','important','quick','quick','quick','quick'];
+
+  document.getElementById('seo-issues-list').innerHTML = lines.slice(0,9).map((l, i) => {
+    const parts = l.replace(/^\d+\.\s*/,'').split('|').map(s => s.trim());
+    const pri = priorities[i] || 'quick';
+    const priCfg = { critical:{col:'var(--negative)',bg:'var(--red-dim)',icon:'⚠'}, important:{col:'#f59e0b',bg:'rgba(245,158,11,0.1)',icon:'◎'}, quick:{col:'var(--positive)',bg:'var(--green-dim)',icon:'✓'} }[pri];
+    return `<div class="seo-issue-row">
+      <div class="seo-issue-icon" style="background:${priCfg.bg}">${priCfg.icon}</div>
+      <div class="seo-issue-body">
+        <div class="seo-issue-title">${parts[0]||''}</div>
+        <div class="seo-issue-desc">${parts[1]||''}</div>
+        ${parts[2]?`<div class="seo-issue-desc" style="color:var(--lime);margin-top:3px;">Fix: ${parts[2]}</div>`:''}
+      </div>
+      <span class="seo-priority" style="background:${priCfg.bg};color:${priCfg.col}">${pri}</span>
+    </div>`;
+  }).join('') || '<div class="loading" style="padding:1rem;">No structured issues returned — see full fix list below.</div>';
+
+  // Wins
+  const winsSection = extractSection(text, ['WHAT IS WORKING WELL','COMPLETE FIX LIST']);
+  document.getElementById('seo-wins-list').innerHTML = winsSection.split('\n').filter(l => l.trim() && l.length > 10).slice(0,6).map(l =>
+    `<div class="seo-issue-row">
+      <div class="seo-issue-icon" style="background:var(--green-dim)">✓</div>
+      <div class="seo-issue-body"><div class="seo-issue-desc">${l.replace(/^[\d\-\.\*\•]+\s*/,'').trim()}</div></div>
+    </div>`
+  ).join('') || '<div style="padding:1rem;font-size:12px;color:var(--gray-400)">Audit this page to see strengths.</div>';
+
+  // Fix list
+  const fixSection = extractSection(text, ['COMPLETE FIX LIST','SUGGESTED META']);
+  document.getElementById('seo-actions-text').textContent = fixSection.trim() || extractSection(text, ['FIX LIST','SUGGESTED META']).trim();
+
+  // Meta
+  const metaSection = extractSection(text, ['SUGGESTED META']);
+  document.getElementById('seo-meta-text').textContent = metaSection.trim() || 'See full output above for meta suggestions.';
+
+  document.getElementById('seo-audit-results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function scoreColor(val, max) {
+  const pct = val / max;
+  if (pct >= 0.75) return 'var(--positive)';
+  if (pct >= 0.5) return '#f59e0b';
+  return 'var(--negative)';
+}
+
+function extractSection(text, startMarkers, endMarkers) {
+  const upper = text.toUpperCase();
+  let start = -1;
+  for (const m of startMarkers) {
+    const idx = upper.indexOf(m.toUpperCase());
+    if (idx !== -1) { start = idx; break; }
+  }
+  if (start === -1) return text;
+
+  // Move past the header line
+  const afterHeader = text.indexOf('\n', start);
+  if (afterHeader === -1) return '';
+  start = afterHeader + 1;
+
+  // Find end
+  if (!endMarkers || endMarkers.length === 0) return text.slice(start);
+  let end = text.length;
+  for (const m of endMarkers) {
+    const idx = upper.indexOf(m.toUpperCase(), start);
+    if (idx !== -1 && idx < end) end = idx;
+  }
+  return text.slice(start, end);
+}
+
+// -- MONTHLY GROWTH PLANNER --
+async function runSeoPlanner() {
+  const stage = document.getElementById('seo-stage').value;
+  const effort = document.getElementById('seo-effort').value;
+  const months = document.getElementById('seo-plan-months').value;
+  const goals = document.getElementById('seo-goals').value.trim();
+
+  const btn = document.getElementById('seo-plan-btn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+
+  const stageMap = { new:'brand new website, very little domain authority', early:'some pages indexed, limited backlinks, starting to get clicks', growing:'established presence, some rankings, needs acceleration', established:'good foundation, optimising and scaling' };
+  const effortMap = { minimal:'2 to 4 hours per month (NXRD handles most tasks)', moderate:'roughly 1 day per month of combined NXRD and client effort', active:'2 to 3 days per month of focused activity', intensive:'weekly ongoing attention from NXRD' };
+
+  const prompt = `Build a ${months}-month SEO growth plan for Briskfil.com with the following parameters:
+
+Current SEO stage: ${stageMap[stage]}
+Available monthly effort: ${effortMap[effort]}
+Primary goals: ${goals || 'rank for industrial gas and compressed air services in Portugal, beat Atlas Copco in local search, generate qualified B2B leads'}
+
+Structure the plan as follows:
+
+PLAN OVERVIEW
+2 to 3 sentences on the strategic approach and what success looks like at the end of the plan period.
+
+MONTH-BY-MONTH BREAKDOWN
+For each month, provide:
+Month [N]: [Theme title]
+Priority tasks (3 to 5 specific actions)
+Expected outcome by end of month
+KPI to track
+
+CONTENT PRIORITIES
+List the top 6 blog posts or landing pages to create during this period, with target keyword, estimated monthly search volume (rough), and why this piece matters for Briskfil specifically.
+
+QUICK WINS — DO THESE FIRST
+3 actions that can be completed in the first 2 weeks and will show results fastest.
+
+COMPETITIVE NOTES
+Specific opportunities to take rankings from Atlas Copco and other industrial gas competitors in Portuguese and Iberian search results.
+
+Make every task specific and actionable. No generic SEO advice. Reference Briskfil's actual services and sectors throughout.`;
+
+  await seoGenerate(prompt, 'seo-plan-text', 'seo-plan-loading', 'seo-plan-output');
+  btn.disabled = false; btn.textContent = 'Generate growth plan';
+}
+
+// -- KEYWORD GENERATOR --
+async function runKeywordGen() {
+  const sector = document.getElementById('kw-sector').value;
+  const geo = document.getElementById('kw-geo').value;
+
+  const btn = document.getElementById('kw-gen-btn');
+  btn.disabled = true; btn.textContent = 'Researching...';
+  document.getElementById('kw-output-title').textContent = sector + ' — ' + geo;
+
+  const prompt = `Generate a comprehensive keyword target list for Briskfil.com for the following:
+
+Service area: ${sector}
+Target geography: ${geo}
+
+Structure your output as:
+
+TIER 1 — PRIMARY KEYWORDS (highest commercial intent, direct service queries)
+For each keyword: keyword phrase | estimated monthly searches | difficulty (low/medium/high) | current page to target or "new page needed" | why this matters for Briskfil
+
+TIER 2 — SECONDARY KEYWORDS (informational, comparison, problem-aware)
+Same format. 8 to 10 keywords.
+
+TIER 3 — LONG-TAIL AND NICHE KEYWORDS (low competition, highly specific)
+Same format. 8 to 10 keywords.
+
+COMPETITOR KEYWORDS TO STEAL
+Keywords where Atlas Copco or other industrial gas competitors are currently ranking that Briskfil could target. Include why Briskfil has a genuine chance of outranking them.
+
+PORTUGUESE LANGUAGE KEYWORDS
+The same intent keywords but in European Portuguese as a potential customer in Portugal would actually type them. Include both formal and informal search phrasing.
+
+CONTENT GAP KEYWORDS
+Topics that potential Briskfil customers are searching for but no good answer exists yet in Portuguese or for the Iberian market specifically.
+
+Be specific to Briskfil's actual business and the ${geo} market. Estimated volumes can be rough ranges, clearly marked as estimates.`;
+
+  await seoGenerate(prompt, 'kw-text', 'kw-loading', 'kw-output');
+  btn.disabled = false; btn.textContent = 'Generate keyword targets';
+}
+
+// -- TECHNICAL CHECKLIST --
+const TECH_ITEMS = [
+  { id:'t1', title:'XML sitemap submitted to Google Search Console', desc:'Confirms briskfil.com/sitemap.xml exists and is submitted in GSC. Critical for WordPress sites.', impact:'high' },
+  { id:'t2', title:'Robots.txt is correctly configured', desc:'Check briskfil.com/robots.txt — should not be blocking key pages or the whole site.', impact:'high' },
+  { id:'t3', title:'SSL certificate active (HTTPS)', desc:'All pages load on HTTPS. HTTP redirects to HTTPS. Mixed content warnings resolved.', impact:'high' },
+  { id:'t4', title:'Core Web Vitals passing', desc:'LCP under 2.5s, FID/INP under 200ms, CLS under 0.1. Check in Google Search Console or PageSpeed Insights.', impact:'high' },
+  { id:'t5', title:'Mobile responsive on all pages', desc:'Every page passes Google Mobile-Friendly Test. No horizontal scroll, readable text, tappable buttons.', impact:'high' },
+  { id:'t6', title:'Page speed under 3 seconds', desc:'Test at PageSpeed Insights. Images compressed, JS deferred, caching enabled, CDN in use if possible.', impact:'high' },
+  { id:'t7', title:'All pages have unique meta titles', desc:'No duplicate or missing titles. Each title is under 60 characters and contains the target keyword.', impact:'high' },
+  { id:'t8', title:'All pages have unique meta descriptions', desc:'No duplicate or missing descriptions. Each is under 155 characters with a clear value proposition.', impact:'medium' },
+  { id:'t9', title:'H1 tags present and unique on every page', desc:'One H1 per page, matching the primary keyword. No pages missing H1.', impact:'high' },
+  { id:'t10', title:'Image alt text on all images', desc:'Every image has descriptive alt text containing relevant keywords where natural. No empty alt attributes.', impact:'medium' },
+  { id:'t11', title:'Internal linking structure in place', desc:'Key service pages link to each other. Blog posts link to relevant service pages. No orphan pages.', impact:'high' },
+  { id:'t12', title:'Schema markup implemented', desc:'Organization schema on homepage. Service schema on service pages. BreadcrumbList schema on inner pages.', impact:'medium' },
+  { id:'t13', title:'Google Search Console verified and active', desc:'Property verified, no coverage errors, sitemaps submitted, Core Web Vitals monitored.', impact:'high' },
+  { id:'t14', title:'Google Analytics 4 connected', desc:'GA4 tracking confirmed across all pages. Events firing correctly.', impact:'medium' },
+  { id:'t15', title:'No broken links (404 errors)', desc:'Run a crawl or use Search Console coverage report. All internal links resolve correctly.', impact:'medium' },
+  { id:'t16', title:'Canonical tags correctly set', desc:'Self-referencing canonicals on all pages. No canonicalisation conflicts between www and non-www.', impact:'medium' },
+  { id:'t17', title:'WordPress Yoast or RankMath SEO plugin active', desc:'SEO plugin configured with site name, social profiles, and sitemap generation enabled.', impact:'medium' },
+  { id:'t18', title:'Blog section active with regular posts', desc:'At minimum 2 posts per month being published. Posts target keywords from the keyword plan.', impact:'high' },
+  { id:'t19', title:'Contact page with local address and phone', desc:'NAP (Name, Address, Phone) consistent across site and Google Business Profile. Helps local SEO.', impact:'medium' },
+  { id:'t20', title:'Google Business Profile claimed and optimised', desc:'Briskfil listed on Google Maps, with correct category (Industrial Consultant), photos, and description.', impact:'high' }
+];
+
+let techChecked = JSON.parse(localStorage.getItem('briskfil_tech_seo') || '{}');
+
+function initTechChecklist() {
+  const list = document.getElementById('tech-checklist');
+  if (!list || list.children.length > 0) return;
+
+  list.innerHTML = TECH_ITEMS.map(item => {
+    const checked = techChecked[item.id];
+    const impCfg = { high:{col:'var(--negative)',bg:'var(--red-dim)',label:'High impact'}, medium:{col:'#f59e0b',bg:'rgba(245,158,11,0.1)',label:'Medium impact'} }[item.impact];
+    return `<div class="tech-item" onclick="toggleTech('${item.id}')">
+      <div class="tech-checkbox ${checked?'checked':'}" id="tech-cb-${item.id}">${checked?'✓':''}</div>
+      <div class="tech-item-body">
+        <div class="tech-item-title" style="text-decoration:${checked?'line-through':'none'};color:${checked?'var(--gray-400)':'var(--white)'}">${item.title}</div>
+        <div class="tech-item-desc">${item.desc}</div>
+      </div>
+      <span class="tech-impact" style="background:${impCfg.bg};color:${impCfg.col}">${impCfg.label}</span>
+    </div>`;
+  }).join('');
+
+  updateTechProgress();
+}
+
+function toggleTech(id) {
+  techChecked[id] = !techChecked[id];
+  localStorage.setItem('briskfil_tech_seo', JSON.stringify(techChecked));
+  const cb = document.getElementById('tech-cb-' + id);
+  const row = cb.closest('.tech-item');
+  const titleEl = row.querySelector('.tech-item-title');
+  if (techChecked[id]) {
+    cb.classList.add('checked'); cb.textContent = '✓';
+    titleEl.style.textDecoration = 'line-through'; titleEl.style.color = 'var(--gray-400)';
+  } else {
+    cb.classList.remove('checked'); cb.textContent = '';
+    titleEl.style.textDecoration = 'none'; titleEl.style.color = 'var(--white)';
+  }
+  updateTechProgress();
+}
+
+function updateTechProgress() {
+  const done = Object.values(techChecked).filter(Boolean).length;
+  const total = TECH_ITEMS.length;
+  const pct = Math.round((done / total) * 100);
+  const el = document.getElementById('tech-progress-text');
+  if (el) el.textContent = `${done} of ${total} complete — ${pct}%`;
+}
+
+async function runTechAudit() {
+  const done = Object.keys(techChecked).filter(k => techChecked[k]);
+  const notDone = TECH_ITEMS.filter(i => !techChecked[i.id]).map(i => i.title);
+
+  const btn = document.getElementById('tech-audit-btn');
+  btn.disabled = true; btn.textContent = 'Auditing...';
+
+  const prompt = `Perform a technical SEO audit for Briskfil.com (WordPress B2B industrial site, Portugal).
+
+Based on the technical checklist, the following items have NOT yet been completed:
+${notDone.length ? notDone.map((t,i) => `${i+1}. ${t}`).join('\n') : 'All checklist items marked as complete.'}
+
+Provide:
+
+TECHNICAL PRIORITY LIST
+Rank the outstanding items by ranking impact for a B2B industrial site in Portugal. For each: item | why it matters for Briskfil specifically | exact steps to fix it on WordPress.
+
+ESTIMATED IMPACT
+For each fix, rate the expected ranking improvement (Low / Medium / High / Critical) and the estimated time to implement.
+
+WORDPRESS-SPECIFIC INSTRUCTIONS
+For items that have a specific WordPress or Yoast/RankMath implementation, give the exact menu path and settings to use.
+
+QUICK WINS THIS WEEK
+The 3 technical fixes that will have the fastest positive impact if done immediately.
+
+Be specific. No generic SEO advice. Everything must be implementable by a WordPress developer or a capable site manager.`;
+
+  await seoGenerate(prompt, 'tech-audit-text', 'tech-audit-loading', 'tech-audit-output');
+  btn.disabled = false; btn.textContent = 'Run technical audit';
+}
 </script>
 </body>
 </html>
