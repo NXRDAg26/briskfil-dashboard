@@ -1426,25 +1426,20 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
   if (out) { out.textContent = 'Generating...'; }
   if (spin) spin.style.display = 'inline-block';
 
-  const systemPrompt = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Their primary competitor is Atlas Copco — a global industrial giant. Briskfil's competitive advantage is independence: they are manufacturer-agnostic, genuinely expert, and give clients impartial advice rather than selling proprietary products. Their target audience is plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers, especially in food, pharma, automotive, electronics, biogas, and general industrial sectors. Applications for nitrogen generation include: food and beverage packaging and storage, pharmaceutical manufacturing, electronics assembly, laser cutting, chemical processing, heat treatment, and fire prevention. Applications for oxygen generation include: biogas desulphurisation, wastewater treatment, metal fabrication and welding, and medical adjacent industrial use. Write in a direct, expert, plain-English style. No jargon without explanation. No hype. No emojis. No hyphens. Authoritative but approachable. Every post should feel like it was written by a genuine independent expert, not a large corporation like Atlas Copco.`;
+  const systemPrompt = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Their primary competitor is Atlas Copco — a global industrial giant. Briskfil's competitive advantage is independence: they are manufacturer-agnostic, genuinely expert, and give clients impartial advice rather than selling proprietary products. Their target audience is plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers, especially in food, pharma, automotive, electronics, biogas, water treatment, laser cutting, oil and gas, wine and viticulture, and medical oxygen sectors. Write in a direct, expert, plain-English style. No jargon without explanation. No hype. No emojis. No hyphens. Authoritative but approachable. Every post should feel like it was written by a genuine independent expert, not a large corporation like Atlas Copco.`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      body: JSON.stringify({ system: systemPrompt, prompt, max_tokens: 1000 })
     });
 
     const data = await response.json();
-    const text = data.content?.map(b => b.text || '').join('') || 'No response received.';
-    if (out) out.textContent = text;
+    if (!data.success) throw new Error(data.error || 'Server error');
+    if (out) out.textContent = data.text || 'No response received.';
   } catch(e) {
-    if (out) out.textContent = 'Error generating content. Please try again.';
+    if (out) out.textContent = 'Error generating content: ' + e.message;
   }
 
   if (spin) spin.style.display = 'none';
@@ -1680,45 +1675,34 @@ async function analyseImage() {
   out.textContent = 'Analysing image...';
   out.classList.add('loading');
 
-  const systemPrompt = `You are a LinkedIn creative director and content strategist working for NXRD, a digital marketing agency. You are reviewing creative assets for Briskfil, a Portuguese B2B industrial consultancy specialising in compressed air quality, industrial gas consulting, and energy efficiency. You will review images for LinkedIn performance, brand alignment with a professional industrial B2B brand, and provide specific actionable improvement recommendations.`;
+  const system = `You are a LinkedIn creative director and content strategist working for NXRD, a digital marketing agency. You are reviewing creative assets for Briskfil, a Portuguese B2B industrial consultancy specialising in compressed air quality, industrial gas consulting, nitrogen and oxygen generation, and energy efficiency. Review images for LinkedIn performance, brand alignment with a professional industrial B2B brand, and provide specific actionable improvement recommendations.`;
 
   const userPrompt = `Please analyse this image for LinkedIn performance. Context: this is a ${imgType} for Briskfil (B2B industrial consultancy, Portugal). Goal: ${imgGoal}.
 
-Please assess:
+Assess:
 1. First impression and scroll-stop potential
 2. Brand alignment (professional, credible, industrial B2B)
 3. Technical quality (resolution, composition, lighting if applicable)
 4. Text legibility and hierarchy (if text is present)
-5. Emotional response it is likely to generate in a plant engineer or procurement manager scrolling LinkedIn
-6. Three specific improvements they could make before posting
+5. Emotional response likely in a plant engineer or procurement manager scrolling LinkedIn
+6. Three specific improvements to make before posting
 7. Overall rating out of 10 for LinkedIn performance
 
 Be direct and specific. No fluff.`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/generate-vision', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
-            { type: 'text', text: userPrompt }
-          ]
-        }]
-      })
+      body: JSON.stringify({ system, prompt: userPrompt, imageBase64, max_tokens: 1000 })
     });
 
     const data = await response.json();
-    const text = data.content?.map(b => b.text || '').join('') || 'Could not analyse image.';
-    out.textContent = text;
+    if (!data.success) throw new Error(data.error || 'Server error');
+    out.textContent = data.text || 'Could not analyse image.';
     out.classList.remove('loading');
   } catch(e) {
-    out.textContent = 'Error analysing image. Please try again.';
+    out.textContent = 'Error analysing image: ' + e.message;
     out.classList.remove('loading');
   }
 }
