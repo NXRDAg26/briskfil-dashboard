@@ -1199,20 +1199,16 @@ The three articles most likely to generate AI citations and inbound traffic with
 Write in plain, direct language. No fluff. Format with clear section headers. No bullet points — use numbered lists and paragraphs.`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      body: JSON.stringify({ prompt, max_tokens: 1000 })
     });
     const data = await response.json();
-    const result = data.content?.map(b => b.text || '').join('') || 'No response received.';
-    text.textContent = result;
+    if (!data.success) throw new Error(data.error || 'Server error');
+    text.textContent = data.text || 'No response received.';
   } catch(e) {
-    text.textContent = 'Error generating blog strategy. Please try again.';
+    text.textContent = 'Error generating blog strategy: ' + e.message;
   }
 
   btn.textContent = 'Generate blog strategy';
