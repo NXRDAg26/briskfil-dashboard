@@ -51,8 +51,57 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 .nav-tab { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500; color: var(--gray-400); background: none; border: none; border-bottom: 2px solid transparent; padding: 12px 18px; cursor: pointer; transition: all .2s; white-space: nowrap; }
 .nav-tab:hover { color: var(--gray-200); }
 .nav-tab.active { color: var(--lime); border-bottom-color: var(--lime); }
-.nav-tab.external { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-.nav-tab.external::after { content: '↗'; font-size: 10px; opacity: 0.6; }
+/* ── IFRAME PANEL ── */
+.iframe-panel { width: 100%; height: calc(100vh - 116px); border: none; display: block; background: #0d0f14; }
+
+/* ── SCHEDULER ── */
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 20px; }
+.cal-header-cell { font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; text-align: center; padding-bottom: 6px; letter-spacing: 0.5px; }
+.cal-day { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: var(--radius-sm); min-height: 80px; padding: 6px; cursor: pointer; transition: border-color .15s; position: relative; }
+.cal-day:hover { border-color: var(--lime); }
+.cal-day.today { border-color: var(--lime); }
+.cal-day.other-month { opacity: 0.35; }
+.cal-day-num { font-size: 11px; font-weight: 600; color: var(--gray-300); margin-bottom: 4px; }
+.cal-day.today .cal-day-num { color: var(--lime); }
+.cal-post-chip { font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; cursor: pointer; }
+.chip-draft { background: rgba(102,102,102,.3); color: var(--gray-300); }
+.chip-scheduled { background: rgba(200,240,38,.15); color: var(--lime); }
+.chip-published { background: rgba(74,222,128,.15); color: var(--positive); }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 999; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--gray-800); border: 1px solid var(--gray-600); border-radius: var(--radius); padding: 1.75rem; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+.modal-title { font-size: 15px; font-weight: 600; color: var(--white); }
+.modal-close { background: none; border: none; color: var(--gray-400); font-size: 20px; cursor: pointer; line-height: 1; padding: 0 4px; }
+.modal-close:hover { color: var(--white); }
+.sched-textarea { width: 100%; background: var(--gray-700); border: 1px solid var(--gray-600); border-radius: var(--radius-sm); color: var(--white); font-family: 'Poppins', sans-serif; font-size: 13px; padding: 10px 12px; resize: vertical; outline: none; line-height: 1.6; min-height: 120px; }
+.sched-textarea:focus { border-color: var(--lime); }
+.sched-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.sched-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+.post-list { display: flex; flex-direction: column; gap: 8px; }
+.post-card { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: flex-start; gap: 12px; }
+.post-card-body { flex: 1; min-width: 0; }
+.post-card-title { font-size: 12px; font-weight: 600; color: var(--white); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.post-card-meta { font-size: 11px; color: var(--gray-400); }
+.post-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.icon-btn { background: none; border: 1px solid var(--gray-600); border-radius: 5px; color: var(--gray-400); font-size: 11px; padding: 3px 8px; cursor: pointer; font-family: 'Poppins',sans-serif; transition: all .15s; }
+.icon-btn:hover { border-color: var(--lime); color: var(--lime); }
+.icon-btn.del:hover { border-color: var(--negative); color: var(--negative); }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.cal-nav-btn { background: var(--gray-700); border: 1px solid var(--gray-600); color: var(--gray-200); font-family: 'Poppins',sans-serif; font-size: 12px; padding: 5px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: all .15s; }
+.cal-nav-btn:hover { background: var(--lime); color: var(--black); border-color: var(--lime); }
+.cal-month-label { font-size: 15px; font-weight: 600; color: var(--white); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.dot-draft { background: var(--gray-400); }
+.dot-scheduled { background: var(--lime); }
+.dot-published { background: var(--positive); }
+.content-link-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--gray-700); border: 1px solid var(--gray-600); border-radius: 4px; padding: 2px 8px; font-size: 10px; color: var(--gray-300); margin-top: 4px; }
+.format-badge { display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 3px; font-weight: 600; margin-right: 4px; }
+.fmt-carousel { background: rgba(59,130,246,.2); color: #60a5fa; }
+.fmt-video { background: rgba(249,115,22,.2); color: #fb923c; }
+.fmt-text { background: rgba(200,240,38,.15); color: var(--lime); }
+.fmt-image { background: rgba(167,139,250,.2); color: #a78bfa; }
 
 /* ── PANELS ── */
 .panel { display: none; }
@@ -270,7 +319,8 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
   <nav class="nav-tabs">
     <button class="nav-tab active" onclick="switchTab('analytics', this)">Analytics</button>
     <button class="nav-tab" onclick="switchTab('citation', this)">Citation generator</button>
-    <a class="nav-tab external" href="/linkedin" target="_blank">LinkedIn growth</a>
+    <button class="nav-tab" onclick="switchTab('linkedin', this)">LinkedIn growth</button>
+    <button class="nav-tab" onclick="switchTab('scheduler', this)">Post scheduler</button>
   </nav>
 
   <!-- ══════════════════════════════════════════════════════
@@ -561,6 +611,127 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
   </div>
   <!-- end citation panel -->
 
+  <!-- ══════════════════════════════════════════════════════
+       LINKEDIN GROWTH PANEL
+  ══════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-linkedin">
+    <iframe class="iframe-panel" id="linkedin-iframe" src="" title="LinkedIn Growth Tool"></iframe>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       POST SCHEDULER PANEL
+  ══════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-scheduler">
+    <div class="container">
+
+      <div class="page-title">
+        <h1>Post scheduler</h1>
+        <p>Plan, draft, and schedule LinkedIn posts for Briskfil — attach content, set formats, track status</p>
+        <div class="period-label"><span class="period-dot"></span>Posts are saved locally in your browser</div>
+      </div>
+
+      <!-- CALENDAR NAV + NEW POST -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="cal-nav" style="margin-bottom:0;">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">&#8592; Prev</button>
+          <span class="cal-month-label" id="cal-month-label"></span>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">Next &#8594;</button>
+        </div>
+        <button class="add-btn" onclick="openModal()">+ New post</button>
+      </div>
+
+      <!-- CALENDAR -->
+      <div class="chart-card" style="padding:1.25rem;margin-bottom:20px;">
+        <div class="cal-grid" id="cal-day-headers"></div>
+        <div class="cal-grid" id="cal-body"></div>
+      </div>
+
+      <!-- POST LIST -->
+      <div class="section-title">All posts</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="icon-btn" style="font-size:11px;" onclick="filterPosts('all')">All</button>
+        <button class="icon-btn" onclick="filterPosts('draft')">Draft</button>
+        <button class="icon-btn" onclick="filterPosts('scheduled')">Scheduled</button>
+        <button class="icon-btn" onclick="filterPosts('published')">Published</button>
+      </div>
+      <div class="post-list" id="post-list"></div>
+
+    </div>
+  </div>
+
+  <!-- POST MODAL -->
+  <div class="modal-overlay" id="post-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-title-text">New post</span>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+
+      <input type="hidden" id="edit-post-id">
+
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">Post title / topic</label>
+        <input class="form-input" id="post-title" placeholder="e.g. Why on-site nitrogen beats bottled gas" type="text">
+      </div>
+
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">Post copy</label>
+        <textarea class="sched-textarea" id="post-copy" placeholder="Write your LinkedIn post here, or paste generated copy from the LinkedIn Growth tool..."></textarea>
+      </div>
+
+      <div class="sched-row">
+        <div class="form-group">
+          <label class="form-label">Format</label>
+          <select class="form-select" id="post-format">
+            <option value="text">Text post</option>
+            <option value="carousel">Carousel</option>
+            <option value="video">Short video</option>
+            <option value="image">Image post</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="post-status">
+            <option value="draft">Draft</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="published">Published</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sched-row">
+        <div class="form-group">
+          <label class="form-label">Scheduled date</label>
+          <input class="form-input" id="post-date" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Scheduled time</label>
+          <input class="form-input" id="post-time" type="time" value="08:30">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:10px;">
+        <label class="form-label">Hashtags</label>
+        <input class="form-input" id="post-hashtags" placeholder="#CompressedAir #NitrogenGeneration #Briskfil" type="text">
+      </div>
+
+      <div class="form-group" style="margin-top:10px;">
+        <label class="form-label">Linked content URL (optional)</label>
+        <input class="form-input" id="post-link" placeholder="https://briskfil.com/your-article or Google Drive link" type="url">
+      </div>
+
+      <div class="form-group" style="margin-top:10px;">
+        <label class="form-label">Notes / brief</label>
+        <input class="form-input" id="post-notes" placeholder="e.g. Needs approval from client, attach infographic" type="text">
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;">
+        <button class="add-btn" onclick="savePost()" style="flex:1;">Save post</button>
+        <button class="header-btn" onclick="closeModal()" style="flex:0 0 auto;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer">
     <div class="footer-brand">Powered by <span>NXRD</span> — nx-rd.com</div>
     <div class="footer-note">Data sourced from Google Analytics 4. Refreshes on page load.</div>
@@ -574,10 +745,19 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
    TAB SWITCHING
 ══════════════════════════════════════════════════════════════ */
 function switchTab(tab, btn) {
-  document.querySelectorAll('.nav-tab:not(.external)').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  document.getElementById('panel-analytics').classList.toggle('active', tab === 'analytics');
-  document.getElementById('panel-citation').classList.toggle('active', tab === 'citation');
+  ['analytics','citation','linkedin','scheduler'].forEach(p => {
+    document.getElementById('panel-'+p).classList.toggle('active', p === tab);
+  });
+  // Lazy-load the LinkedIn iframe on first click
+  if (tab === 'linkedin') {
+    const iframe = document.getElementById('linkedin-iframe');
+    if (!iframe.src || iframe.src === window.location.href) {
+      iframe.src = '/linkedin';
+    }
+  }
+  if (tab === 'scheduler') { renderCalendar(); renderPostList(); }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -910,6 +1090,202 @@ document.addEventListener('click', e => {
 
 /* ══ BOOT ══ */
 checkAuth();
+
+/* ══════════════════════════════════════════════════════════════
+   POST SCHEDULER
+══════════════════════════════════════════════════════════════ */
+const STORAGE_KEY = 'briskfil_posts_v1';
+let calYear, calMonth, editingId = null, filterStatus = 'all';
+
+function getPosts() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; } }
+function savePosts(posts) { localStorage.setItem(STORAGE_KEY, JSON.stringify(posts)); }
+
+function initCal() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('cal-day-headers').innerHTML = days.map(d =>
+    `<div class="cal-header-cell">${d}</div>`).join('');
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const posts = getPosts();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent = monthNames[calMonth] + ' ' + calYear;
+
+  const first = new Date(calYear, calMonth, 1);
+  const last = new Date(calYear, calMonth + 1, 0);
+  // Monday-first offset
+  let startDow = first.getDay(); if (startDow === 0) startDow = 7; startDow--;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let cells = [];
+  // Prev month padding
+  const prevLast = new Date(calYear, calMonth, 0);
+  for (let i = startDow - 1; i >= 0; i--) {
+    cells.push({ day: prevLast.getDate() - i, cur: false });
+  }
+  for (let d = 1; d <= last.getDate(); d++) cells.push({ day: d, cur: true });
+  // Next month padding to complete grid
+  let rem = cells.length % 7;
+  if (rem > 0) { for (let d = 1; d <= 7 - rem; d++) cells.push({ day: d, cur: false }); }
+
+  const fmt = (d, m, y) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+  document.getElementById('cal-body').innerHTML = cells.map(c => {
+    const dateStr = c.cur ? fmt(c.day, calMonth, calYear) : '';
+    const dayPosts = posts.filter(p => p.date === dateStr);
+    const isToday = c.cur && new Date(calYear, calMonth, c.day).getTime() === today.getTime();
+    const chips = dayPosts.slice(0,3).map(p => {
+      const fmtCls = {text:'fmt-text',carousel:'fmt-carousel',video:'fmt-video',image:'fmt-image'}[p.format]||'fmt-text';
+      return `<div class="cal-post-chip chip-${p.status}" onclick="event.stopPropagation();openModal('${p.id}')" title="${p.title}">
+        <span class="format-badge ${fmtCls}">${p.format}</span>${p.title}
+      </div>`;
+    }).join('');
+    const extra = dayPosts.length > 3 ? `<div style="font-size:9px;color:var(--gray-400)">+${dayPosts.length-3} more</div>` : '';
+    return `<div class="cal-day ${isToday?'today':''} ${c.cur?'':'other-month'}" onclick="${c.cur?`openModal(null,'${dateStr}')`:''}" >
+      <div class="cal-day-num">${c.day}</div>
+      ${chips}${extra}
+    </div>`;
+  }).join('');
+}
+
+function renderPostList(status) {
+  if (status !== undefined) filterStatus = status;
+  let posts = getPosts();
+  if (filterStatus !== 'all') posts = posts.filter(p => p.status === filterStatus);
+  posts.sort((a,b) => (a.date||'9999') < (b.date||'9999') ? -1 : 1);
+
+  const fmtLabels = {text:'Text post',carousel:'Carousel',video:'Short video',image:'Image post'};
+  const fmtCls = {text:'fmt-text',carousel:'fmt-carousel',video:'fmt-video',image:'fmt-image'};
+
+  if (!posts.length) {
+    document.getElementById('post-list').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray-400);font-size:13px">No posts yet. Click "+ New post" to add one.</div>';
+    return;
+  }
+
+  document.getElementById('post-list').innerHTML = posts.map(p => {
+    const dotCls = {draft:'dot-draft',scheduled:'dot-scheduled',published:'dot-published'}[p.status]||'dot-draft';
+    const linkChip = p.link ? `<a class="content-link-chip" href="${p.link}" target="_blank">🔗 Linked content</a>` : '';
+    const excerpt = (p.copy||'').length > 100 ? (p.copy||'').slice(0,100)+'...' : (p.copy||'No copy added yet');
+    return `<div class="post-card">
+      <div class="status-dot ${dotCls}"></div>
+      <div class="post-card-body">
+        <div class="post-card-title">
+          <span class="format-badge ${fmtCls[p.format]||'fmt-text'}">${fmtLabels[p.format]||p.format}</span>
+          ${p.title||'Untitled post'}
+        </div>
+        <div class="post-card-meta">${p.date||'No date'} ${p.time?'at '+p.time:''} &nbsp;·&nbsp; ${p.status}</div>
+        <div style="font-size:11px;color:var(--gray-300);margin-top:4px;line-height:1.5;">${excerpt}</div>
+        ${p.hashtags ? `<div style="font-size:10px;color:var(--gray-400);margin-top:3px;">${p.hashtags}</div>` : ''}
+        ${linkChip}
+        ${p.notes ? `<div style="font-size:10px;color:var(--gray-400);margin-top:3px;">Notes: ${p.notes}</div>` : ''}
+      </div>
+      <div class="post-card-actions">
+        <button class="icon-btn" onclick="openModal('${p.id}')">Edit</button>
+        <button class="icon-btn del" onclick="deletePost('${p.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterPosts(status) {
+  renderPostList(status);
+}
+
+function openModal(id, prefillDate) {
+  editingId = id || null;
+  const modal = document.getElementById('post-modal');
+  modal.classList.add('open');
+
+  if (id) {
+    const posts = getPosts();
+    const p = posts.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('modal-title-text').textContent = 'Edit post';
+    document.getElementById('edit-post-id').value = p.id;
+    document.getElementById('post-title').value = p.title || '';
+    document.getElementById('post-copy').value = p.copy || '';
+    document.getElementById('post-format').value = p.format || 'text';
+    document.getElementById('post-status').value = p.status || 'draft';
+    document.getElementById('post-date').value = p.date || '';
+    document.getElementById('post-time').value = p.time || '08:30';
+    document.getElementById('post-hashtags').value = p.hashtags || '';
+    document.getElementById('post-link').value = p.link || '';
+    document.getElementById('post-notes').value = p.notes || '';
+  } else {
+    document.getElementById('modal-title-text').textContent = 'New post';
+    document.getElementById('edit-post-id').value = '';
+    document.getElementById('post-title').value = '';
+    document.getElementById('post-copy').value = '';
+    document.getElementById('post-format').value = 'text';
+    document.getElementById('post-status').value = 'draft';
+    document.getElementById('post-date').value = prefillDate || '';
+    document.getElementById('post-time').value = '08:30';
+    document.getElementById('post-hashtags').value = '';
+    document.getElementById('post-link').value = '';
+    document.getElementById('post-notes').value = '';
+  }
+}
+
+function closeModal() {
+  document.getElementById('post-modal').classList.remove('open');
+  editingId = null;
+}
+
+function savePost() {
+  const title = document.getElementById('post-title').value.trim();
+  if (!title) { alert('Please add a post title'); return; }
+
+  const posts = getPosts();
+  const postData = {
+    id: editingId || 'post_' + Date.now(),
+    title,
+    copy: document.getElementById('post-copy').value,
+    format: document.getElementById('post-format').value,
+    status: document.getElementById('post-status').value,
+    date: document.getElementById('post-date').value,
+    time: document.getElementById('post-time').value,
+    hashtags: document.getElementById('post-hashtags').value,
+    link: document.getElementById('post-link').value,
+    notes: document.getElementById('post-notes').value,
+    updatedAt: new Date().toISOString()
+  };
+
+  if (editingId) {
+    const idx = posts.findIndex(p => p.id === editingId);
+    if (idx !== -1) posts[idx] = postData; else posts.push(postData);
+  } else {
+    posts.push(postData);
+  }
+
+  savePosts(posts);
+  closeModal();
+  renderCalendar();
+  renderPostList();
+}
+
+function deletePost(id) {
+  if (!confirm('Delete this post?')) return;
+  savePosts(getPosts().filter(p => p.id !== id));
+  renderCalendar();
+  renderPostList();
+}
+
+// Close modal on overlay click
+document.getElementById('post-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('post-modal')) closeModal();
+});
+
+initCal();
 </script>
 </body>
 </html>
