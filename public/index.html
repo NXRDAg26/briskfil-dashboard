@@ -259,6 +259,25 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 
 .cit-results { display: none; }
 
+/* ── WELCOME PANEL ── */
+.bf-stat { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: var(--radius); padding: 16px 18px; }
+.bf-stat-icon { font-size: 20px; margin-bottom: 8px; }
+.bf-stat-val { font-size: 22px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+.bf-stat-label { font-size: 10px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.bf-stat-sub { font-size: 11px; color: var(--gray-300); margin-top: 4px; }
+.bf-action-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--gray-700); cursor: pointer; transition: background .15s; }
+.bf-action-item:last-child { border-bottom: none; }
+.bf-action-item:hover { background: rgba(255,255,255,0.02); }
+.bf-action-item.done .bf-action-title { text-decoration: line-through; color: var(--gray-400); }
+.bf-action-item.done .bf-action-desc { color: var(--gray-500); }
+.bf-checkbox { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--gray-500); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.bf-checkbox.checked { background: var(--lime); border-color: var(--lime); }
+.bf-action-title { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 3px; line-height: 1.4; }
+.bf-action-desc { font-size: 11px; color: var(--gray-400); line-height: 1.55; }
+.bf-action-tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; flex-shrink: 0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+.bf-tool-btn { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--gray-700); border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: 'Poppins',sans-serif; font-size: 12px; font-weight: 600; color: var(--white); transition: all .15s; text-align: left; }
+.bf-tool-btn:hover { background: var(--gray-600); color: var(--lime); }
+
 /* ── SEO TOOL ── */
 .seo-stab { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500; color: var(--gray-400); background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px; cursor: pointer; transition: all .2s; white-space: nowrap; margin-bottom: -1px; }
 .seo-stab:hover { color: var(--gray-200); }
@@ -355,7 +374,8 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 
   <!-- NAV TABS -->
   <nav class="nav-tabs">
-    <button class="nav-tab active" onclick="switchTab('analytics', this)">Analytics</button>
+    <button class="nav-tab active" onclick="switchTab('welcome', this)">Home</button>
+    <button class="nav-tab" onclick="switchTab('analytics', this)">Analytics</button>
     <button class="nav-tab" onclick="switchTab('citation', this)">Citation generator</button>
     <button class="nav-tab" onclick="switchTab('linkedin', this)">Content and social</button>
     <button class="nav-tab" onclick="switchTab('scheduler', this)">Post scheduler</button>
@@ -364,9 +384,106 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
   </nav>
 
   <!-- ══════════════════════════════════════════════════════
+       WELCOME PANEL
+  ══════════════════════════════════════════════════════ -->
+  <div class="panel active" id="panel-welcome">
+    <div class="container">
+
+      <!-- GREETING -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:32px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">NXRD AI Marketing Tool</div>
+          <h1 style="font-size:28px;font-weight:700;color:var(--white);margin-bottom:8px;line-height:1.2;">Bom <span id="bf-greeting">dia</span>, Briskfil</h1>
+          <p style="font-size:14px;color:var(--gray-300);max-width:520px;line-height:1.6;">Your digital presence dashboard — everything you need to grow Briskfil's online visibility, in one place.</p>
+        </div>
+        <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:16px 20px;text-align:right;flex-shrink:0;min-width:190px;">
+          <div style="font-size:11px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Today · Esposende</div>
+          <div style="font-size:18px;font-weight:700;color:var(--white);" id="bf-date">—</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:2px;" id="bf-time">—</div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-700);">
+            <div id="bf-weather-wrap"><span style="font-size:11px;color:var(--gray-400);">Fetching weather...</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCORE + QUICK STATS -->
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:20px;margin-bottom:24px;align-items:start;">
+
+        <!-- PRESENCE SCORE RING -->
+        <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:24px 20px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;">Digital presence score</div>
+          <svg width="120" height="120" viewBox="0 0 120 120" style="display:block;margin:0 auto 12px;">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--gray-700)" stroke-width="10"/>
+            <circle id="bf-score-ring" cx="60" cy="60" r="50" fill="none" stroke="var(--lime)" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"
+              transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1.2s ease 0.3s"/>
+            <text x="60" y="55" text-anchor="middle" font-family="Poppins,sans-serif" font-size="28" font-weight="700" fill="#ffffff" id="bf-score-num">0</text>
+            <text x="60" y="72" text-anchor="middle" font-family="Poppins,sans-serif" font-size="11" fill="#666666">out of 100</text>
+          </svg>
+          <div style="font-size:12px;color:var(--gray-300);line-height:1.5;" id="bf-score-label">Calculating...</div>
+        </div>
+
+        <!-- STAT GRID -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="bf-stat-grid"></div>
+
+      </div>
+
+      <!-- ACTION LIST + TOOL LINKS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+
+        <!-- TOP 5 ACTIONS -->
+        <div style="background:var(--gray-800);border:1px solid rgba(200,240,38,0.25);border-radius:var(--radius);overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--gray-700);display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--white);">Top 5 actions</div>
+              <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">Tick these off to grow Briskfil's digital presence</div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--lime);" id="bf-actions-progress">0 / 5 done</div>
+          </div>
+          <div id="bf-actions-list"></div>
+          <div style="padding:10px 20px;border-top:1px solid var(--gray-700);">
+            <button class="copy-btn" onclick="resetBfActions()">Reset all</button>
+          </div>
+        </div>
+
+        <!-- TOOL NAVIGATOR -->
+        <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--gray-700);">
+            <div style="font-size:13px;font-weight:700;color:var(--white);">What do you want to do today?</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">Jump straight to the right tool</div>
+          </div>
+          <div style="padding:8px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="bf-tools-grid"></div>
+        </div>
+
+      </div>
+
+      <!-- BRISKFIL AT A GLANCE -->
+      <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:20px 24px;margin-bottom:24px;">
+        <div style="font-size:10px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px;">Briskfil at a glance</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;">
+          <div><div style="font-size:32px;font-weight:700;color:var(--white);line-height:1;">2021</div><div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Founded in Esposende, Portugal</div></div>
+          <div><div style="font-size:32px;font-weight:700;color:var(--lime);line-height:1;">35+</div><div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Years combined expertise behind the founding team</div></div>
+          <div><div style="font-size:32px;font-weight:700;color:var(--white);line-height:1;">8</div><div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Core service areas from audit to installation</div></div>
+          <div><div style="font-size:32px;font-weight:700;color:var(--white);line-height:1;">100%</div><div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Manufacturer agnostic — truly independent advice</div></div>
+          <div><div style="font-size:32px;font-weight:700;color:var(--lime);line-height:1;">PT</div><div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Portugal and Iberian market specialists</div></div>
+          <div><div style="font-size:32px;font-weight:700;color:var(--white);line-height:1;">ISO</div><div style="font-size:11px;color:var(--gray-400);margin-top:4px;">ISO 11011 certified energy efficiency audits</div></div>
+        </div>
+      </div>
+
+      <!-- SECTORS STRIP -->
+      <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:16px 24px;">
+        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Sectors served</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;" id="bf-sectors-strip"></div>
+      </div>
+
+    </div>
+  </div>
+  <!-- end welcome panel -->
+
+  <!-- ══════════════════════════════════════════════════════
        ANALYTICS PANEL
   ══════════════════════════════════════════════════════ -->
-  <div class="panel active" id="panel-analytics">
+  <div class="panel" id="panel-analytics">
     <div class="container">
 
       <!-- Inline sign-in prompt shown only when not authenticated -->
@@ -1380,7 +1497,7 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 function switchTab(tab, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  ['analytics','citation','linkedin','scheduler','seo','copy'].forEach(p => {
+  ['welcome','analytics','citation','linkedin','scheduler','seo','copy'].forEach(p => {
     document.getElementById('panel-'+p).classList.toggle('active', p === tab);
   });
   if (tab === 'linkedin') {
@@ -2901,7 +3018,217 @@ function sendCopyToScheduler() {
 }
 
 // Initialise on first load
-document.addEventListener('DOMContentLoaded', () => { initCopywriter(); });
+document.addEventListener('DOMContentLoaded', () => {
+  initCopywriter();
+  initBfWelcome();
+});
+
+/* ══════════════════════════════════════════════════════════════
+   BRISKFIL WELCOME PANEL
+══════════════════════════════════════════════════════════════ */
+
+const BF_ACTIONS_KEY = 'briskfil_welcome_actions_v1';
+
+const BF_ACTIONS = [
+  {
+    id:'bfa1',
+    title:'Post 3 times per week in both Portuguese and English',
+    desc:'Mon, Wed, Fri at 08:30 WET. The bilingual post generator is ready — brief it, generate both versions, add to scheduler. Consistency is the number one LinkedIn growth lever.',
+    tag:'Social', tagCol:'#4ade80', tagBg:'rgba(74,222,128,0.1)', tab:'linkedin'
+  },
+  {
+    id:'bfa2',
+    title:'Fix title tags and meta descriptions on every service page',
+    desc:'Compressed air quality, nitrogen generation, oxygen generation, energy efficiency — each page needs a keyword-led title under 60 characters and a Portuguese-language meta description.',
+    tag:'SEO', tagCol:'#f59e0b', tagBg:'rgba(245,158,11,0.1)', tab:'seo'
+  },
+  {
+    id:'bfa3',
+    title:'Publish one educational blog post per month in Portuguese',
+    desc:'Non-branded content is what brings in buyers who do not know Briskfil yet. Target "geração de azoto no local Portugal" and "auditoria ar comprimido" — no competitor owns these in PT.',
+    tag:'Content', tagCol:'var(--lime)', tagBg:'rgba(200,240,38,0.1)', tab:'copy'
+  },
+  {
+    id:'bfa4',
+    title:'Counter one Atlas Copco LinkedIn post every week',
+    desc:'Atlas Copco posts 5+ times per week to 807,000 followers. One well-timed Briskfil counter-post per week — citing their corporate tone vs Briskfil\'s independence — builds audience in the same feed.',
+    tag:'Social', tagCol:'#4ade80', tagBg:'rgba(74,222,128,0.1)', tab:'linkedin'
+  },
+  {
+    id:'bfa5',
+    title:'Run an energy efficiency audit post-campaign — use real numbers',
+    desc:'ISO 11011 audit results with before/after energy cost data are the highest-converting content type for Briskfil. Anonymised case study format. Numbers make it shareable.',
+    tag:'Brand', tagCol:'#f97316', tagBg:'rgba(249,115,22,0.1)', tab:'copy'
+  }
+];
+
+const BF_STATS = [
+  { icon:'🇵🇹', label:'Market', val:'Portugal', sub:'Esposende, Norte region — Iberian reach', col:'var(--white)' },
+  { icon:'⚙', label:'Core services', val:'8', sub:'Audit, generation, filtration, consulting, I4.0', col:'var(--lime)' },
+  { icon:'⚡', label:'Energy savings', val:'ISO', sub:'ISO 11011 certified energy audits', col:'var(--white)' },
+  { icon:'🔬', label:'Independence', val:'100%', sub:'Manufacturer agnostic — no vendor bias', col:'var(--lime)' },
+  { icon:'🏭', label:'Primary sectors', val:'12+', sub:'Food, pharma, wine, laser, oil and gas, water', col:'var(--white)' },
+  { icon:'📅', label:'Founded', val:'2021', sub:'35+ years combined founding team expertise', col:'var(--white)' }
+];
+
+const BF_TOOLS = [
+  { icon:'💼', label:'Generate a LinkedIn post', tab:'linkedin' },
+  { icon:'✍', label:'Write copy in PT and EN', tab:'copy' },
+  { icon:'🔍', label:'Audit a page for SEO', tab:'seo' },
+  { icon:'📅', label:'Schedule a post', tab:'scheduler' },
+  { icon:'📈', label:'View analytics', tab:'analytics' },
+  { icon:'🔗', label:'Generate a citation', tab:'citation' },
+  { icon:'🗝', label:'Find keyword targets', tab:'seo' },
+  { icon:'📋', label:'Monthly growth plan', tab:'seo' }
+];
+
+const BF_SECTORS = ['Food and beverage','Wine and viticulture','Water treatment','Laser cutting','Oil and gas','Pharmaceutical','Electronics','Medical oxygen','Biogas','Metal fabrication','Automotive','Aerospace'];
+
+function initBfWelcome() {
+  updateBfClock();
+  setInterval(updateBfClock, 60000);
+  fetchBfWeather();
+
+  // Stats
+  document.getElementById('bf-stat-grid').innerHTML = BF_STATS.map(s => `
+    <div class="bf-stat">
+      <div class="bf-stat-icon">${s.icon}</div>
+      <div class="bf-stat-val" style="color:${s.col}">${s.val}</div>
+      <div class="bf-stat-label">${s.label}</div>
+      <div class="bf-stat-sub">${s.sub}</div>
+    </div>`).join('');
+
+  // Tools
+  document.getElementById('bf-tools-grid').innerHTML = BF_TOOLS.map(t => `
+    <button class="bf-tool-btn" onclick="switchTabBf('${t.tab}')">
+      <span style="font-size:16px;">${t.icon}</span>${t.label}
+    </button>`).join('');
+
+  // Sectors strip
+  const strip = document.getElementById('bf-sectors-strip');
+  if (strip) strip.innerHTML = BF_SECTORS.map(s =>
+    `<span style="background:var(--gray-700);border:1px solid var(--gray-600);border-radius:var(--radius-sm);padding:5px 12px;font-size:11px;font-weight:600;color:var(--gray-200);">${s}</span>`
+  ).join('');
+
+  renderBfActions();
+}
+
+function updateBfClock() {
+  const now = new Date();
+  const h = now.getHours();
+  // Portuguese greeting
+  const greet = h < 12 ? 'dia' : h < 18 ? 'tarde' : 'noite';
+  const el = document.getElementById('bf-greeting');
+  const dateEl = document.getElementById('bf-date');
+  const timeEl = document.getElementById('bf-time');
+  if (el) el.textContent = greet;
+  if (dateEl) dateEl.textContent = now.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+}
+
+async function fetchBfWeather() {
+  const wrap = document.getElementById('bf-weather-wrap');
+  if (!wrap) return;
+  // Esposende, Portugal coordinates
+  const lat = 41.5333, lon = -8.7833;
+  const wmoDesc = {0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Icy fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Light showers',81:'Showers',82:'Heavy showers',95:'Thunderstorm',96:'Thunderstorm with hail'};
+  const wmoIcon = (code, isDay) => {
+    if (code === 0) return isDay ? '☀️' : '🌙';
+    if (code <= 2) return isDay ? '⛅' : '🌙';
+    if (code === 3) return '☁️';
+    if (code <= 48) return '🌫️';
+    if (code <= 55) return '🌦️';
+    if (code <= 65) return '🌧️';
+    if (code <= 77) return '❄️';
+    if (code <= 82) return '🌦️';
+    return '⛈️';
+  };
+  try {
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weathercode,is_day,wind_speed_10m,relative_humidity_2m&wind_speed_unit=mph&timezone=Europe/Lisbon`);
+    const data = await res.json();
+    const c = data.current;
+    const icon = wmoIcon(c.weathercode, c.is_day);
+    const desc = wmoDesc[c.weathercode] || '';
+    wrap.innerHTML = `
+      <div style="text-align:right;width:100%;">
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:6px;">
+          <span style="font-size:28px;line-height:1;">${icon}</span>
+          <div>
+            <div style="font-size:24px;font-weight:700;color:var(--white);line-height:1;">${Math.round(c.temperature_2m)}°C</div>
+            <div style="font-size:11px;color:var(--gray-400);">${desc}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;">
+          <span style="font-size:11px;color:var(--gray-400);">Feels ${Math.round(c.apparent_temperature)}°C</span>
+          <span style="font-size:11px;color:var(--gray-400);">💨 ${Math.round(c.wind_speed_10m)} mph</span>
+          <span style="font-size:11px;color:var(--gray-400);">💧 ${c.relative_humidity_2m}%</span>
+        </div>
+      </div>`;
+  } catch(e) {
+    wrap.innerHTML = '<span style="font-size:11px;color:var(--gray-500);">Weather unavailable</span>';
+  }
+}
+
+function getBfChecked() {
+  return JSON.parse(localStorage.getItem(BF_ACTIONS_KEY) || '{}');
+}
+
+function renderBfActions() {
+  const checked = getBfChecked();
+  const done = Object.values(checked).filter(Boolean).length;
+  document.getElementById('bf-actions-progress').textContent = `${done} / ${BF_ACTIONS.length} done`;
+
+  document.getElementById('bf-actions-list').innerHTML = BF_ACTIONS.map(a => {
+    const isDone = !!checked[a.id];
+    return `<div class="bf-action-item ${isDone?'done':''}" onclick="toggleBfAction('${a.id}')">
+      <div class="bf-checkbox ${isDone?'checked':''}" id="bfcb-${a.id}">
+        ${isDone?'<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}
+      </div>
+      <div style="flex:1;">
+        <div class="bf-action-title">${a.title}</div>
+        <div class="bf-action-desc">${a.desc}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+        <span class="bf-action-tag" style="color:${a.tagCol};background:${a.tagBg}">${a.tag}</span>
+        <button onclick="event.stopPropagation();switchTabBf('${a.tab}')" style="font-size:10px;padding:3px 10px;background:transparent;border:1px solid var(--gray-600);border-radius:var(--radius-sm);color:var(--gray-400);cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;" onmouseover="this.style.color='var(--lime)';this.style.borderColor='var(--lime)'" onmouseout="this.style.color='var(--gray-400)';this.style.borderColor='var(--gray-600)'">Open tool ↗</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateBfScore();
+}
+
+function toggleBfAction(id) {
+  const checked = getBfChecked();
+  checked[id] = !checked[id];
+  localStorage.setItem(BF_ACTIONS_KEY, JSON.stringify(checked));
+  renderBfActions();
+}
+
+function resetBfActions() {
+  if (!confirm('Reset all actions to unticked?')) return;
+  localStorage.removeItem(BF_ACTIONS_KEY);
+  renderBfActions();
+}
+
+function updateBfScore() {
+  const checked = getBfChecked();
+  const done = Object.values(checked).filter(Boolean).length;
+  // Base 40 for Briskfil (newer company, growing domain) + 12 per action
+  const score = Math.min(100, 40 + Math.round((done / BF_ACTIONS.length) * 60));
+  const ring = document.getElementById('bf-score-ring');
+  const num = document.getElementById('bf-score-num');
+  const label = document.getElementById('bf-score-label');
+  if (ring) { ring.style.strokeDashoffset = 314 - (314 * score / 100); ring.style.stroke = score >= 80 ? '#4ade80' : score >= 60 ? '#f59e0b' : 'var(--lime)'; }
+  if (num) num.textContent = score;
+  const msgs = [[100,'Excellent — fully optimised'],[85,'Very strong — keep going'],[70,'Good momentum — complete actions'],[55,'Growing — work through the list'],[0,'Getting started — complete actions above']];
+  if (label) label.textContent = (msgs.find(([min]) => score >= min) || msgs[msgs.length-1])[1];
+}
+
+function switchTabBf(tab) {
+  const btn = document.querySelector('.nav-tab[onclick*="switchTab(\'' + tab + '\'"]');
+  switchTab(tab, btn);
+}
 </script>
 </body>
 </html>
