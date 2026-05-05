@@ -993,12 +993,12 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
       <!-- ── KEYWORD TARGETS ── -->
       <div id="seo-panel-keywords" class="seo-sub" style="display:none;">
 
+        <!-- KEYWORD TARGET GENERATOR -->
         <div class="chart-card" style="margin-bottom:16px;">
           <div class="chart-header">
             <div><div class="chart-title">Keyword target generator</div><div class="chart-subtitle">AI identifies the highest-value keyword targets for Briskfil across all service areas and sectors</div></div>
             <div class="chart-badge lime">AI powered</div>
           </div>
-
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
             <div class="form-group">
               <label class="form-label">Service area or sector</label>
@@ -1027,7 +1027,6 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
               </select>
             </div>
           </div>
-
           <button class="add-btn" onclick="runKeywordGen()" id="kw-gen-btn">Generate keyword targets</button>
         </div>
 
@@ -1040,6 +1039,92 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
           </div>
           <div class="chart-card">
             <div class="out-text" id="kw-text" style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;"></div>
+          </div>
+        </div>
+
+        <!-- PAGE BUILDER RECOMMENDATIONS -->
+        <div class="chart-card" style="margin-top:20px;margin-bottom:16px;">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Recommended pages to build</div>
+              <div class="chart-subtitle">Keywords with enough search volume and low enough competition to justify a dedicated landing page on briskfil.com</div>
+            </div>
+            <div class="chart-badge lime">AI powered</div>
+          </div>
+
+          <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">Each recommendation includes the target keyword, estimated monthly search volume, current competition level, the URL slug to use, and a full content brief so the page can be written and built immediately.</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">Focus area</label>
+              <select class="form-select" id="pb-sector">
+                <option value="all">All Briskfil services (full priority list)</option>
+                <option value="nitrogen">Nitrogen generation</option>
+                <option value="oxygen">Oxygen generation</option>
+                <option value="compressed-air">Compressed air quality</option>
+                <option value="water">Water treatment</option>
+                <option value="food">Food and beverage</option>
+                <option value="wine">Wine and viticulture</option>
+                <option value="laser">Laser cutting</option>
+                <option value="oil-gas">Oil and gas</option>
+                <option value="medical">Medical oxygen</option>
+                <option value="energy">Energy efficiency audits</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Market</label>
+              <select class="form-select" id="pb-geo">
+                <option value="pt">Portugal only</option>
+                <option value="iberia">Portugal and Spain</option>
+                <option value="europe">European market (English)</option>
+                <option value="both">Both Portuguese and English pages</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Number of page recommendations</label>
+              <select class="form-select" id="pb-count">
+                <option value="5">5 pages</option>
+                <option value="10" selected>10 pages</option>
+                <option value="15">15 pages</option>
+                <option value="20">20 pages</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="add-btn" onclick="runPageBuilder()" id="pb-gen-btn">Generate page recommendations</button>
+        </div>
+
+        <div id="pb-loading" style="display:none;" class="loading"><div class="spinner"></div> Building page recommendations...</div>
+
+        <div id="pb-output" style="display:none;">
+          <div class="chart-header" style="margin-bottom:12px;">
+            <div><div class="chart-title" id="pb-output-title">Recommended pages to build</div></div>
+            <button class="copy-btn" onclick="copySeoOutput('pb-text')">Copy all</button>
+          </div>
+
+          <!-- QUICK OVERVIEW TABLE -->
+          <div class="chart-card" style="margin-bottom:12px;overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;" id="pb-table">
+              <thead>
+                <tr style="border-bottom:1px solid var(--gray-700);">
+                  <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 0 10px;text-align:left;">#</th>
+                  <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 12px 10px;text-align:left;">Target keyword</th>
+                  <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 12px 10px;text-align:left;">Monthly searches</th>
+                  <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 12px 10px;text-align:left;">Difficulty</th>
+                  <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 12px 10px;text-align:left;">Suggested URL</th>
+                  <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 0 10px;text-align:left;">Priority</th>
+                </tr>
+              </thead>
+              <tbody id="pb-table-body">
+                <tr><td colspan="6" style="padding:1rem 0;color:var(--gray-400);font-size:12px;">Generating recommendations...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- FULL BRIEFS -->
+          <div class="chart-card">
+            <div style="font-size:11px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Full page briefs</div>
+            <div class="out-text" id="pb-text" style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;"></div>
           </div>
         </div>
 
@@ -2255,6 +2340,121 @@ Be specific to Briskfil's actual business and the ${geo} market. Estimated volum
 
   await seoGenerate(prompt, 'kw-text', 'kw-loading', 'kw-output');
   btn.disabled = false; btn.textContent = 'Generate keyword targets';
+}
+
+// -- PAGE BUILDER RECOMMENDATIONS --
+async function runPageBuilder() {
+  const sector = document.getElementById('pb-sector').value;
+  const geo = document.getElementById('pb-geo').value;
+  const count = document.getElementById('pb-count').value;
+
+  const btn = document.getElementById('pb-gen-btn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+
+  document.getElementById('pb-loading').style.display = 'flex';
+  document.getElementById('pb-output').style.display = 'none';
+
+  const geoMap = {
+    pt: 'Portugal only — include Portuguese-language keyword variants',
+    iberia: 'Portugal and Spain — include both Portuguese and Spanish keyword variants',
+    europe: 'European market in English — target international buyers searching in English',
+    both: 'Both Portuguese market pages and English international pages — recommend a mix'
+  };
+
+  const sectorMap = {
+    all: 'all Briskfil service areas (compressed air, nitrogen generation, oxygen generation, water treatment, food and beverage, wine, laser cutting, oil and gas, medical oxygen, energy efficiency, industrial fluid filtration)',
+    nitrogen: 'on-site nitrogen generation (PSA and membrane systems) including food, pharma, electronics, laser cutting, and chemical applications',
+    oxygen: 'on-site oxygen generation including biogas, wastewater, medical adjacent, and metal fabrication applications',
+    'compressed-air': 'compressed air quality analysis, ISO 8573 compliance, and energy audits (ISO 11011)',
+    water: 'water treatment and wastewater applications using on-site oxygen',
+    food: 'food and beverage nitrogen applications including modified atmosphere packaging and storage',
+    wine: 'wine and viticulture nitrogen applications including blanketing, transfer, and bottling',
+    laser: 'laser cutting nitrogen supply including PSA generation vs cylinder comparison',
+    'oil-gas': 'oil and gas nitrogen applications including pipeline inerting, purging, and well intervention',
+    medical: 'medical oxygen generation for clinical and healthcare applications',
+    energy: 'industrial energy efficiency audits and compressed air energy management'
+  };
+
+  const prompt = `You are an expert SEO strategist working for NXRD on the Briskfil.com account. Briskfil is a Portuguese B2B industrial gas consultancy based in Esposende, Portugal. They specialise in compressed air quality, on-site nitrogen and oxygen generation, energy efficiency audits, and industrial gas consulting. Their primary competitors include Atlas Copco, CompAir, Noxerior, Groupe Novair, and Ultra Controlo.
+
+Generate ${count} recommended pages for Briskfil to build on their WordPress website, targeting: ${sectorMap[sector] || sector}.
+
+Target geography: ${geoMap[geo] || geo}
+
+For each page, provide the following in this exact format:
+
+PAGE [N]
+Target keyword: [primary keyword phrase]
+Secondary keywords: [2 to 3 related terms]
+Monthly search volume: [estimated range, e.g. 50 to 200 searches/month in Portugal]
+Keyword difficulty: [Low / Medium / High] — [one sentence explanation]
+Search intent: [Informational / Commercial / Transactional]
+Suggested URL: briskfil.com/[slug]
+Page title tag: [under 60 characters]
+Meta description: [under 155 characters]
+Priority: [High / Medium / Low] — [one sentence why]
+Content brief: [3 to 5 sentences describing exactly what this page should cover, what questions it answers, what the target reader wants to know, and what the CTA should be]
+Competitor gap: [Which competitor currently ranks for this and why Briskfil can outrank them]
+
+After all page recommendations, add a section:
+
+QUICK WINS — BUILD THESE FIRST
+List the 3 pages from your recommendations that will generate ranking results fastest, with a single sentence on why each is a quick win.
+
+CONTENT ARCHITECTURE NOTE
+One paragraph on how these pages should link to each other and to existing Briskfil service pages to build topical authority.
+
+Be specific to Briskfil's actual business, the Portuguese and Iberian industrial market, and realistic search volumes for a specialist B2B industrial consultancy in a relatively small national market. Do not recommend pages that Briskfil cannot credibly rank for given their domain authority as a relatively new site (founded 2021).`;
+
+  document.getElementById('pb-output-title').textContent = `${count} recommended pages — ${sectorMap[sector] ? sectorMap[sector].split('(')[0].trim() : sector}`;
+
+  const system = `You are an expert SEO strategist working for NXRD on the Briskfil.com account. Be specific about this site, this industry, and the Portuguese B2B market. No generic SEO advice.`;
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, prompt, max_tokens: 1000 })
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'Server error');
+
+    const text = data.text || '';
+    document.getElementById('pb-text').textContent = text;
+
+    // Parse table rows from output
+    const tableBody = document.getElementById('pb-table-body');
+    const pageMatches = [...text.matchAll(/PAGE (\d+)[\s\S]*?Target keyword:\s*([^\n]+)[\s\S]*?Monthly search volume:\s*([^\n]+)[\s\S]*?Keyword difficulty:\s*([^\n]+)[\s\S]*?Suggested URL:\s*([^\n]+)[\s\S]*?Priority:\s*([^\n]+)/gi)];
+
+    if (pageMatches.length) {
+      tableBody.innerHTML = pageMatches.map(m => {
+        const difficulty = m[4].trim().split(' ')[0].toLowerCase();
+        const priority = m[6].trim().split(' ')[0].toLowerCase();
+        const diffCol = { low: 'var(--positive)', medium: '#f59e0b', high: 'var(--negative)' }[difficulty] || 'var(--gray-400)';
+        const priCol = { high: 'var(--positive)', medium: '#f59e0b', low: 'var(--gray-400)' }[priority] || 'var(--gray-400)';
+        return `<tr style="border-bottom:1px solid var(--gray-700);">
+          <td style="padding:9px 0;font-size:12px;color:var(--gray-400);font-weight:600;">${m[1]}</td>
+          <td style="padding:9px 12px;font-size:12px;font-weight:600;color:var(--white);">${m[2].trim()}</td>
+          <td style="padding:9px 12px;font-size:12px;color:var(--gray-300);">${m[3].trim()}</td>
+          <td style="padding:9px 12px;font-size:12px;font-weight:600;color:${diffCol};">${m[4].trim().split(' ')[0]}</td>
+          <td style="padding:9px 12px;font-size:11px;color:var(--lime);font-family:monospace;">${m[5].trim()}</td>
+          <td style="padding:9px 0;font-size:11px;font-weight:700;color:${priCol};text-transform:uppercase;">${m[6].trim().split(' ')[0]}</td>
+        </tr>`;
+      }).join('');
+    } else {
+      tableBody.innerHTML = '<tr><td colspan="6" style="padding:1rem 0;color:var(--gray-400);font-size:12px;">See full briefs below for page details.</td></tr>';
+    }
+
+    document.getElementById('pb-loading').style.display = 'none';
+    document.getElementById('pb-output').style.display = 'block';
+    document.getElementById('pb-output').scrollIntoView({ behavior:'smooth', block:'start' });
+  } catch(e) {
+    document.getElementById('pb-text').textContent = 'Error: ' + e.message;
+    document.getElementById('pb-loading').style.display = 'none';
+    document.getElementById('pb-output').style.display = 'block';
+  }
+
+  btn.disabled = false; btn.textContent = 'Generate page recommendations';
 }
 
 // -- TECHNICAL CHECKLIST --
