@@ -2049,7 +2049,7 @@ function initTechChecklist() {
     const checked = techChecked[item.id];
     const impCfg = { high:{col:'var(--negative)',bg:'var(--red-dim)',label:'High impact'}, medium:{col:'#f59e0b',bg:'rgba(245,158,11,0.1)',label:'Medium impact'} }[item.impact];
     return `<div class="tech-item" onclick="toggleTech('${item.id}')">
-      <div class="tech-checkbox ${checked?'checked':'}" id="tech-cb-${item.id}">${checked?'✓':''}</div>
+      <div class="tech-checkbox ${checked ? 'checked' : ''}" id="tech-cb-${item.id}">${checked ? '✓' : ''}</div>
       <div class="tech-item-body">
         <div class="tech-item-title" style="text-decoration:${checked?'line-through':'none'};color:${checked?'var(--gray-400)':'var(--white)'}">${item.title}</div>
         <div class="tech-item-desc">${item.desc}</div>
