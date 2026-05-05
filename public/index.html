@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NXRD AI Marketing Tool</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -281,6 +284,38 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 .tech-item-title { font-size: 12px; font-weight: 600; color: var(--white); margin-bottom: 2px; }
 .tech-item-desc { font-size: 11px; color: var(--gray-400); line-height: 1.5; }
 .tech-impact { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
+
+/* ── COPYWRITER ── */
+.copy-client-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.copy-client-tile { background: var(--gray-800); border: 2px solid var(--gray-700); border-radius: var(--radius); padding: 14px 16px; cursor: pointer; transition: all .2s; text-align: center; }
+.copy-client-tile:hover { border-color: var(--lime); background: rgba(200,240,38,.04); }
+.copy-client-tile.selected { border-color: var(--lime); background: rgba(200,240,38,.08); }
+.copy-client-tile .cct-name { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 2px; }
+.copy-client-tile .cct-sector { font-size: 11px; color: var(--gray-400); }
+.copy-client-tile.selected .cct-name { color: var(--lime); }
+.copy-format-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-bottom: 20px; }
+.copy-format-tile { background: var(--gray-800); border: 1.5px solid var(--gray-700); border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 8px; }
+.copy-format-tile:hover { border-color: var(--gray-500); }
+.copy-format-tile.selected { border-color: var(--lime); background: rgba(200,240,38,.06); }
+.copy-format-tile .cft-icon { font-size: 16px; flex-shrink: 0; }
+.copy-format-tile .cft-label { font-size: 12px; font-weight: 500; color: var(--gray-200); }
+.copy-format-tile.selected .cft-label { color: var(--lime); }
+.copy-output-block { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
+.copy-output-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--gray-700); }
+.copy-output-label { font-size: 10px; font-weight: 700; color: var(--lime); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px; }
+.copy-output-text { padding: 18px 20px; font-size: 13px; color: var(--gray-200); line-height: 1.8; white-space: pre-wrap; min-height: 120px; }
+.copy-output-footer { padding: 10px 16px; border-top: 1px solid var(--gray-700); display: flex; gap: 8px; flex-wrap: wrap; }
+.copy-history-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-700); cursor: pointer; transition: all .15s; }
+.copy-history-item:last-child { border-bottom: none; }
+.copy-history-item:hover { padding-left: 6px; }
+.copy-history-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); flex-shrink: 0; margin-top: 5px; }
+.copy-history-title { font-size: 12px; font-weight: 600; color: var(--white); margin-bottom: 2px; }
+.copy-history-meta { font-size: 11px; color: var(--gray-400); }
+.lang-toggle { display: flex; gap: 0; border: 1px solid var(--gray-600); border-radius: var(--radius-sm); overflow: hidden; }
+.lang-btn { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; padding: 5px 14px; border: none; background: transparent; color: var(--gray-400); cursor: pointer; transition: all .15s; text-transform: uppercase; letter-spacing: 0.04em; }
+.lang-btn.active { background: var(--lime); color: var(--black); }
+.lang-btn:hover:not(.active) { background: var(--gray-700); color: var(--gray-200); }
+
 @media (max-width: 900px) {
   .chart-grid-2, .ai-grid, .cit-grid-2 { grid-template-columns: 1fr; }
   .chart-card.wide { grid-column: span 1; }
@@ -325,6 +360,7 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
     <button class="nav-tab" onclick="switchTab('linkedin', this)">LinkedIn growth</button>
     <button class="nav-tab" onclick="switchTab('scheduler', this)">Post scheduler</button>
     <button class="nav-tab" onclick="switchTab('seo', this)">SEO</button>
+    <button class="nav-tab" onclick="switchTab('copy', this)">Copywriter</button>
   </nav>
 
   <!-- ══════════════════════════════════════════════════════
@@ -1038,6 +1074,212 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
   </div>
   <!-- end seo panel -->
 
+  <!-- ══════════════════════════════════════════════════════
+       COPYWRITER PANEL
+  ══════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-copy">
+    <div class="container">
+
+      <div class="page-title">
+        <h1>Copywriter</h1>
+        <p>NXRD Male Copywriter — direct, authoritative B2B copy across all formats and clients</p>
+        <div class="period-label"><span class="period-dot"></span>No hyphens. No emojis. No fluff. Commercial weight in every line.</div>
+      </div>
+
+      <div class="chart-grid-2">
+
+        <!-- LEFT: BRIEF BUILDER -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- STEP 1: CLIENT -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">1. Select client</div><div class="chart-subtitle">Each client has their own voice, sector, and audience baked in</div></div>
+              <button class="header-btn" onclick="openAddClient()" style="font-size:11px;">+ Add client</button>
+            </div>
+            <div class="copy-client-grid" id="copy-client-grid"></div>
+          </div>
+
+          <!-- STEP 2: FORMAT -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">2. Choose format</div><div class="chart-subtitle">Select what you need written</div></div>
+            </div>
+            <div class="copy-format-grid" id="copy-format-grid"></div>
+          </div>
+
+          <!-- STEP 3: LANGUAGE -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">3. Language</div><div class="chart-subtitle">Output language for this piece</div></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div class="lang-toggle">
+                <button class="lang-btn active" onclick="setLang('en',this)">English</button>
+                <button class="lang-btn" onclick="setLang('pt',this)">Portuguese</button>
+                <button class="lang-btn" onclick="setLang('both',this)">Both</button>
+              </div>
+              <span style="font-size:11px;color:var(--gray-400);" id="copy-lang-note">Will generate in English</span>
+            </div>
+          </div>
+
+          <!-- STEP 4: BRIEF -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">4. Brief</div><div class="chart-subtitle">The more specific, the stronger the output</div></div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Topic or subject</label>
+              <input class="form-input" id="copy-topic" type="text" placeholder="e.g. On-site nitrogen generation for food manufacturers — why on-site beats bottled">
+            </div>
+
+            <div class="cit-grid-2" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label class="form-label">Target audience</label>
+                <input class="form-input" id="copy-audience" type="text" placeholder="e.g. Plant managers, food and beverage sector">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tone direction (optional)</label>
+                <select class="form-select" id="copy-tone">
+                  <option value="nxrd">NXRD default — direct, authoritative, commercial</option>
+                  <option value="provocative">Provocative and challenging</option>
+                  <option value="educational">Educational and plain-spoken</option>
+                  <option value="story">Story-led and personal</option>
+                  <option value="technical">Technical and precise</option>
+                  <option value="warm">Warm and approachable</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Key points to include (optional)</label>
+              <textarea id="copy-points" rows="3" placeholder="e.g. 35 years of expertise, manufacturer agnostic, cuts costs vs cylinder supply, reduces carbon footprint, PSA and membrane options available"></textarea>
+            </div>
+
+            <div class="cit-grid-2" style="margin-bottom:0;">
+              <div class="form-group">
+                <label class="form-label">CTA (optional)</label>
+                <input class="form-input" id="copy-cta" type="text" placeholder="e.g. Book a free assessment at briskfil.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Word count guide</label>
+                <select class="form-select" id="copy-length">
+                  <option value="short">Short — under 200 words</option>
+                  <option value="medium" selected>Medium — 200 to 400 words</option>
+                  <option value="long">Long — 400 to 800 words</option>
+                  <option value="extended">Extended — 800 to 1500 words</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <button class="add-btn" id="copy-gen-btn" onclick="runCopywriter()" style="width:100%;padding:12px;font-size:13px;letter-spacing:0.05em;">Generate copy</button>
+
+        </div>
+
+        <!-- RIGHT: OUTPUT + HISTORY -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- NXRD VOICE REFERENCE -->
+          <div class="chart-card" style="border-color:rgba(200,240,38,0.2);">
+            <div class="chart-header"><div><div class="chart-title">NXRD Male Copywriter — voice rules</div></div></div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:var(--lime);font-size:12px;font-weight:700;flex-shrink:0;">01</span><span style="font-size:12px;color:var(--gray-300);line-height:1.5;">No hyphens. No emojis. No bullet point lists in creative copy. No filler phrases.</span></div>
+              <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:var(--lime);font-size:12px;font-weight:700;flex-shrink:0;">02</span><span style="font-size:12px;color:var(--gray-300);line-height:1.5;">Every sentence earns its place. If it does not add something, it is cut.</span></div>
+              <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:var(--lime);font-size:12px;font-weight:700;flex-shrink:0;">03</span><span style="font-size:12px;color:var(--gray-300);line-height:1.5;">Opens with a statement, not a question. Hooks the reader on the problem before offering the solution.</span></div>
+              <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:var(--lime);font-size:12px;font-weight:700;flex-shrink:0;">04</span><span style="font-size:12px;color:var(--gray-300);line-height:1.5;">Commercial weight behind every claim. Numbers, specificity, and proof over generic assertions.</span></div>
+              <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:var(--lime);font-size:12px;font-weight:700;flex-shrink:0;">05</span><span style="font-size:12px;color:var(--gray-300);line-height:1.5;">Confident without being arrogant. The expert in the room, not the loudest voice in it.</span></div>
+              <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:var(--lime);font-size:12px;font-weight:700;flex-shrink:0;">06</span><span style="font-size:12px;color:var(--gray-300);line-height:1.5;">Ends with direction, not decoration. The reader knows exactly what to do next.</span></div>
+            </div>
+          </div>
+
+          <!-- OUTPUT -->
+          <div id="copy-output-wrap" style="display:none;">
+            <div class="copy-output-block">
+              <div class="copy-output-header">
+                <span class="copy-output-label">
+                  <span class="spinner" id="copy-spinner" style="display:none;"></span>
+                  <span id="copy-output-title">Generated copy</span>
+                </span>
+                <div style="display:flex;gap:6px;">
+                  <button class="copy-btn" onclick="copyCopyOutput('copy-text-en')" id="copy-copy-en">Copy EN</button>
+                  <button class="copy-btn" onclick="copyCopyOutput('copy-text-pt')" id="copy-copy-pt" style="display:none;">Copy PT</button>
+                </div>
+              </div>
+
+              <!-- ENGLISH OUTPUT -->
+              <div id="copy-block-en" style="display:none;">
+                <div style="display:flex;align-items:center;gap:8px;padding:10px 20px 0;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
+                <div class="copy-output-text" id="copy-text-en"></div>
+              </div>
+
+              <!-- PORTUGUESE OUTPUT -->
+              <div id="copy-block-pt" style="display:none;">
+                <div style="display:flex;align-items:center;gap:8px;padding:10px 20px 0;border-top:1px solid var(--gray-700);"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
+                <div class="copy-output-text" id="copy-text-pt"></div>
+              </div>
+
+              <div class="copy-output-footer">
+                <button class="add-btn" onclick="sendCopyToScheduler()" style="font-size:11px;padding:6px 16px;">Add to post scheduler</button>
+                <button class="header-btn" onclick="saveCopyToHistory()" style="font-size:11px;">Save to history</button>
+                <button class="header-btn" onclick="runCopywriter()" style="font-size:11px;">Regenerate</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- HISTORY -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Recent outputs</div><div class="chart-subtitle">Saved in this browser session</div></div>
+              <button class="copy-btn" onclick="clearCopyHistory()">Clear</button>
+            </div>
+            <div id="copy-history-list">
+              <div style="font-size:12px;color:var(--gray-400);padding:8px 0;">No history yet. Generate your first piece above.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- end copywriter panel -->
+
+  <!-- ADD CLIENT MODAL -->
+  <div class="modal-overlay" id="add-client-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Add client</span>
+        <button class="modal-close" onclick="closeAddClient()">&times;</button>
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">Client name</label>
+        <input class="form-input" id="new-client-name" type="text" placeholder="e.g. Earl Kendrick">
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">Sector</label>
+        <input class="form-input" id="new-client-sector" type="text" placeholder="e.g. Building Surveying, London">
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">What they do (2 sentences max)</label>
+        <textarea id="new-client-desc" rows="2" placeholder="e.g. Building surveyors and project managers based in London. Specialist in Grade II listed buildings, dilapidations, and residential surveys."></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">Target audience</label>
+        <input class="form-input" id="new-client-audience" type="text" placeholder="e.g. Property owners, landlords, solicitors, property developers">
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">Key differentiators or proof points</label>
+        <textarea id="new-client-proof" rows="2" placeholder="e.g. 25 years experience, RICS accredited, 500+ surveys completed, fixed fee pricing"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="add-btn" onclick="saveNewClient()" style="flex:1;">Save client</button>
+        <button class="header-btn" onclick="closeAddClient()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer">
     <div class="footer-brand">Powered by <span>NXRD</span> — nx-rd.com</div>
     <div class="footer-note">Data sourced from Google Analytics 4. Refreshes on page load.</div>
@@ -1053,7 +1295,7 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 function switchTab(tab, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  ['analytics','citation','linkedin','scheduler','seo'].forEach(p => {
+  ['analytics','citation','linkedin','scheduler','seo','copy'].forEach(p => {
     document.getElementById('panel-'+p).classList.toggle('active', p === tab);
   });
   if (tab === 'linkedin') {
@@ -2116,6 +2358,347 @@ Be specific. No generic SEO advice. Everything must be implementable by a WordPr
   await seoGenerate(prompt, 'tech-audit-text', 'tech-audit-loading', 'tech-audit-output');
   btn.disabled = false; btn.textContent = 'Run technical audit';
 }
+
+/* ══════════════════════════════════════════════════════════════
+   COPYWRITER
+══════════════════════════════════════════════════════════════ */
+
+// ── DEFAULT CLIENTS ──────────────────────────────────────────
+const DEFAULT_CLIENTS = [
+  {
+    id: 'briskfil',
+    name: 'Briskfil',
+    sector: 'Industrial Gas · Portugal',
+    desc: 'B2B industrial consultancy based in Esposende, Portugal. Specialists in on-site nitrogen and oxygen generation, compressed air quality, energy efficiency audits, and Industry 4.0 consulting.',
+    audience: 'Plant engineers, procurement managers, energy managers, factory directors across food, pharma, oil and gas, water treatment, laser cutting, and electronics sectors',
+    proof: 'Manufacturer agnostic, 35 years combined expertise, ISO 11011 certified audits, PSA and membrane nitrogen systems, direct competitor to Atlas Copco'
+  },
+  {
+    id: 'archway',
+    name: 'Archway',
+    sector: 'Building Consultancy · UK',
+    desc: 'Building consultancy and project management firm. Specialists in commercial building surveys, dilapidations, contract administration, and project monitoring.',
+    audience: 'Commercial property owners, landlords, developers, solicitors, and asset managers across the UK',
+    proof: 'RICS accredited, independent advice, commercial and residential expertise, track record across complex listed and heritage buildings'
+  },
+  {
+    id: 'earl-kendrick',
+    name: 'Earl Kendrick',
+    sector: 'Building Surveying · London',
+    desc: 'Chartered building surveyors based in London. Specialist expertise in Grade II listed buildings, residential surveys, dilapidations, and party wall matters.',
+    audience: 'Property owners, landlords, solicitors, property developers, and residential buyers in London and the South East',
+    proof: 'RICS chartered, specialist in listed and heritage buildings, 25 plus years experience, fixed fee approach'
+  },
+  {
+    id: 'nxrd',
+    name: 'NXRD',
+    sector: 'Marketing Agency · UK',
+    desc: 'End-to-end B2B digital marketing agency. Strategy, SEO, AEO, paid search, social media, website design, and content production for B2B brands in regional and international markets.',
+    audience: 'B2B business owners, marketing directors, and commercial leaders looking to grow revenue through integrated digital marketing',
+    proof: '22 years of hands-on regional and international marketing experience, 50M+ in opportunity revenue created for clients, 45,000 plus new social followers grown'
+  }
+];
+
+const COPY_FORMATS = [
+  { id: 'linkedin', icon: '💼', label: 'LinkedIn post' },
+  { id: 'website', icon: '🌐', label: 'Website / landing page' },
+  { id: 'email', icon: '✉', label: 'Email campaign' },
+  { id: 'blog', icon: '✍', label: 'Blog article' },
+  { id: 'brochure', icon: '📋', label: 'Brochure copy' },
+  { id: 'product', icon: '◎', label: 'Product description' },
+  { id: 'press', icon: '📢', label: 'Press release' },
+  { id: 'proposal', icon: '◈', label: 'Proposal / pitch copy' },
+];
+
+let copyClients = JSON.parse(localStorage.getItem('nxrd_copy_clients') || 'null') || DEFAULT_CLIENTS;
+let selectedClient = 'briskfil';
+let selectedFormat = 'linkedin';
+let selectedLang = 'en';
+let copyHistory = JSON.parse(localStorage.getItem('nxrd_copy_history') || '[]');
+
+function initCopywriter() {
+  renderCopyClients();
+  renderCopyFormats();
+  renderCopyHistory();
+}
+
+function renderCopyClients() {
+  document.getElementById('copy-client-grid').innerHTML = copyClients.map(c => `
+    <div class="copy-client-tile ${c.id === selectedClient ? 'selected' : ''}" onclick="selectCopyClient('${c.id}')">
+      <div class="cct-name">${c.name}</div>
+      <div class="cct-sector">${c.sector}</div>
+    </div>`).join('');
+}
+
+function renderCopyFormats() {
+  document.getElementById('copy-format-grid').innerHTML = COPY_FORMATS.map(f => `
+    <div class="copy-format-tile ${f.id === selectedFormat ? 'selected' : ''}" onclick="selectCopyFormat('${f.id}')">
+      <span class="cft-icon">${f.icon}</span>
+      <span class="cft-label">${f.label}</span>
+    </div>`).join('');
+}
+
+function selectCopyClient(id) {
+  selectedClient = id;
+  renderCopyClients();
+}
+
+function selectCopyFormat(id) {
+  selectedFormat = id;
+  renderCopyFormats();
+}
+
+function setLang(lang, btn) {
+  selectedLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const notes = { en: 'Will generate in English', pt: 'Will generate in European Portuguese', both: 'Will generate both English and Portuguese' };
+  document.getElementById('copy-lang-note').textContent = notes[lang];
+}
+
+// ── ADD CLIENT ────────────────────────────────────────────────
+function openAddClient() {
+  document.getElementById('add-client-modal').classList.add('open');
+}
+function closeAddClient() {
+  document.getElementById('add-client-modal').classList.remove('open');
+}
+function saveNewClient() {
+  const name = document.getElementById('new-client-name').value.trim();
+  if (!name) { alert('Please enter a client name'); return; }
+  const client = {
+    id: 'custom_' + Date.now(),
+    name,
+    sector: document.getElementById('new-client-sector').value.trim(),
+    desc: document.getElementById('new-client-desc').value.trim(),
+    audience: document.getElementById('new-client-audience').value.trim(),
+    proof: document.getElementById('new-client-proof').value.trim()
+  };
+  copyClients.push(client);
+  localStorage.setItem('nxrd_copy_clients', JSON.stringify(copyClients));
+  selectedClient = client.id;
+  renderCopyClients();
+  closeAddClient();
+  ['new-client-name','new-client-sector','new-client-desc','new-client-audience','new-client-proof']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+}
+
+// ── GENERATE ─────────────────────────────────────────────────
+async function runCopywriter() {
+  const client = copyClients.find(c => c.id === selectedClient);
+  const format = COPY_FORMATS.find(f => f.id === selectedFormat);
+  const topic = document.getElementById('copy-topic').value.trim();
+  const audience = document.getElementById('copy-audience').value.trim();
+  const tone = document.getElementById('copy-tone').value;
+  const points = document.getElementById('copy-points').value.trim();
+  const cta = document.getElementById('copy-cta').value.trim();
+  const length = document.getElementById('copy-length').value;
+
+  if (!topic) { alert('Please enter a topic or subject'); return; }
+  if (!client) { alert('Please select a client'); return; }
+
+  const btn = document.getElementById('copy-gen-btn');
+  btn.disabled = true; btn.textContent = 'Writing...';
+
+  const wrap = document.getElementById('copy-output-wrap');
+  wrap.style.display = 'block';
+  document.getElementById('copy-spinner').style.display = 'inline-block';
+
+  const lengthMap = { short: 'under 200 words', medium: '200 to 400 words', long: '400 to 800 words', extended: '800 to 1500 words' };
+  const toneMap = {
+    nxrd: 'NXRD default: direct, authoritative, commercially weighted. Opens on a statement not a question. No filler. No hype. Confident without being arrogant. Every sentence earns its place.',
+    provocative: 'Provocative and challenging. Confronts a comfortable assumption the reader holds. Makes them feel slightly uncomfortable before presenting the solution.',
+    educational: 'Educational and plain-spoken. Demystifies a complex topic. Expert but approachable. Written for smart people who are not specialists.',
+    story: 'Story-led and personal. First person or narrative driven. Warm but commercially grounded. Ends with a point, not a sentiment.',
+    technical: 'Technical and precise. Written for specialists. Uses correct terminology. Demonstrates deep domain knowledge. Numbers and specifics throughout.',
+    warm: 'Warm and approachable. Professional but human. Conversational without being casual. Builds relationship before building argument.'
+  };
+
+  const system = `You are the NXRD Male Copywriter. You write B2B copy for NXRD, a UK-based digital marketing agency, and their clients. Your voice is direct, authoritative, and commercially grounded. You write with confidence and precision. You never use hyphens. You never use emojis. You never use bullet point lists in creative copy. You never use filler phrases like "in today's world", "in the ever-changing landscape", or "it goes without saying". You open statements with force. Every sentence earns its place. You write for B2B decision makers who are pressed for time and immune to marketing fluff. Commercial weight behind every claim. Proof over assertion. Direction over decoration.`;
+
+  const clientContext = `Client: ${client.name}
+Sector: ${client.sector}
+What they do: ${client.desc}
+Target audience: ${client.audience}
+Key proof points: ${client.proof}`;
+
+  const buildPrompt = (lang) => `Write ${format.label} copy for ${client.name}.
+
+${clientContext}
+
+Topic: ${topic}
+${audience ? `Specific target audience for this piece: ${audience}` : ''}
+${points ? `Key points to include: ${points}` : ''}
+${cta ? `Call to action: ${cta}` : ''}
+Tone: ${toneMap[tone]}
+Length: ${lengthMap[length]}
+${lang === 'pt' ? 'Write entirely in European Portuguese as spoken in Portugal. Natural, professional, direct.' : 'Write in English.'}
+
+Deliver only the finished copy, ready to use. No preamble, no notes, no explanation. No hyphens. No emojis.`;
+
+  // Show/hide blocks
+  document.getElementById('copy-block-en').style.display = (selectedLang === 'en' || selectedLang === 'both') ? 'block' : 'none';
+  document.getElementById('copy-block-pt').style.display = (selectedLang === 'pt' || selectedLang === 'both') ? 'block' : 'none';
+  document.getElementById('copy-copy-pt').style.display = (selectedLang === 'pt' || selectedLang === 'both') ? 'inline-block' : 'none';
+  document.getElementById('copy-copy-en').style.display = (selectedLang === 'en' || selectedLang === 'both') ? 'inline-block' : 'none';
+
+  const formatLabel = format.label;
+  document.getElementById('copy-output-title').textContent = `${formatLabel} — ${client.name}`;
+
+  if (selectedLang === 'en') {
+    document.getElementById('copy-text-en').textContent = 'Writing...';
+    document.getElementById('copy-text-pt').textContent = '';
+    const text = await callCopyAPI(buildPrompt('en'), system);
+    document.getElementById('copy-text-en').textContent = text;
+  } else if (selectedLang === 'pt') {
+    document.getElementById('copy-text-pt').textContent = 'A escrever...';
+    document.getElementById('copy-text-en').textContent = '';
+    const text = await callCopyAPI(buildPrompt('pt'), system);
+    document.getElementById('copy-text-pt').textContent = text;
+  } else {
+    document.getElementById('copy-text-en').textContent = 'Writing...';
+    document.getElementById('copy-text-pt').textContent = 'A escrever...';
+    const [en, pt] = await Promise.all([
+      callCopyAPI(buildPrompt('en'), system),
+      callCopyAPI(buildPrompt('pt'), system)
+    ]);
+    document.getElementById('copy-text-en').textContent = en;
+    document.getElementById('copy-text-pt').textContent = pt;
+  }
+
+  document.getElementById('copy-spinner').style.display = 'none';
+  btn.disabled = false; btn.textContent = 'Generate copy';
+}
+
+async function callCopyAPI(prompt, system) {
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, prompt, max_tokens: 1000 })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    return data.text || '';
+  } catch(e) {
+    return 'Error: ' + e.message;
+  }
+}
+
+function copyCopyOutput(id) {
+  const el = document.getElementById(id);
+  if (!el || !el.textContent.trim()) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const orig = el.style.opacity;
+    el.style.opacity = '0.5';
+    setTimeout(() => { el.style.opacity = orig || '1'; }, 300);
+  });
+}
+
+// ── HISTORY ──────────────────────────────────────────────────
+function saveCopyToHistory() {
+  const client = copyClients.find(c => c.id === selectedClient);
+  const format = COPY_FORMATS.find(f => f.id === selectedFormat);
+  const topic = document.getElementById('copy-topic').value.trim();
+  const enText = document.getElementById('copy-text-en').textContent;
+  const ptText = document.getElementById('copy-text-pt').textContent;
+  if (!enText && !ptText) return;
+
+  const entry = {
+    id: 'copy_' + Date.now(),
+    client: client ? client.name : 'Unknown',
+    format: format ? format.label : selectedFormat,
+    topic,
+    lang: selectedLang,
+    en: enText,
+    pt: ptText,
+    date: new Date().toLocaleDateString('en-GB')
+  };
+  copyHistory.unshift(entry);
+  copyHistory = copyHistory.slice(0, 30);
+  localStorage.setItem('nxrd_copy_history', JSON.stringify(copyHistory));
+  renderCopyHistory();
+}
+
+function renderCopyHistory() {
+  const list = document.getElementById('copy-history-list');
+  if (!copyHistory.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--gray-400);padding:8px 0;">No history yet. Generate your first piece above.</div>';
+    return;
+  }
+  list.innerHTML = copyHistory.map(h => `
+    <div class="copy-history-item" onclick="loadFromHistory('${h.id}')">
+      <div class="copy-history-dot"></div>
+      <div>
+        <div class="copy-history-title">${h.format} — ${h.client}</div>
+        <div class="copy-history-meta">${h.topic ? h.topic.slice(0,50) + (h.topic.length>50?'...':'') : ''} · ${h.date} · ${h.lang.toUpperCase()}</div>
+      </div>
+    </div>`).join('');
+}
+
+function loadFromHistory(id) {
+  const h = copyHistory.find(e => e.id === id);
+  if (!h) return;
+  document.getElementById('copy-output-wrap').style.display = 'block';
+  document.getElementById('copy-block-en').style.display = h.en ? 'block' : 'none';
+  document.getElementById('copy-block-pt').style.display = h.pt ? 'block' : 'none';
+  document.getElementById('copy-text-en').textContent = h.en || '';
+  document.getElementById('copy-text-pt').textContent = h.pt || '';
+  document.getElementById('copy-output-title').textContent = `${h.format} — ${h.client}`;
+  document.getElementById('copy-topic').value = h.topic || '';
+}
+
+function clearCopyHistory() {
+  if (!confirm('Clear all saved copy history?')) return;
+  copyHistory = [];
+  localStorage.removeItem('nxrd_copy_history');
+  renderCopyHistory();
+}
+
+// ── SEND TO SCHEDULER ─────────────────────────────────────────
+function sendCopyToScheduler() {
+  const enText = document.getElementById('copy-text-en').textContent.trim();
+  const ptText = document.getElementById('copy-text-pt').textContent.trim();
+  const topic = document.getElementById('copy-topic').value.trim();
+  const client = copyClients.find(c => c.id === selectedClient);
+  const format = COPY_FORMATS.find(f => f.id === selectedFormat);
+
+  const combined = selectedLang === 'both'
+    ? `🇬🇧 ENGLISH\n\n${enText}\n\n---\n\n🇵🇹 PORTUGUÊS\n\n${ptText}`
+    : (selectedLang === 'pt' ? ptText : enText);
+
+  if (!combined) { alert('Nothing to schedule — generate copy first'); return; }
+
+  let fmt = 'text';
+  if (selectedFormat === 'linkedin') fmt = 'text';
+  else if (selectedFormat === 'email') fmt = 'text';
+
+  const post = {
+    id: 'post_' + Date.now(),
+    title: (client ? client.name + ' — ' : '') + (format ? format.label : '') + (topic ? ': ' + topic.slice(0,40) : ''),
+    copy: combined,
+    format: fmt,
+    status: 'draft',
+    date: '',
+    time: '08:30',
+    hashtags: '',
+    notes: 'Generated by Copywriter tab',
+    updatedAt: new Date().toISOString()
+  };
+
+  const posts = getPosts();
+  posts.push(post);
+  savePosts(posts);
+
+  // Switch to scheduler tab
+  const schedBtn = document.querySelector('.nav-tab:nth-child(4)');
+  switchTab('scheduler', schedBtn);
+  renderCalendar();
+  renderPostList();
+}
+
+// Initialise on first load
+document.addEventListener('DOMContentLoaded', () => { initCopywriter(); });
 </script>
 </body>
 </html>
