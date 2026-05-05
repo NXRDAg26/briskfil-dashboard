@@ -2410,7 +2410,10 @@ const COPY_FORMATS = [
   { id: 'proposal', icon: '◈', label: 'Proposal / pitch copy' },
 ];
 
-let copyClients = JSON.parse(localStorage.getItem('nxrd_copy_clients') || 'null') || DEFAULT_CLIENTS;
+const BRISKFIL_ONLY = [DEFAULT_CLIENTS[0]];
+let copyClients = BRISKFIL_ONLY;
+// Reset any previously saved multi-client list
+localStorage.setItem('nxrd_copy_clients', JSON.stringify(BRISKFIL_ONLY));
 let selectedClient = 'briskfil';
 let selectedFormat = 'linkedin';
 let selectedLang = 'en';
