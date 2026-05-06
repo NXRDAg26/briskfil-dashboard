@@ -58,7 +58,10 @@ app.get('/auth/login', (req, res) => {
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
-    scope: ['https://www.googleapis.com/auth/analytics.readonly']
+    scope: [
+      'https://www.googleapis.com/auth/analytics.readonly',
+      'https://www.googleapis.com/auth/webmasters.readonly'
+    ]
   });
   res.redirect(url);
 });
@@ -426,6 +429,93 @@ app.post('/api/generate-vision', async (req, res) => {
     res.json({ success: true, text });
   } catch (err) {
     console.error('Vision error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── GOOGLE SEARCH CONSOLE ────────────────────────────────────────────────────
+
+const GSC_SITE = process.env.GSC_SITE_URL || 'sc-domain:briskfil.com';
+
+function getGscClient(tokens) {
+  const auth = getOAuthClient();
+  auth.setCredentials(tokens);
+  return google.searchconsole({ version: 'v1', auth });
+}
+
+function gscRange(days) {
+  const end = new Date();
+  end.setDate(end.getDate() - 3);
+  const start = new Date(end);
+  start.setDate(start.getDate() - days);
+  const fmt = d => d.toISOString().split('T')[0];
+  return { startDate: fmt(start), endDate: fmt(end) };
+}
+
+// Top queries — what people search to find briskfil.com
+app.get('/api/gsc/queries', requireAuth, async (req, res) => {
+  try {
+    const gsc = getGscClient(req.session.tokens);
+    const { startDate, endDate } = gscRange(90);
+    const result = await gsc.searchanalytics.query({
+      siteUrl: GSC_SITE,
+      requestBody: {
+        startDate, endDate,
+        dimensions: ['query'],
+        rowLimit: 50,
+        orderBy: [{ fieldName: 'impressions', sortOrder: 'DESCENDING' }]
+      }
+    });
+    res.json({ success: true, rows: result.data.rows || [], period: { startDate, endDate } });
+  } catch(err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Overview metrics
+app.get('/api/gsc/overview', requireAuth, async (req, res) => {
+  try {
+    const gsc = getGscClient(req.session.tokens);
+    const curr = gscRange(28);
+    const prevEnd = new Date(curr.startDate);
+    prevEnd.setDate(prevEnd.getDate() - 1);
+    const prevStart = new Date(prevEnd);
+    prevStart.setDate(prevStart.getDate() - 28);
+    const fmt = d => d.toISOString().split('T')[0];
+    const prev = { startDate: fmt(prevStart), endDate: fmt(prevEnd) };
+
+    const query = (range) => gsc.searchanalytics.query({
+      siteUrl: GSC_SITE,
+      requestBody: { startDate: range.startDate, endDate: range.endDate, dimensions: [], rowLimit: 1 }
+    });
+    const [currRes, prevRes] = await Promise.all([query(curr), query(prev)]);
+    res.json({
+      success: true,
+      current: currRes.data.rows?.[0] || { clicks: 0, impressions: 0, ctr: 0, position: 0 },
+      previous: prevRes.data.rows?.[0] || { clicks: 0, impressions: 0, ctr: 0, position: 0 },
+      period: curr
+    });
+  } catch(err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Top pages
+app.get('/api/gsc/pages', requireAuth, async (req, res) => {
+  try {
+    const gsc = getGscClient(req.session.tokens);
+    const { startDate, endDate } = gscRange(90);
+    const result = await gsc.searchanalytics.query({
+      siteUrl: GSC_SITE,
+      requestBody: {
+        startDate, endDate,
+        dimensions: ['page'],
+        rowLimit: 15,
+        orderBy: [{ fieldName: 'impressions', sortOrder: 'DESCENDING' }]
+      }
+    });
+    res.json({ success: true, rows: result.data.rows || [] });
+  } catch(err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
