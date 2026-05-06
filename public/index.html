@@ -324,6 +324,33 @@ body.light-mode .bf-tool-btn:hover { background: #e8e8e8; color: #5a7c00; }
 body.light-mode #font-toggle-btn.active-large { color: #5a7c00; border-color: #5a7c00; }
 body.light-mode #theme-toggle-btn { color: #333333; }
 
+/* ── COMPETITION PANEL ── */
+.comp-sub-tabs { display:flex; gap:0; border-bottom:1px solid var(--gray-700); margin-bottom:1.5rem; }
+.comp-stab { font-family:'Poppins',sans-serif; font-size:12px; font-weight:500; color:var(--gray-400); background:none; border:none; border-bottom:2px solid transparent; padding:10px 18px; cursor:pointer; transition:all .2s; white-space:nowrap; margin-bottom:-1px; }
+.comp-stab:hover { color:var(--gray-200); }
+.comp-stab.active { color:var(--lime); border-bottom-color:var(--lime); }
+.comp-sub { display:none; }
+.comp-sub.active { display:block; }
+.comp-card { background:var(--gray-800); border:1px solid var(--gray-700); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px; transition:border-color .15s; }
+.comp-card:hover { border-color:var(--gray-500); }
+.comp-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:10px; flex-wrap:wrap; }
+.comp-card-title { font-size:15px; font-weight:700; color:var(--white); }
+.comp-card-meta { font-size:11px; color:var(--gray-400); margin-top:2px; }
+.comp-card-body { font-size:13px; color:var(--gray-300); line-height:1.7; margin-bottom:12px; }
+.comp-weakness { background:var(--red-dim); border:1px solid rgba(248,113,113,0.2); border-radius:var(--radius-sm); padding:10px 14px; font-size:12px; color:var(--gray-200); line-height:1.6; margin-bottom:10px; }
+.comp-opportunity { background:rgba(200,240,38,0.06); border:1px solid rgba(200,240,38,0.2); border-radius:var(--radius-sm); padding:10px 14px; font-size:12px; color:var(--gray-200); line-height:1.6; margin-bottom:10px; }
+.comp-weakness-label { font-size:10px; font-weight:700; color:var(--negative); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
+.comp-opportunity-label { font-size:10px; font-weight:700; color:var(--lime); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
+.kw-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--gray-700); }
+.kw-row:last-child { border-bottom:none; }
+.kw-term { flex:1; font-size:13px; font-weight:600; color:var(--white); min-width:0; }
+.kw-vol { font-size:12px; color:var(--gray-300); width:90px; flex-shrink:0; text-align:right; }
+.kw-diff { font-size:11px; font-weight:700; padding:2px 8px; border-radius:8px; flex-shrink:0; text-transform:uppercase; }
+.kw-intent { font-size:11px; color:var(--gray-400); width:100px; flex-shrink:0; text-align:right; }
+.kw-bar-wrap { width:80px; flex-shrink:0; }
+.kw-bar-track { background:var(--gray-700); border-radius:3px; height:5px; overflow:hidden; }
+.kw-bar-fill { height:100%; border-radius:3px; background:var(--lime); }
+
 /* ── LARGE TEXT ── */
 body.large-text { font-size: 18px; }
 body.large-text .nav-tab { font-size: 14px; padding: 14px 20px; }
@@ -483,6 +510,7 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
     <button class="nav-tab" onclick="switchTab('linkedin', this)">Content and social</button>
     <button class="nav-tab" onclick="switchTab('scheduler', this)">Post scheduler</button>
     <button class="nav-tab" onclick="switchTab('seo', this)">SEO</button>
+    <button class="nav-tab" onclick="switchTab('competition', this)">Competition</button>
     <button class="nav-tab" onclick="switchTab('copy', this)">Copywriter</button>
   </nav>
 
@@ -1379,6 +1407,287 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
   </div>
   <!-- end seo panel -->
 
+  <!-- end seo panel -->
+
+  <!-- ══════════════════════════════════════════════════════
+       COMPETITION PANEL
+  ══════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-competition">
+    <div class="container">
+
+      <div class="page-title">
+        <h1>Competition</h1>
+        <p>Competitive intelligence for Briskfil — who they are, their weaknesses, and how to beat them</p>
+        <div class="period-label"><span class="period-dot"></span>Five direct competitors · LinkedIn intel · Keyword opportunities</div>
+      </div>
+
+      <!-- SUB TABS -->
+      <div class="comp-sub-tabs">
+        <button class="comp-stab active" onclick="compTab('intel',this)">Competitor intelligence</button>
+        <button class="comp-stab" onclick="compTab('keywords',this)">High-volume keywords</button>
+        <button class="comp-stab" onclick="compTab('counter',this)">Counter-post generator</button>
+      </div>
+
+      <!-- ── COMPETITOR INTELLIGENCE ── -->
+      <div id="comp-intel" class="comp-sub active">
+
+        <p style="font-size:13px;color:var(--gray-400);margin-bottom:20px;line-height:1.6;">Five companies competing directly with Briskfil for clients, search rankings, and LinkedIn audience in the Portuguese and Iberian industrial gas market. Each analysis identifies their specific weaknesses and the exact positioning Briskfil can use to win.</p>
+
+        <!-- ATLAS COPCO -->
+        <div class="comp-card" style="border-color:rgba(248,113,113,0.3);">
+          <div class="comp-card-header">
+            <div>
+              <div class="comp-card-title">Atlas Copco</div>
+              <div class="comp-card-meta">Sweden · Global industrial giant · 807,000+ LinkedIn followers · Direct primary competitor</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <a href="https://www.linkedin.com/company/atlas-copco" target="_blank" class="copy-btn" style="text-decoration:none;">LinkedIn ↗</a>
+              <span class="chart-badge" style="background:var(--red-dim);color:var(--negative);">Primary threat</span>
+            </div>
+          </div>
+          <div class="comp-card-body">Global manufacturer of compressed air systems, industrial gas equipment, nitrogen and oxygen generators, and vacuum technology. Market leader across Europe and the primary competitor Briskfil clients compare against. 807,000+ LinkedIn followers posting 5+ times per week across multiple languages. Enormous brand recognition and budget. Their LinkedIn content mixes corporate culture posts (Water for All, DEI campaigns), product launches, and problem/solution carousels.</div>
+          <div class="comp-weakness"><div class="comp-weakness-label">Their weakness</div>Corporate distance and committee-written content. Everything is filtered through brand guidelines and approval chains. Their posts read as marketing, not expertise. They sell their own products — they cannot offer independent advice. Their size means they cannot focus on the Portuguese market with any depth.</div>
+          <div class="comp-opportunity"><div class="comp-opportunity-label">Briskfil's opportunity</div>Briskfil is what Atlas Copco cannot be: independent, Portuguese-speaking, locally accountable, and genuinely expert without a product range to push. Every Briskfil post that leads with independence and impartial expertise positions directly against Atlas Copco's commercial conflict of interest. Target their Portuguese-language search gap — they have near-zero Portuguese content.</div>
+        </div>
+
+        <!-- ULTRA CONTROLO -->
+        <div class="comp-card">
+          <div class="comp-card-header">
+            <div>
+              <div class="comp-card-title">Ultra Controlo</div>
+              <div class="comp-card-meta">Sintra, Portugal · Est. 1987 · Medical oxygen, PSA systems, industrial compressors · 60+ countries</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <a href="https://www.linkedin.com/company/ultracontrolo/" target="_blank" class="copy-btn" style="text-decoration:none;">LinkedIn ↗</a>
+              <span class="chart-badge" style="background:var(--red-dim);color:var(--negative);">Portuguese rival</span>
+            </div>
+          </div>
+          <div class="comp-card-body">Portuguese manufacturer founded 1987 based in Sintra. Manufactures and supplies medical oxygen generators, PSA systems, vacuum plants, medical gas pipeline systems, and industrial compressors. Active in 60+ countries with increasing LinkedIn activity around medical oxygen and ISO 14001 sustainability. Content leans heavily on trade show appearances and product launches with emojis throughout.</div>
+          <div class="comp-weakness"><div class="comp-weakness-label">Their weakness</div>Ultra Controlo has pivoted almost entirely to medical applications — medical oxygen for hospitals, clinics, and healthcare settings. Their industrial gas consultancy positioning has been abandoned. They are a product manufacturer with no independent consultancy offering. Their LinkedIn tone is corporate announcement style with no thought leadership.</div>
+          <div class="comp-opportunity"><div class="comp-opportunity-label">Briskfil's opportunity</div>Briskfil owns the industrial gas expert positioning in Portugal that Ultra Controlo has vacated. Food, water treatment, wine, laser cutting, oil and gas, pharma — these sectors are underserved by Portuguese suppliers. Briskfil is the only Portuguese-based independent consultant serving them. This is direct whitespace.</div>
+        </div>
+
+        <!-- NOXERIOR -->
+        <div class="comp-card">
+          <div class="comp-card-header">
+            <div>
+              <div class="comp-card-title">Noxerior</div>
+              <div class="comp-card-meta">Italy · PSA nitrogen and oxygen generators · Now part of Groupe Novair · 14 patents</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <a href="https://www.linkedin.com/company/noxerior/" target="_blank" class="copy-btn" style="text-decoration:none;">LinkedIn ↗</a>
+              <span class="chart-badge">Product manufacturer</span>
+            </div>
+          </div>
+          <div class="comp-card-body">Italian manufacturer specialising in non-cryogenic on-site nitrogen and oxygen generation using hollow-fibre membrane and modular PSA technology. Created the NITROSWING and OXYSWING product families. Acquired by French group Novair in 2016. 14 patents in modular PSA technology. LinkedIn activity is infrequent and product-announcement focused with minimal educational content.</div>
+          <div class="comp-weakness"><div class="comp-weakness-label">Their weakness</div>Noxerior is a product company — they manufacture and sell systems. They cannot provide impartial technology selection advice because they only sell their own products. Post-acquisition by Novair their brand independence has diminished further. No Portuguese market presence or Portuguese-language content.</div>
+          <div class="comp-opportunity"><div class="comp-opportunity-label">Briskfil's opportunity</div>The consultancy layer Noxerior cannot provide — helping buyers decide whether PSA or membrane is right for their application, comparing technologies from multiple manufacturers — is Briskfil's core value. Content on PSA vs membrane nitrogen generation that is genuinely impartial outranks Noxerior's product-led content in search and earns more trust from buyers.</div>
+        </div>
+
+        <!-- GROUPE NOVAIR -->
+        <div class="comp-card">
+          <div class="comp-card-header">
+            <div>
+              <div class="comp-card-title">Groupe Novair</div>
+              <div class="comp-card-meta">France · World-leading on-site gas manufacturer · 4,500+ users · 150+ countries</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <a href="https://www.linkedin.com/company/groupe-novair/" target="_blank" class="copy-btn" style="text-decoration:none;">LinkedIn ↗</a>
+              <span class="chart-badge">Global manufacturer</span>
+            </div>
+          </div>
+          <div class="comp-card-body">French family-owned group founded 1977. Claims to be the world-leading manufacturer of on-site oxygen and nitrogen generators. Owns Noxerior, OGSI, and multiple other brands across medical, industrial, and pharmaceutical gas. Strong LinkedIn presence with product launches and global expansion announcements. Content is polished but entirely generic.</div>
+          <div class="comp-weakness"><div class="comp-weakness-label">Their weakness</div>Novair has zero Portuguese market presence and zero Portuguese-language content. Their scale means messaging is never targeted to specific national markets or sectors. They manufacture products — they do not advise buyers on whether those products are right for them. Their content is produced from Paris for a global audience and lands nowhere with specific depth.</div>
+          <div class="comp-opportunity"><div class="comp-opportunity-label">Briskfil's opportunity</div>Portuguese manufacturers searching in Portuguese for on-site gas generation solutions will not find Novair. They will find Briskfil — if Briskfil creates the content. This is the single biggest SEO gap in the Iberian industrial gas market. Own it before any of these manufacturers expands their Portuguese-language content.</div>
+        </div>
+
+        <!-- COMPAIR -->
+        <div class="comp-card">
+          <div class="comp-card-header">
+            <div>
+              <div class="comp-card-title">CompAir</div>
+              <div class="comp-card-meta">Germany · Ingersoll Rand division · 29,000+ LinkedIn followers · Founded 1801</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <a href="https://www.linkedin.com/company/compair/" target="_blank" class="copy-btn" style="text-decoration:none;">LinkedIn ↗</a>
+              <span class="chart-badge">Corporate manufacturer</span>
+            </div>
+          </div>
+          <div class="comp-card-body">Global compressed air manufacturer, founded 1801, now a division of NYSE-listed Ingersoll Rand. 29,000+ LinkedIn followers. Makes rotary screw, oil-free, portable, and centrifugal compressors plus air treatment products. High volume multilingual LinkedIn content — compressor launches, energy savings calculators, oil-free certification posts, iConn IoT monitoring content. Strong on sustainability messaging.</div>
+          <div class="comp-weakness"><div class="comp-weakness-label">Their weakness</div>Every CompAir post is ultimately trying to sell a CompAir product. They have an inherent commercial conflict — their audits and recommendations are designed to lead to CompAir equipment sales. Buyers who have experienced misspecification from manufacturer-led assessments are highly receptive to independent alternatives. No Portuguese-language content strategy.</div>
+          <div class="comp-opportunity"><div class="comp-opportunity-label">Briskfil's opportunity</div>Position directly against CompAir's conflict of interest. A compressed air audit from CompAir will recommend CompAir equipment. A Briskfil audit recommends whatever is right for the client's application — regardless of manufacturer. This message resonates strongly with procurement leads who have been burned by vendor-led recommendations. Target CompAir's audience directly with independence messaging.</div>
+        </div>
+
+        <!-- OXYWISE -->
+        <div class="comp-card">
+          <div class="comp-card-header">
+            <div>
+              <div class="comp-card-title">Oxywise</div>
+              <div class="comp-card-meta">Czech Republic · PSA oxygen and nitrogen generators · Export-focused · Medical and industrial</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <a href="https://www.linkedin.com/company/oxywise/" target="_blank" class="copy-btn" style="text-decoration:none;">LinkedIn ↗</a>
+              <span class="chart-badge">Product exporter</span>
+            </div>
+          </div>
+          <div class="comp-card-body">Czech manufacturer of PSA oxygen and nitrogen generators for medical, industrial, and aquaculture applications. Export-focused with European, Asian, and African market presence. LinkedIn content is infrequent and case-study heavy — medical oxygen for rural hospitals, nitrogen for specific industrial clients. Limited Iberian market presence. Corporate product-focused tone throughout.</div>
+          <div class="comp-weakness"><div class="comp-weakness-label">Their weakness</div>Oxywise sells boxes. They have no consultancy layer — no independent assessment, no technology selection advice, no ongoing audit capability. Their relationship with a buyer ends at equipment delivery. No Portuguese-language content and no demonstrated understanding of the Portuguese or Iberian industrial market.</div>
+          <div class="comp-opportunity"><div class="comp-opportunity-label">Briskfil's opportunity</div>Full-service end-to-end positioning versus product-only. Briskfil designs, specifies, manages installation, commissions, and then audits ongoing performance — none of which Oxywise offers. For Portuguese manufacturers who want a local partner managing their gas systems rather than a Czech export transaction, Briskfil is the only credible option.</div>
+        </div>
+
+      </div>
+
+      <!-- ── HIGH-VOLUME KEYWORDS ── -->
+      <div id="comp-keywords" class="comp-sub" style="display:none;">
+
+        <!-- AUTH GATE -->
+        <div id="kw-auth-prompt" style="display:none;background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:2.5rem;text-align:center;margin-bottom:1.5rem;">
+          <div style="font-size:28px;margin-bottom:12px;">🔍</div>
+          <div style="font-size:15px;font-weight:600;color:var(--white);margin-bottom:8px;">Sign in to see your real keyword data</div>
+          <div style="font-size:13px;color:var(--gray-400);margin-bottom:1.5rem;max-width:400px;margin-left:auto;margin-right:auto;line-height:1.6;">This tab pulls the actual search queries people use to find briskfil.com from Google Search Console — then analyses them against your competition.</div>
+          <a href="/auth/login" class="add-btn" style="display:inline-flex;text-decoration:none;">Sign in with Google</a>
+        </div>
+
+        <!-- KEYWORD CONTENT (shown when authenticated) -->
+        <div id="kw-content" style="display:none;">
+
+          <!-- OVERVIEW METRICS -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;" id="kw-metrics"></div>
+
+          <!-- TWO COLUMN: QUERY TABLE + AI ANALYSIS -->
+          <div class="chart-grid-2" style="margin-bottom:16px;">
+
+            <!-- REAL KEYWORD TABLE -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <div class="chart-title">Keywords briskfil.com is found for</div>
+                  <div class="chart-subtitle">Last 90 days — sorted by impressions</div>
+                </div>
+                <div class="chart-badge lime" id="kw-period-badge">Loading...</div>
+              </div>
+              <div id="kw-table-wrap">
+                <div class="loading"><div class="spinner"></div> Fetching keyword data...</div>
+              </div>
+            </div>
+
+            <!-- TOP PAGES -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <div class="chart-title">Pages generating search visibility</div>
+                  <div class="chart-subtitle">Which pages are getting impressions</div>
+                </div>
+              </div>
+              <div id="kw-pages-wrap">
+                <div class="loading"><div class="spinner"></div></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- AI COMPETITIVE ANALYSIS ON REAL KEYWORDS -->
+          <div class="chart-card" style="margin-bottom:16px;">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Competitive keyword analysis</div>
+                <div class="chart-subtitle">AI analysis of your actual keywords vs competitor positioning — what to do with each one</div>
+              </div>
+              <button class="add-btn" onclick="runKwAnalysis()" id="kw-analyse-btn" style="font-size:12px;padding:8px 16px;">Analyse my keywords</button>
+            </div>
+            <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;line-height:1.6;">Once your keywords load above, click Analyse to get a full competitive breakdown — which keywords Atlas Copco or CompAir currently own, where Briskfil has a genuine chance to outrank them, and exactly what content to create for each opportunity.</p>
+            <div id="kw-analysis-loading" style="display:none;" class="loading"><div class="spinner"></div> Analysing keywords against competition...</div>
+            <div class="out-text" id="kw-analysis-output" style="display:none;font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;margin-top:8px;"></div>
+          </div>
+
+          <!-- KEYWORD GAPS — what to target next -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Keyword gaps — what Briskfil should target next</div>
+                <div class="chart-subtitle">High-value terms your competitors rank for that you are missing</div>
+              </div>
+              <button class="add-btn" onclick="runKwGaps()" id="kw-gaps-btn" style="font-size:12px;padding:8px 16px;">Find gaps</button>
+            </div>
+            <div id="kw-gaps-loading" style="display:none;" class="loading"><div class="spinner"></div> Identifying gaps...</div>
+            <div id="kw-gaps-output" style="display:none;">
+              <div class="out-text" id="kw-gaps-text" style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;margin-top:8px;"></div>
+            </div>
+          </div>
+
+        </div>
+        <!-- end kw-content -->
+
+      </div>
+
+      <!-- ── COUNTER-POST GENERATOR ── -->
+      <div id="comp-counter" class="comp-sub" style="display:none;">
+
+        <div class="chart-card" style="margin-bottom:16px;">
+          <div class="chart-header">
+            <div><div class="chart-title">Counter-post generator</div><div class="chart-subtitle">Generate a Briskfil LinkedIn post that directly counters a competitor's content angle</div></div>
+            <div class="chart-badge lime">AI powered</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">Competitor to counter</label>
+              <select class="form-select" id="counter-comp">
+                <option value="atlas">Atlas Copco</option>
+                <option value="ultra">Ultra Controlo</option>
+                <option value="noxerior">Noxerior</option>
+                <option value="novair">Groupe Novair</option>
+                <option value="compair">CompAir</option>
+                <option value="oxywise">Oxywise</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Their content angle to counter</label>
+              <select class="form-select" id="counter-angle">
+                <option>Product launch or new equipment announcement</option>
+                <option>Energy savings and efficiency claims</option>
+                <option>Sustainability and ESG positioning</option>
+                <option>Customer success story</option>
+                <option>Industry 4.0 and IoT monitoring</option>
+                <option>Trade show or event appearance</option>
+                <option>Nitrogen generation for food packaging</option>
+                <option>Medical oxygen generation</option>
+                <option>Certification or accreditation announcement</option>
+                <option>Price or value proposition</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Language</label>
+            <div class="lang-toggle">
+              <button class="lang-btn active" onclick="setCounterLang('en',this)">English</button>
+              <button class="lang-btn" onclick="setCounterLang('pt',this)">Portuguese</button>
+              <button class="lang-btn" onclick="setCounterLang('both',this)">Both</button>
+            </div>
+          </div>
+          <button class="add-btn" onclick="runCounterPost()" id="counter-btn">Generate counter-post</button>
+        </div>
+
+        <div id="counter-loading" style="display:none;" class="loading"><div class="spinner"></div> Writing counter-post...</div>
+
+        <div id="counter-output" style="display:none;">
+          <div class="chart-grid-2">
+            <div id="counter-block-en" style="display:none;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="font-size:18px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;">English</span><button class="copy-btn" onclick="copySeoOutput('counter-text-en')">Copy</button></div>
+              <div class="chart-card"><div class="out-text" id="counter-text-en" style="font-size:13px;color:var(--gray-200);line-height:1.8;white-space:pre-wrap;"></div></div>
+            </div>
+            <div id="counter-block-pt" style="display:none;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="font-size:18px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;">Português</span><button class="copy-btn" onclick="copySeoOutput('counter-text-pt')">Copy</button></div>
+              <div class="chart-card"><div class="out-text" id="counter-text-pt" style="font-size:13px;color:var(--gray-200);line-height:1.8;white-space:pre-wrap;"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+  <!-- end competition panel -->
+
   <!-- ══════════════════════════════════════════════════════
        COPYWRITER PANEL
   ══════════════════════════════════════════════════════ -->
@@ -1600,7 +1909,7 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
 function switchTab(tab, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  ['welcome','analytics','citation','linkedin','scheduler','seo','copy'].forEach(p => {
+  ['welcome','analytics','citation','linkedin','scheduler','seo','competition','copy'].forEach(p => {
     document.getElementById('panel-'+p).classList.toggle('active', p === tab);
   });
   if (tab === 'linkedin') {
@@ -3135,6 +3444,320 @@ function toggleTheme() {
   const btn = document.getElementById('theme-toggle-btn');
   if (btn) btn.textContent = isLight ? '🌙' : '☀';
 }
+/* ══════════════════════════════════════════════════════════════
+   COMPETITION PANEL
+══════════════════════════════════════════════════════════════ */
+
+function compTab(id, btn) {
+  document.querySelectorAll('.comp-stab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.comp-sub').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  btn.classList.add('active');
+  const el = document.getElementById('comp-' + id);
+  if (el) { el.classList.add('active'); el.style.display = 'block'; }
+}
+
+let counterLang = 'en';
+function setCounterLang(lang, btn) {
+  counterLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+const COMP_PROFILES = {
+  atlas: 'Atlas Copco — global industrial giant from Sweden, 807,000+ LinkedIn followers, sells compressed air systems and industrial gas equipment including nitrogen and oxygen generators. Primary competitor to Briskfil. Their conflict: they only recommend Atlas Copco equipment.',
+  ultra: 'Ultra Controlo — Portuguese manufacturer from Sintra, founded 1987, now focused almost entirely on medical oxygen. Has vacated the industrial gas consultancy space in Portugal.',
+  noxerior: 'Noxerior — Italian PSA nitrogen and oxygen generator manufacturer, now owned by French group Novair. Sells NITROSWING and OXYSWING systems. No consultancy layer — pure product company.',
+  novair: 'Groupe Novair — French group claiming to be world-leading on-site gas manufacturer. Zero Portuguese-language content. Operates globally but has no Portuguese market presence or local expertise.',
+  compair: 'CompAir — compressed air manufacturer, division of Ingersoll Rand, 29,000+ LinkedIn followers. Heavy product-led content. All recommendations lead to CompAir equipment sales.',
+  oxywise: 'Oxywise — Czech PSA oxygen and nitrogen generator manufacturer. Export-focused. No consultancy layer, no Portuguese presence. Sells boxes and ends the client relationship at delivery.'
+};
+
+/* ── KEYWORDS (GSC-powered) ── */
+
+let gscQueryRows = [];
+
+async function loadKwData() {
+  // Check auth
+  try {
+    const r = await fetch('/auth/status');
+    const j = await r.json();
+    if (!j.authenticated) {
+      document.getElementById('kw-auth-prompt').style.display = 'block';
+      document.getElementById('kw-content').style.display = 'none';
+      return;
+    }
+  } catch(e) {
+    document.getElementById('kw-auth-prompt').style.display = 'block';
+    return;
+  }
+  document.getElementById('kw-auth-prompt').style.display = 'none';
+  document.getElementById('kw-content').style.display = 'block';
+
+  // Fire all requests
+  const [overviewRes, queriesRes, pagesRes] = await Promise.allSettled([
+    fetch('/api/gsc/overview').then(r => r.json()),
+    fetch('/api/gsc/queries').then(r => r.json()),
+    fetch('/api/gsc/pages').then(r => r.json())
+  ]);
+
+  renderKwOverview(overviewRes.value);
+  renderKwTable(queriesRes.value);
+  renderKwPages(pagesRes.value);
+}
+
+function fmtN(n) { if (!n && n!==0) return '—'; return n >= 1000 ? (n/1000).toFixed(1)+'k' : Math.round(n).toString(); }
+function fmtPct(n) { return n ? (n*100).toFixed(1)+'%' : '0%'; }
+function fmtPos(n) { return n ? n.toFixed(1) : '—'; }
+
+function renderKwOverview(data) {
+  const el = document.getElementById('kw-metrics');
+  if (!data?.success) { el.innerHTML = `<div class="chart-card" style="grid-column:1/-1;color:var(--negative);font-size:13px;">${data?.error || 'Could not load Search Console data. Make sure briskfil.com is verified in Google Search Console and the API is enabled.'}</div>`; return; }
+  const c = data.current, p = data.previous;
+  const badge = document.getElementById('kw-period-badge');
+  if (badge && data.period) badge.textContent = data.period.startDate + ' to ' + data.period.endDate;
+  const metrics = [
+    { label:'Total clicks', val: fmtN(c.clicks) },
+    { label:'Impressions', val: fmtN(c.impressions) },
+    { label:'Click-through rate', val: fmtPct(c.ctr) },
+    { label:'Average position', val: fmtPos(c.position) }
+  ];
+  el.innerHTML = metrics.map(m => `
+    <div class="metric-card">
+      <div class="metric-label">${m.label}</div>
+      <div class="metric-val">${m.val}</div>
+    </div>`).join('');
+}
+
+function renderKwTable(data) {
+  const wrap = document.getElementById('kw-table-wrap');
+  if (!data?.success || !data.rows?.length) {
+    wrap.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:8px 0;">No keyword data found. Make sure briskfil.com is verified in Search Console and has at least 28 days of data.</div>';
+    return;
+  }
+  gscQueryRows = data.rows; // store for AI analysis
+  const max = data.rows[0].impressions;
+
+  wrap.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr style="border-bottom:1px solid var(--gray-700);">
+        <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 0 10px;text-align:left;">Keyword</th>
+        <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 8px 10px;text-align:right;">Impr.</th>
+        <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 8px 10px;text-align:right;">Clicks</th>
+        <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 8px 10px;text-align:right;">CTR</th>
+        <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:0 0 10px;text-align:right;">Pos.</th>
+      </tr></thead>
+      <tbody>
+        ${data.rows.slice(0,40).map(r => {
+          const pos = r.position;
+          const posCol = pos <= 3 ? '#4ade80' : pos <= 10 ? '#f59e0b' : pos <= 20 ? '#f87171' : '#a0a0a0';
+          const barW = Math.round((r.impressions / max) * 100);
+          return `<tr style="border-bottom:1px solid var(--gray-700);">
+            <td style="padding:8px 0;">
+              <div style="font-size:12px;font-weight:600;color:var(--white);margin-bottom:3px;">${r.keys[0]}</div>
+              <div style="height:4px;background:var(--gray-700);border-radius:2px;overflow:hidden;"><div style="width:${barW}%;height:100%;background:var(--lime);border-radius:2px;"></div></div>
+            </td>
+            <td style="font-size:12px;color:var(--gray-300);text-align:right;padding:8px 8px;">${fmtN(r.impressions)}</td>
+            <td style="font-size:12px;color:var(--gray-300);text-align:right;padding:8px 8px;">${fmtN(r.clicks)}</td>
+            <td style="font-size:12px;color:var(--gray-300);text-align:right;padding:8px 8px;">${fmtPct(r.ctr)}</td>
+            <td style="text-align:right;padding:8px 0;"><span style="font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;background:${posCol}22;color:${posCol};">${fmtPos(pos)}</span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderKwPages(data) {
+  const wrap = document.getElementById('kw-pages-wrap');
+  if (!data?.success || !data.rows?.length) { wrap.innerHTML = '<div style="font-size:13px;color:var(--gray-400);">No page data available.</div>'; return; }
+  const max = data.rows[0].impressions;
+  wrap.innerHTML = data.rows.map(r => {
+    const slug = r.keys[0].replace('https://briskfil.com','').replace('https://www.briskfil.com','') || '/';
+    const barW = Math.round((r.impressions / max) * 100);
+    return `<div style="padding:9px 0;border-bottom:1px solid var(--gray-700);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <div style="flex:1;font-size:12px;color:var(--gray-200);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.keys[0]}">${slug}</div>
+        <span style="font-size:11px;color:var(--gray-400);flex-shrink:0;">${fmtN(r.impressions)} impr</span>
+        <span style="font-size:11px;color:var(--gray-300);flex-shrink:0;">${fmtN(r.clicks)} clicks</span>
+      </div>
+      <div style="height:4px;background:var(--gray-700);border-radius:2px;overflow:hidden;"><div style="width:${barW}%;height:100%;background:var(--lime);border-radius:2px;"></div></div>
+    </div>`;
+  }).join('');
+}
+
+async function runKwAnalysis() {
+  if (!gscQueryRows.length) { alert('Wait for keywords to load first.'); return; }
+  const btn = document.getElementById('kw-analyse-btn');
+  const loading = document.getElementById('kw-analysis-loading');
+  const output = document.getElementById('kw-analysis-output');
+  btn.disabled = true; btn.textContent = 'Analysing...';
+  loading.style.display = 'flex'; output.style.display = 'none';
+
+  // Build keyword list from real GSC data
+  const kwList = gscQueryRows.slice(0, 30).map(r =>
+    `${r.keys[0]} (${fmtN(r.impressions)} impressions, position ${fmtPos(r.position)}, ${fmtPct(r.ctr)} CTR)`
+  ).join('\n');
+
+  const prompt = `You are an expert SEO strategist working for NXRD on Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy based in Esposende. Their primary competitors are Atlas Copco, CompAir, Noxerior, Groupe Novair, Ultra Controlo, and Oxywise.
+
+Here are the actual keywords people search to find briskfil.com (from Google Search Console, last 90 days):
+
+${kwList}
+
+Analyse these real keywords and provide:
+
+1. WHAT THESE KEYWORDS TELL US
+What do these searches reveal about who is finding Briskfil and why? What intent do they show? Are these buyers in decision mode, research mode, or problem-aware mode?
+
+2. COMPETITIVE POSITIONING ON EACH KEY TERM
+For the top 10 keywords by impressions — identify which competitors (Atlas Copco, CompAir, Noxerior, Novair, Ultra Controlo, Oxywise) are currently dominating each term. Explain what Briskfil would need to do to outrank them on each one.
+
+3. QUICK WINS — keywords where Briskfil can move from page 2 to page 1 within 60 to 90 days. Identify specifically which keywords currently sitting in positions 11-20 are the best opportunities and exactly what content improvement is needed.
+
+4. HIGH-VOLUME GAPS — important keywords in the industrial gas space that are NOT in this list but should be. These are terms where Atlas Copco or CompAir are getting searches that Briskfil is invisible for.
+
+5. PORTUGUESE-LANGUAGE OPPORTUNITY — identify which keywords are in Portuguese or have a Portuguese equivalent that Briskfil should be targeting but is not appearing for.
+
+Be specific to Briskfil's actual services and situation. No generic advice. Use the real data above as the foundation.`;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, systemPrompt: 'You are an expert SEO strategist for B2B industrial companies in Portugal and Europe. Be direct, specific, and commercially focused. Every recommendation must be actionable within 30 to 90 days.' })
+    });
+    const data = await res.json();
+    output.textContent = data.content || data.text || '';
+    output.style.display = 'block';
+  } catch(e) {
+    output.textContent = 'Error generating analysis. Please try again.';
+    output.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Analyse my keywords';
+    loading.style.display = 'none';
+  }
+}
+
+async function runKwGaps() {
+  const btn = document.getElementById('kw-gaps-btn');
+  const loading = document.getElementById('kw-gaps-loading');
+  const output = document.getElementById('kw-gaps-output');
+  const text = document.getElementById('kw-gaps-text');
+  btn.disabled = true; btn.textContent = 'Finding gaps...';
+  loading.style.display = 'flex'; output.style.display = 'none';
+
+  const currentKws = gscQueryRows.length
+    ? 'Current keywords Briskfil appears for: ' + gscQueryRows.slice(0,20).map(r => r.keys[0]).join(', ')
+    : 'No current keyword data loaded.';
+
+  const prompt = `You are an expert SEO strategist for NXRD working on Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy.
+
+${currentKws}
+
+Identify the most important keyword gaps — high-value search terms in the industrial gas market that Briskfil should be ranking for but is NOT appearing for (based on the list above). Focus on:
+
+1. HIGH-VOLUME COMPETITOR TERMS — specific keywords Atlas Copco, CompAir, Noxerior, or Groupe Novair rank prominently for in Portuguese and Iberian search results that Briskfil is completely absent from
+
+2. PORTUGUESE-LANGUAGE GAPS — important terms in Portuguese (geração de azoto, qualidade ar comprimido, gerador de oxigénio, auditoria energética, etc) that have real search volume and where Briskfil has no content
+
+3. SECTOR-SPECIFIC GAPS — keyword clusters around food and beverage nitrogen, wine nitrogen blanketing, laser cutting nitrogen, water treatment oxygen, pharmaceutical grade nitrogen, energy efficiency ISO 11011 — that Briskfil's competitors rank for
+
+4. INTENT-RICH LONG-TAIL GAPS — specific question-based searches ("how much does nitrogen generation cost", "PSA vs membrane nitrogen", "on-site gas generation vs cylinders") that convert buyers and where independent consultancy content would outperform manufacturer content
+
+For each gap: the keyword, estimated monthly searches in Portugal/Iberia, which competitor owns it, and the specific page or content piece Briskfil needs to create to capture it.`;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, systemPrompt: 'You are an expert B2B SEO strategist specialising in the Portuguese and Iberian industrial market. Be specific, commercially focused, and actionable.' })
+    });
+    const data = await res.json();
+    text.textContent = data.content || data.text || '';
+    output.style.display = 'block';
+  } catch(e) {
+    text.textContent = 'Error. Please try again.';
+    output.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Find gaps';
+    loading.style.display = 'none';
+  }
+}
+
+// Load keyword data when user switches to competition tab and then to keywords sub-tab
+const _origCompTab = window.compTab;
+function compTab(id, btn) {
+  document.querySelectorAll('.comp-stab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.comp-sub').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  btn.classList.add('active');
+  const el = document.getElementById('comp-' + id);
+  if (el) { el.classList.add('active'); el.style.display = 'block'; }
+  if (id === 'keywords') loadKwData();
+}
+
+
+async function runCounterPost() {
+  const comp = document.getElementById('counter-comp').value;
+  const angle = document.getElementById('counter-angle').value;
+  const btn = document.getElementById('counter-btn');
+  const loading = document.getElementById('counter-loading');
+  const output = document.getElementById('counter-output');
+
+  btn.disabled = true; btn.textContent = 'Writing...';
+  loading.style.display = 'flex';
+  output.style.display = 'none';
+
+  const compProfile = COMP_PROFILES[comp] || COMP_PROFILES.atlas;
+
+  const sysPrompt = `You are an expert LinkedIn content strategist working for NXRD on the Briskfil account. Briskfil is a Portuguese B2B industrial gas consultancy based in Esposende. They specialise in compressed air quality analysis, on-site nitrogen and oxygen generation (PSA and membrane), energy efficiency audits (ISO 11011), industrial gas consulting, and machinery maintenance. They are 100% manufacturer agnostic — they give independent advice and do not sell their own equipment. Their website is briskfil.com. Write direct, confident, expert copy. No hyphens. No emojis. Always position Briskfil's independence as the core differentiator.`;
+
+  const genPost = async (lang) => {
+    const langInstr = lang === 'pt' ? 'Write entirely in European Portuguese as spoken in Portugal. Natural, professional, expert tone.' : 'Write in English. Direct, authoritative, commercially grounded.';
+    const prompt = `Competitor: ${compProfile}
+
+Their content angle: ${angle}
+
+Write a LinkedIn counter-post for Briskfil that responds to this competitor's angle without naming them directly. Position Briskfil's independence and expertise as the alternative. The post should make the reader think: "I should speak to an independent expert rather than just buying from a manufacturer."
+
+${langInstr}
+
+Format: Under 270 words. Strong opening line that earns the scroll. Specific and commercially grounded. End with a soft CTA (comment or DM).`;
+
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, systemPrompt: sysPrompt })
+    });
+    const data = await res.json();
+    return data.content || data.text || '';
+  };
+
+  try {
+    const enBlock = document.getElementById('counter-block-en');
+    const ptBlock = document.getElementById('counter-block-pt');
+    enBlock.style.display = 'none';
+    ptBlock.style.display = 'none';
+
+    if (counterLang === 'en' || counterLang === 'both') {
+      const en = await genPost('en');
+      document.getElementById('counter-text-en').textContent = en;
+      enBlock.style.display = 'block';
+    }
+    if (counterLang === 'pt' || counterLang === 'both') {
+      const pt = await genPost('pt');
+      document.getElementById('counter-text-pt').textContent = pt;
+      ptBlock.style.display = 'block';
+    }
+    output.style.display = 'block';
+  } catch(e) {
+    document.getElementById('counter-text-en').textContent = 'Error generating post. Please try again.';
+    document.getElementById('counter-block-en').style.display = 'block';
+    output.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Generate counter-post';
+    loading.style.display = 'none';
+  }
+}
+
 function applyTheme() {
   if (localStorage.getItem('briskfil_theme') === 'light') {
     document.body.classList.add('light-mode');
