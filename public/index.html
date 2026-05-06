@@ -259,6 +259,107 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 
 .cit-results { display: none; }
 
+/* ── LIGHT MODE ── */
+body.light-mode {
+  --gray-900: #f0f0f0; --gray-800: #ffffff; --gray-700: #e4e4e4; --gray-600: #d0d0d0;
+  --gray-500: #b0b0b0; --gray-400: #555555; --gray-300: #333333; --gray-200: #111111;
+  --white: #111111; --black: #ffffff;
+  --positive: #16a34a; --negative: #dc2626;
+  --lime: #5a7c00; --lime-dim: #4a6800;
+  --green-dim: rgba(22,163,74,0.1); --red-dim: rgba(220,38,38,0.1);
+}
+body.light-mode { background: #f0f0f0; color: #111111; }
+body.light-mode .header { background: #ffffff; border-bottom-color: #e4e4e4; }
+body.light-mode .nav-tabs { background: #ffffff; border-bottom-color: #e4e4e4; }
+body.light-mode .nav-tab { color: #555555; }
+body.light-mode .nav-tab.active { color: #5a7c00; border-bottom-color: #5a7c00; }
+body.light-mode .nav-tab:hover { color: #111111; }
+body.light-mode .chart-card { background: #ffffff; border-color: #e4e4e4; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+body.light-mode .metric-card { background: #ffffff; border-color: #e4e4e4; }
+body.light-mode .chart-badge { background: #f5f5f5; color: #333333; }
+body.light-mode .chart-badge.lime { background: rgba(90,124,0,0.12); color: #5a7c00; }
+body.light-mode .form-input, body.light-mode .form-select,
+body.light-mode select, body.light-mode input, body.light-mode textarea { background: #f5f5f5; border-color: #d0d0d0; color: #111111; }
+body.light-mode .add-btn { background: #5a7c00; color: #ffffff; }
+body.light-mode .add-btn:hover { background: #4a6800; }
+body.light-mode .header-btn { background: #f5f5f5; border-color: #d0d0d0; color: #333333; }
+body.light-mode .header-btn:hover { background: #e8e8e8; }
+body.light-mode .copy-btn { border-color: #d0d0d0; color: #555555; }
+body.light-mode .copy-btn:hover { border-color: #5a7c00; color: #5a7c00; }
+body.light-mode .period-label { background: #f5f5f5; border-color: #e4e4e4; }
+body.light-mode .period-dot { background: #5a7c00; }
+body.light-mode .modal { background: #ffffff; }
+body.light-mode .modal-overlay { background: rgba(0,0,0,0.4); }
+body.light-mode .post-card { background: #ffffff; border-color: #e4e4e4; }
+body.light-mode .cal-day { border-color: #e4e4e4; }
+body.light-mode .cal-day:hover { background: #f5f5f5; }
+body.light-mode .footer { border-top-color: #e4e4e4; background: #ffffff; }
+body.light-mode .seo-stab { color: #555555; }
+body.light-mode .seo-stab.active { color: #5a7c00; border-bottom-color: #5a7c00; }
+body.light-mode .seo-score-card { background: #f5f5f5; border-color: #e4e4e4; }
+body.light-mode .seo-issue-row { border-bottom-color: #e4e4e4; }
+body.light-mode .tech-item { border-bottom-color: #e4e4e4; }
+body.light-mode .tech-checkbox { border-color: #b0b0b0; }
+body.light-mode .tech-checkbox.checked { background: #5a7c00; border-color: #5a7c00; }
+body.light-mode .out-text { color: #111111; }
+body.light-mode .copy-client-tile { background: #ffffff; border-color: #e4e4e4; }
+body.light-mode .copy-client-tile.selected { background: rgba(90,124,0,0.08); border-color: #5a7c00; }
+body.light-mode .copy-client-tile.selected .cct-name { color: #5a7c00; }
+body.light-mode .copy-format-tile { background: #ffffff; border-color: #e4e4e4; }
+body.light-mode .copy-format-tile.selected { background: rgba(90,124,0,0.06); border-color: #5a7c00; }
+body.light-mode .copy-format-tile.selected .cft-label { color: #5a7c00; }
+body.light-mode .copy-output-block { background: #ffffff; border-color: #e4e4e4; }
+body.light-mode .copy-output-header { background: #f5f5f5; border-bottom-color: #e4e4e4; }
+body.light-mode .copy-output-footer { border-top-color: #e4e4e4; }
+body.light-mode .lang-toggle { border-color: #d0d0d0; }
+body.light-mode .lang-btn { color: #555555; }
+body.light-mode .lang-btn.active { background: #5a7c00; color: #ffffff; }
+body.light-mode .bf-stat { background: #ffffff; border-color: #e4e4e4; }
+body.light-mode .bf-action-item { border-bottom-color: #e4e4e4; }
+body.light-mode .bf-action-item:hover { background: rgba(0,0,0,0.02); }
+body.light-mode .bf-checkbox { border-color: #b0b0b0; }
+body.light-mode .bf-checkbox.checked { background: #5a7c00; border-color: #5a7c00; }
+body.light-mode .bf-tool-btn { background: #f5f5f5; color: #333333; }
+body.light-mode .bf-tool-btn:hover { background: #e8e8e8; color: #5a7c00; }
+body.light-mode #font-toggle-btn.active-large { color: #5a7c00; border-color: #5a7c00; }
+body.light-mode #theme-toggle-btn { color: #333333; }
+
+/* ── LARGE TEXT ── */
+body.large-text { font-size: 18px; }
+body.large-text .nav-tab { font-size: 14px; padding: 14px 20px; }
+body.large-text .chart-title { font-size: 17px; }
+body.large-text .chart-subtitle { font-size: 14px; }
+body.large-text .chart-badge { font-size: 13px; }
+body.large-text .metric-val { font-size: 34px; }
+body.large-text .metric-label { font-size: 13px; }
+body.large-text .metric-delta { font-size: 13px; }
+body.large-text .form-label { font-size: 13px; }
+body.large-text .form-input, body.large-text .form-select,
+body.large-text select, body.large-text input, body.large-text textarea { font-size: 15px; padding: 10px 14px; }
+body.large-text .add-btn { font-size: 14px; padding: 10px 20px; }
+body.large-text .header-btn { font-size: 13px; }
+body.large-text .out-text { font-size: 16px; line-height: 1.9; }
+body.large-text .page-title h1 { font-size: 26px; }
+body.large-text .page-title p { font-size: 16px; }
+body.large-text .section-title { font-size: 13px; }
+body.large-text .copy-btn { font-size: 13px; }
+body.large-text .seo-stab { font-size: 14px; }
+body.large-text .seo-issue-title { font-size: 14px; }
+body.large-text .seo-issue-desc { font-size: 13px; }
+body.large-text .tech-item-title { font-size: 14px; }
+body.large-text .tech-item-desc { font-size: 13px; }
+body.large-text .action-title { font-size: 16px; }
+body.large-text .action-desc { font-size: 14px; }
+body.large-text .card-title { font-size: 17px; }
+body.large-text .card-body { font-size: 15px; }
+body.large-text .copy-client-tile .cct-name { font-size: 16px; }
+body.large-text .copy-format-tile .cft-label { font-size: 14px; }
+body.large-text .copy-output-text { font-size: 16px; line-height: 1.9; }
+body.large-text .bf-action-title { font-size: 16px; }
+body.large-text .bf-action-desc { font-size: 14px; }
+body.large-text .bf-tool-btn { font-size: 14px; }
+body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime); }
+
 /* ── WELCOME PANEL ── */
 .bf-stat { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: var(--radius); padding: 16px 18px; }
 .bf-stat-icon { font-size: 20px; margin-bottom: 8px; }
@@ -369,6 +470,8 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
       <button class="header-btn" id="header-signin-btn" style="display:none;" onclick="window.location='/auth/login'">Sign in for Analytics</button>
       <button class="header-btn" id="header-refresh-btn" style="display:none;" onclick="loadAll()">Refresh</button>
       <button class="header-btn logout" id="header-signout-btn" style="display:none;" onclick="logout()">Sign out</button>
+      <button class="header-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle light/dark mode" style="font-size:16px;padding:6px 10px;">☀</button>
+      <button class="header-btn" id="font-toggle-btn" onclick="toggleFontSize()" title="Toggle text size" style="font-size:16px;padding:6px 10px;">A</button>
     </div>
   </header>
 
@@ -3021,7 +3124,39 @@ function sendCopyToScheduler() {
 document.addEventListener('DOMContentLoaded', () => {
   initCopywriter();
   initBfWelcome();
+  applyTheme();
+  applyFontSize();
 });
+
+/* ── THEME TOGGLE ── */
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('briskfil_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('theme-toggle-btn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀';
+}
+function applyTheme() {
+  if (localStorage.getItem('briskfil_theme') === 'light') {
+    document.body.classList.add('light-mode');
+    const btn = document.getElementById('theme-toggle-btn');
+    if (btn) btn.textContent = '🌙';
+  }
+}
+
+/* ── FONT SIZE TOGGLE ── */
+function toggleFontSize() {
+  const isLarge = document.body.classList.toggle('large-text');
+  localStorage.setItem('briskfil_font_large', isLarge ? '1' : '0');
+  const btn = document.getElementById('font-toggle-btn');
+  if (btn) { btn.style.color = isLarge ? 'var(--lime)' : ''; btn.style.borderColor = isLarge ? 'var(--lime)' : ''; }
+}
+function applyFontSize() {
+  if (localStorage.getItem('briskfil_font_large') === '1') {
+    document.body.classList.add('large-text');
+    const btn = document.getElementById('font-toggle-btn');
+    if (btn) { btn.style.color = 'var(--lime)'; btn.style.borderColor = 'var(--lime)'; }
+  }
+}
 
 /* ══════════════════════════════════════════════════════════════
    BRISKFIL WELCOME PANEL
