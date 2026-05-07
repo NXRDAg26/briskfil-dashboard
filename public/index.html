@@ -1065,8 +1065,12 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
       </div>
 
       <div class="form-group" style="margin-top:10px;">
-        <label class="form-label">Hashtags</label>
-        <input class="form-input" id="post-hashtags" placeholder="#CompressedAir #NitrogenGeneration #Briskfil" type="text">
+        <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;">
+          Hashtags
+          <button onclick="suggestHashtags()" id="hashtag-suggest-btn" style="background:rgba(200,240,38,0.1);border:1px solid rgba(200,240,38,0.3);border-radius:6px;color:var(--lime);font-size:10px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;text-transform:uppercase;letter-spacing:0.04em;" onmouseover="this.style.background='rgba(200,240,38,0.2)'" onmouseout="this.style.background='rgba(200,240,38,0.1)'">⚡ Suggest</button>
+        </label>
+        <input class="form-input" id="post-hashtags" placeholder="Click Suggest to auto-generate hashtags from your post content" type="text">
+        <div id="hashtag-suggestions" style="display:none;margin-top:8px;flex-wrap:wrap;gap:6px;"></div>
       </div>
 
       <div class="form-group" style="margin-top:10px;">
@@ -4031,6 +4035,82 @@ Format: Under 270 words. Strong opening line that earns the scroll. Specific and
     btn.disabled = false; btn.textContent = 'Generate counter-post';
     loading.style.display = 'none';
   }
+}
+
+
+// ── HASHTAG SUGGESTER ──────────────────────────────────────────
+async function suggestHashtags() {
+  const copy = document.getElementById('post-copy').value.trim();
+  const format = document.getElementById('post-format')?.value || 'linkedin';
+  const btn = document.getElementById('hashtag-suggest-btn');
+  const suggestionsEl = document.getElementById('hashtag-suggestions');
+  
+  if (!copy) {
+    alert('Write or paste your post content first, then click Suggest.');
+    return;
+  }
+
+  btn.textContent = '...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: `You are a social media hashtag expert for Briskfil. Portuguese B2B industrial gas consultancy based in Esposende. Services: compressed air quality, nitrogen generation (PSA and membrane), oxygen generation, energy efficiency audits (ISO 11011), industrial gas consulting. Manufacturer agnostic. Portuguese market.
+
+Post content:
+"${copy.substring(0, 500)}"
+
+Format: ${format}
+
+Generate exactly 8 to 10 relevant hashtags for this post. Rules:
+- Start with the most specific and relevant hashtags
+- Mix 2-3 high-volume broad tags with 5-7 niche specific ones
+- Always include brand tags: #Briskfil #GasIndustrial #ArComprimido #NitrogenGeneration #Portugal
+- Return ONLY the hashtags as a single line, space-separated, starting with #
+- No explanation, no numbering, just the hashtags on one line`,
+        systemPrompt: 'You are a hashtag expert. Return only a single line of space-separated hashtags starting with #. No explanation.'
+      })
+    });
+    const data = await res.json();
+    const raw = (data.content || data.text || '').trim();
+    
+    // Extract hashtags
+    const tags = raw.match(/#[a-zA-Z0-9À-ÿ]+/g) || [];
+    
+    if (tags.length) {
+      // Show as clickable pills
+      suggestionsEl.style.display = 'flex';
+      suggestionsEl.innerHTML = tags.map(tag => 
+        `<span onclick="addHashtag('${tag}')" style="background:rgba(200,240,38,0.1);border:1px solid rgba(200,240,38,0.25);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--lime);cursor:pointer;transition:all .15s;white-space:nowrap;" onmouseover="this.style.background='rgba(200,240,38,0.25)'" onmouseout="this.style.background='rgba(200,240,38,0.1)'">${tag}</span>`
+      ).join('') + 
+      `<span onclick="addAllHashtags(${JSON.stringify(tags.join(' '))})" style="background:var(--lime);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:#000;cursor:pointer;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='var(--lime)'">+ Add all</span>`;
+    } else {
+      suggestionsEl.style.display = 'flex';
+      suggestionsEl.innerHTML = '<span style="font-size:12px;color:var(--gray-400);">No hashtags generated. Try again.</span>';
+    }
+  } catch(e) {
+    suggestionsEl.style.display = 'flex';
+    suggestionsEl.innerHTML = '<span style="font-size:12px;color:var(--negative);">Error generating hashtags. Please try again.</span>';
+  } finally {
+    btn.textContent = '⚡ Suggest';
+    btn.disabled = false;
+  }
+}
+
+function addHashtag(tag) {
+  const el = document.getElementById('post-hashtags');
+  const current = el.value.trim();
+  if (!current.includes(tag)) {
+    el.value = current ? current + ' ' + tag : tag;
+  }
+}
+
+function addAllHashtags(tagsStr) {
+  document.getElementById('post-hashtags').value = tagsStr;
+  document.getElementById('hashtag-suggestions').style.display = 'none';
 }
 
 function applyTheme() {
