@@ -259,6 +259,11 @@
       <div class="topbar-right">
         <span class="pill pill-green">3x / week target</span>
         <span class="pill pill-amber">Baseline phase</span>
+        <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;gap:0;">
+          <button id="lang-en-btn" onclick="setGenLang('en')" style="background:#c8f026;color:#000;border:none;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;transition:all .15s;">EN</button>
+          <button id="lang-pt-btn" onclick="setGenLang('pt')" style="background:var(--surface2);color:var(--muted);border:none;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;transition:all .15s;">PT</button>
+          <button id="lang-both-btn" onclick="setGenLang('both')" style="background:var(--surface2);color:var(--muted);border:none;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;transition:all .15s;">BOTH</button>
+        </div>
         <span class="pill pill-blue" id="today-date"></span>
       </div>
     </div>
@@ -462,11 +467,19 @@
           <div class="output-header">
             <span class="output-label">Generated post</span>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="copy-btn" onclick="copyOutput('event-post-text')">Copy</button>
+              <button class="copy-btn" onclick="copyOutput('event-post-text')">Copy EN</button>
+              <button class="copy-btn" id="event-copy-pt" onclick="copyOutput('event-post-text-pt')" style="display:none;">Copy PT</button>
               <button onclick="sendBfToScheduler('event-post-text','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
             </div>
           </div>
-          <div class="generated-output" id="event-post-text">Generating...</div>
+          <div id="event-en-block">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;margin-top:8px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
+            <div class="generated-output" id="event-post-text">Generating...</div>
+          </div>
+          <div id="event-pt-block" style="display:none;margin-top:12px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
+            <div class="generated-output" id="event-post-text-pt"></div>
+          </div>
         </div>
       </div>
 
@@ -543,11 +556,19 @@
               <span id="gen-spinner" style="display:none;"><span class="spinner"></span></span>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="copy-btn" onclick="copyOutput('gen-text')">Copy</button>
+              <button class="copy-btn" id="gen-copy-en" onclick="copyOutput('gen-text')">Copy EN</button>
+              <button class="copy-btn" id="gen-copy-pt" onclick="copyOutput('gen-text-pt')" style="display:none;">Copy PT</button>
               <button onclick="sendBfToScheduler('gen-text','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
             </div>
           </div>
-          <div class="generated-output" id="gen-text"></div>
+          <div id="gen-en-block">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
+            <div class="generated-output" id="gen-text"></div>
+          </div>
+          <div id="gen-pt-block" style="display:none;margin-top:12px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
+            <div class="generated-output" id="gen-text-pt"></div>
+          </div>
         </div>
       </div>
 
@@ -597,11 +618,19 @@
               <span id="content-spinner" style="display:none;"><span class="spinner"></span></span>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="copy-btn" onclick="copyOutput('content-text')">Copy</button>
+              <button class="copy-btn" onclick="copyOutput('content-text')">Copy EN</button>
+              <button class="copy-btn" id="content-copy-pt" onclick="copyOutput('content-text-pt')" style="display:none;">Copy PT</button>
               <button onclick="sendBfToScheduler('content-text','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
             </div>
           </div>
-          <div class="generated-output" id="content-text"></div>
+          <div id="content-en-block">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;margin-top:8px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
+            <div class="generated-output" id="content-text"></div>
+          </div>
+          <div id="content-pt-block" style="display:none;margin-top:12px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
+            <div class="generated-output" id="content-text-pt"></div>
+          </div>
         </div>
       </div>
 
@@ -1642,29 +1671,88 @@ function copyOutput(id) {
 }
 
 // -- CLAUDE API CALL --
+// ── LANGUAGE TOGGLE ──────────────────────────────────────────
+let bfGenLang = 'en';
+
+function setGenLang(lang) {
+  bfGenLang = lang;
+  const btns = { en: 'lang-en-btn', pt: 'lang-pt-btn', both: 'lang-both-btn' };
+  Object.entries(btns).forEach(([k, id]) => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    if (k === lang) {
+      b.style.background = '#c8f026'; b.style.color = '#000';
+    } else {
+      b.style.background = 'var(--surface2)'; b.style.color = 'var(--muted)';
+    }
+  });
+}
+
+const BF_SYS = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial gas consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Their primary competitor is Atlas Copco. Briskfil's competitive advantage is independence: manufacturer-agnostic, genuinely expert, impartial advice. Target audience: plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers. Write in a direct, expert style. No jargon without explanation. No hype. No emojis. No hyphens. Authoritative but approachable.`;
+
 async function callClaude(prompt, outputId, spinnerId, wrapId) {
   const out = document.getElementById(outputId);
   const wrap = document.getElementById(wrapId);
   const spin = spinnerId ? document.getElementById(spinnerId) : null;
 
-  if (wrap) { wrap.style.display = 'block'; }
-  if (out) { out.textContent = 'Generating...'; }
+  if (wrap) wrap.style.display = 'block';
   if (spin) spin.style.display = 'inline-block';
 
-  const systemPrompt = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Their primary competitor is Atlas Copco — a global industrial giant. Briskfil's competitive advantage is independence: they are manufacturer-agnostic, genuinely expert, and give clients impartial advice rather than selling proprietary products. Their target audience is plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers, especially in food, pharma, automotive, electronics, biogas, water treatment, laser cutting, oil and gas, wine and viticulture, and medical oxygen sectors. Write in a direct, expert, plain-English style. No jargon without explanation. No hype. No emojis. No hyphens. Authoritative but approachable. Every post should feel like it was written by a genuine independent expert, not a large corporation like Atlas Copco.`;
+  // Determine PT block IDs from EN block ID
+  const ptId = outputId + '-pt';
+  const ptBlock = document.getElementById(
+    outputId.replace('gen-text','gen-pt-block')
+             .replace('event-post-text','event-pt-block')
+             .replace('content-text','content-pt-block')
+  );
+  const enBlock = document.getElementById(
+    outputId.replace('gen-text','gen-en-block')
+             .replace('event-post-text','event-en-block')
+             .replace('content-text','content-en-block')
+  );
+  const ptOut = document.getElementById(ptId);
+  const copyPtBtn = document.getElementById(
+    outputId.replace('gen-text','gen-copy-pt')
+             .replace('event-post-text','event-copy-pt')
+             .replace('content-text','content-copy-pt')
+  );
+
+  // Show/hide blocks based on language
+  const showPT = bfGenLang === 'pt' || bfGenLang === 'both';
+  const showEN = bfGenLang === 'en' || bfGenLang === 'both';
+
+  if (enBlock) enBlock.style.display = showEN ? 'block' : 'none';
+  if (ptBlock) ptBlock.style.display = showPT ? 'block' : 'none';
+  if (copyPtBtn) copyPtBtn.style.display = showPT ? 'inline-block' : 'none';
+
+  if (out) out.textContent = showEN ? 'Generating...' : '';
+  if (ptOut) ptOut.textContent = showPT ? 'A gerar...' : '';
+
+  const langInstructEN = 'Write in English. Direct, authoritative, commercially grounded.';
+  const langInstructPT = 'Write entirely in European Portuguese as spoken in Portugal. Natural, professional, direct. Not Brazilian Portuguese.';
 
   try {
-    const response = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system: systemPrompt, prompt, max_tokens: 1000 })
-    });
+    const calls = [];
+    if (showEN) calls.push(
+      fetch('/api/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: BF_SYS, prompt: prompt + '\n\n' + langInstructEN, max_tokens: 1000 })
+      }).then(r => r.json())
+    );
+    if (showPT) calls.push(
+      fetch('/api/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: BF_SYS, prompt: prompt + '\n\n' + langInstructPT, max_tokens: 1000 })
+      }).then(r => r.json())
+    );
 
-    const data = await response.json();
-    if (!data.success) throw new Error(data.error || 'Server error');
-    if (out) out.textContent = data.text || 'No response received.';
+    const results = await Promise.all(calls);
+    let idx = 0;
+    if (showEN) { if (out) out.textContent = results[idx]?.text || 'No response received.'; idx++; }
+    if (showPT) { if (ptOut) ptOut.textContent = results[idx]?.text || 'Sem resposta.'; }
   } catch(e) {
-    if (out) out.textContent = 'Error generating content: ' + e.message;
+    if (out) out.textContent = 'Error: ' + e.message;
+    if (ptOut) ptOut.textContent = 'Erro: ' + e.message;
   }
 
   if (spin) spin.style.display = 'none';
