@@ -1725,21 +1725,25 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
   if (ptBlock) ptBlock.style.display = showPT ? 'block' : 'none';
   if (copyPtBtn) copyPtBtn.style.display = showPT ? 'inline-block' : 'none';
 
-  if (out) out.textContent = showEN ? 'Generating...' : '';
-  if (ptOut) ptOut.textContent = showPT ? 'A gerar...' : '';
+  // If no PT block exists (element not found), always show EN
+  const effectiveShowEN = showEN || (!ptBlock && !ptOut);
+  const effectiveShowPT = showPT && (ptBlock || ptOut);
+
+  if (out) out.textContent = effectiveShowEN ? 'Generating...' : '';
+  if (ptOut) ptOut.textContent = effectiveShowPT ? 'A gerar...' : '';
 
   const langInstructEN = 'Write in English. Direct, authoritative, commercially grounded.';
   const langInstructPT = 'Write entirely in European Portuguese as spoken in Portugal. Natural, professional, direct. Not Brazilian Portuguese.';
 
   try {
     const calls = [];
-    if (showEN) calls.push(
+    if (effectiveShowEN) calls.push(
       fetch('/api/generate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ system: BF_SYS, prompt: prompt + '\n\n' + langInstructEN, max_tokens: 1000 })
       }).then(r => r.json())
     );
-    if (showPT) calls.push(
+    if (effectiveShowPT) calls.push(
       fetch('/api/generate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ system: BF_SYS, prompt: prompt + '\n\n' + langInstructPT, max_tokens: 1000 })
@@ -1748,8 +1752,15 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
 
     const results = await Promise.all(calls);
     let idx = 0;
-    if (showEN) { if (out) out.textContent = results[idx]?.text || 'No response received.'; idx++; }
-    if (showPT) { if (ptOut) ptOut.textContent = results[idx]?.text || 'Sem resposta.'; }
+    if (effectiveShowEN) {
+      const text = results[idx]?.text || results[idx]?.content || 'No response received.';
+      if (out) out.textContent = text;
+      idx++;
+    }
+    if (effectiveShowPT) {
+      const text = results[idx]?.text || results[idx]?.content || 'Sem resposta.';
+      if (ptOut) ptOut.textContent = text;
+    }
   } catch(e) {
     if (out) out.textContent = 'Error: ' + e.message;
     if (ptOut) ptOut.textContent = 'Erro: ' + e.message;
