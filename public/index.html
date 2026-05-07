@@ -3805,22 +3805,16 @@ async function runKwGaps() {
     ? 'Current keywords Briskfil appears for: ' + gscQueryRows.slice(0,20).map(r => r.keys[0]).join(', ')
     : 'No current keyword data loaded.';
 
-  const prompt = `You are an expert SEO strategist for NXRD working on Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy.
+  const prompt = `[{"keyword":"example","volume":"100-300/mo PT","difficulty":"Low","competitor":"Atlas Copco","category":"Nitrogen generation","action":"Create a page targeting this keyword","priority":"High"}]
 
-${currentKws}
+That is the EXACT format required. Now generate 12 real keyword gaps for Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy. ${currentKws}
 
-Identify 12 to 15 keyword gaps. Return ONLY a valid JSON array. No preamble, no markdown, no explanation outside the array.
-
-Each object must have exactly these keys:
-- keyword: the exact search term (mix Portuguese and English)
-- volume: estimated monthly searches as a short string e.g. "50-200/mo PT" or "200-500/mo"
-- difficulty: one of "Low" "Medium" "High"
-- competitor: which competitor owns this term e.g. "Atlas Copco" "CompAir" or "None — unclaimed"
-- category: one of "Nitrogen generation" "Oxygen generation" "Compressed air quality" "Energy efficiency" "Sector specific" "Portuguese language" "Long-tail opportunity" "Competitor gap"
-- action: one specific sentence on exactly what page or content Briskfil needs to create
-- priority: one of "Urgent" "High" "Medium"
-
-Return only the JSON array.`;
+Rules:
+- Return ONLY the JSON array, nothing else
+- Start your response with [ and end with ]
+- Each object needs: keyword, volume, difficulty (Low/Medium/High), competitor (Atlas Copco/CompAir/Noxerior/None-unclaimed), category (Nitrogen/Oxygen/Compressed air/Energy/Sector/Portuguese/Long-tail/Competitor gap), action (one sentence), priority (Urgent/High/Medium)
+- Mix Portuguese and English keywords
+- No text before or after the array`;
 
   try {
     const res = await fetch('/api/generate', {
@@ -3828,7 +3822,7 @@ Return only the JSON array.`;
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt,
-        systemPrompt: 'You are an expert B2B SEO strategist for the Portuguese and Iberian industrial market. Return only valid JSON arrays. No markdown, no backticks, no explanation.'
+        systemPrompt: 'You output only valid JSON arrays. Your entire response must be a JSON array starting with [ and ending with ]. No introduction, no explanation, no markdown. Just the array.'
       })
     });
     const data = await res.json();
@@ -3847,7 +3841,7 @@ Return only the JSON array.`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: prompt + '\n\nIMPORTANT: Your entire response must be a valid JSON array starting with [ and ending with ]. Nothing else.',
-          systemPrompt: 'Return ONLY a valid JSON array. Start your response with [ and end with ]. No text before or after.'
+          systemPrompt: 'Output ONLY a JSON array. No words. Just JSON. Start with ['
         })
       });
       const data2 = await res2.json();
