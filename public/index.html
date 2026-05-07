@@ -2548,19 +2548,33 @@ initCal();
 
 // -- RECEIVE POSTS FROM LINKEDIN GROWTH TOOL IFRAME --
 window.addEventListener('message', e => {
-  if (!e.data || e.data.type !== 'BRISKFIL_ADD_POST') return;
-  const post = e.data.post;
-  if (!post || !post.id) return;
-  const posts = getPosts();
-  // Avoid duplicates
-  if (!posts.find(p => p.id === post.id)) {
-    posts.push(post);
-    savePosts(posts);
+  // Legacy post sync
+  if (e.data?.type === 'BRISKFIL_ADD_POST') {
+    const post = e.data.post;
+    if (!post || !post.id) return;
+    const posts = getPosts();
+    if (!posts.find(p => p.id === post.id)) { posts.push(post); savePosts(posts); }
+    if (document.getElementById('panel-scheduler').classList.contains('active')) { renderCalendar(); renderPostList(); }
+    return;
   }
-  // If scheduler tab is active, re-render
-  if (document.getElementById('panel-scheduler').classList.contains('active')) {
-    renderCalendar();
-    renderPostList();
+  // Add to scheduler from social tool iframe
+  if (e.data?.type === 'ADD_TO_SCHEDULER') {
+    const p = e.data.payload;
+    const schedBtn = document.querySelector('.nav-tab[onclick*="scheduler"]');
+    switchTab('scheduler', schedBtn);
+    setTimeout(() => {
+      openModal(null);
+      const titleEl = document.getElementById('post-title');
+      const copyEl = document.getElementById('post-copy');
+      const fmtEl = document.getElementById('post-format');
+      if (titleEl) titleEl.value = p.title || '';
+      if (copyEl) copyEl.value = p.content || '';
+      if (fmtEl) {
+        // Map format label to select value
+        const fmtMap = { 'LinkedIn post':'linkedin', 'Instagram post':'instagram', 'Video brief':'video', 'Email campaign':'email' };
+        fmtEl.value = fmtMap[p.format] || 'text';
+      }
+    }, 300);
   }
 });
 
