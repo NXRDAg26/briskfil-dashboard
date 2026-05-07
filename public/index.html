@@ -3664,12 +3664,24 @@ Return only valid JSON. No backticks.`;
     const analysis = JSON.parse(raw.slice(startIdx, endIdx + 1));
     renderBfKwAnalysis(analysis, output);
   } catch(e) {
-    output.innerHTML = `<div style="color:var(--negative);font-size:13px;padding:12px 0;">Could not parse analysis. Please try again.</div>`;
-    output.style.display = 'block';
+    // Fallback to clean text display
+    try {
+      const raw2 = (e.rawText || '');
+      if (raw2) { renderBfAnalysisFallback(raw2, output); }
+      else { output.innerHTML = '<div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:20px 24px;"><div style="font-size:13px;color:var(--gray-200);line-height:1.85;">Analysis could not be structured. Please click Analyse again.</div></div>'; output.style.display = 'block'; }
+    } catch(e2) {
+      output.innerHTML = '<div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:20px 24px;"><div style="font-size:13px;color:var(--gray-200);">Please click Analyse again.</div></div>';
+      output.style.display = 'block';
+    }
   } finally {
     btn.disabled = false; btn.textContent = 'Analyse my keywords';
     loading.style.display = 'none';
   }
+}
+
+function renderBfAnalysisFallback(text, container) {
+  container.innerHTML = `<div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:20px 24px;"><div style="font-size:10px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Keyword analysis</div><div style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;">${text}</div></div>`;
+  container.style.display = 'block';
 }
 
 function renderBfKwAnalysis(data, container) {
@@ -3824,16 +3836,46 @@ Return only the JSON array.`;
     raw = raw.replace(/```json|```/g, '').trim();
     const startIdx = raw.indexOf('[');
     const endIdx = raw.lastIndexOf(']');
-    if (startIdx === -1) throw new Error('No JSON array');
+    if (startIdx === -1) throw new Error('No JSON array — fallback to text');
     const gaps = JSON.parse(raw.slice(startIdx, endIdx + 1));
     renderBfGapCards(gaps, output);
   } catch(e) {
-    output.innerHTML = `<div style="color:var(--negative);font-size:13px;padding:12px 0;">Could not parse gap analysis. Please try again.</div>`;
-    output.style.display = 'block';
+    // Retry once with a simpler prompt
+    try {
+      const res2 = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: prompt + '\n\nIMPORTANT: Your entire response must be a valid JSON array starting with [ and ending with ]. Nothing else.',
+          systemPrompt: 'Return ONLY a valid JSON array. Start your response with [ and end with ]. No text before or after.'
+        })
+      });
+      const data2 = await res2.json();
+      let raw2 = (data2.content || data2.text || '').trim().replace(/```json|```/g, '').trim();
+      const s = raw2.indexOf('['), en = raw2.lastIndexOf(']');
+      if (s !== -1) {
+        const gaps2 = JSON.parse(raw2.slice(s, en + 1));
+        renderBfGapCards(gaps2, output);
+      } else {
+        // Final fallback — render as clean text
+        renderBfGapFallback(raw2 || 'No results returned.', output);
+      }
+    } catch(e2) {
+      renderBfGapFallback('The analysis could not be structured automatically. Please click Find gaps again.', output);
+    }
   } finally {
     btn.disabled = false; btn.textContent = 'Find gaps';
     loading.style.display = 'none';
   }
+}
+
+function renderBfGapFallback(text, container) {
+  container.innerHTML = `
+    <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:20px 24px;">
+      <div style="font-size:10px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Keyword gap analysis</div>
+      <div style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;">${text}</div>
+    </div>`;
+  container.style.display = 'block';
 }
 
 function renderBfGapCards(gaps, container) {
