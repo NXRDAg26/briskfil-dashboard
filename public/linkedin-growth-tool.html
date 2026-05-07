@@ -764,11 +764,11 @@
           </div>
           <div id="comp-post-en-block">
             <div style="display:flex;align-items:center;gap:6px;margin:8px 0 6px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English — edit before scheduling</span></div>
-            <textarea id="comp-post-edit-en" style="width:100%;min-height:180px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:14px 16px;resize:vertical;outline:none;line-height:1.75;box-sizing:border-box;" placeholder="Generating..."></textarea>
+            <textarea id="comp-post-edit-en" oninput="debounceTranslate('en')" style="width:100%;min-height:180px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:14px 16px;resize:vertical;outline:none;line-height:1.75;box-sizing:border-box;" placeholder="Generating..."></textarea>
           </div>
           <div id="comp-post-pt-block" style="margin-top:12px;">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português — edit before scheduling</span></div>
-            <textarea id="comp-post-edit-pt" style="width:100%;min-height:180px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:14px 16px;resize:vertical;outline:none;line-height:1.75;box-sizing:border-box;" placeholder="A gerar..."></textarea>
+            <textarea id="comp-post-edit-pt" oninput="debounceTranslate('pt')" style="width:100%;min-height:180px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:14px 16px;resize:vertical;outline:none;line-height:1.75;box-sizing:border-box;" placeholder="A gerar..."></textarea>
           </div>
         </div>
 
@@ -1715,7 +1715,7 @@ function setGenLang(lang) {
   });
 }
 
-const BF_SYS = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial gas consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Their primary competitor is Atlas Copco. Briskfil's competitive advantage is independence: manufacturer-agnostic, genuinely expert, impartial advice. Target audience: plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers. Write in a direct, expert style. No jargon without explanation. No hype. No emojis. No hyphens. Authoritative but approachable.`;
+const BF_SYS = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial gas consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Briskfil's competitive advantage is independence: manufacturer-agnostic, genuinely expert, impartial advice. Target audience: plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers. Write in a direct, expert style. No jargon without explanation. No hype. No emojis. No hyphens. Authoritative but approachable. CRITICAL RULE: Never mention any competitor brand names in any post — not Atlas Copco, not CompAir, not Noxerior, not Novair, not Ultra Controlo, not Oxywise, not any other manufacturer. Always position Briskfil by what Briskfil does and what it stands for. Refer to competitors generically as "large manufacturers", "multinational suppliers", or "equipment manufacturers" if contrast is needed.`;
 
 async function callClaude(prompt, outputId, spinnerId, wrapId) {
   const out = document.getElementById(outputId);
@@ -1801,6 +1801,55 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
   }
 
   if (spin) spin.style.display = 'none';
+}
+
+// -- LIVE TRANSLATION BETWEEN EN AND PT ──────────────────────
+let bfTranslateTimer = null;
+let bfTranslating = false;
+
+function debounceTranslate(sourceLang) {
+  clearTimeout(bfTranslateTimer);
+  bfTranslateTimer = setTimeout(() => translatePost(sourceLang), 1800);
+}
+
+async function translatePost(sourceLang) {
+  if (bfTranslating) return;
+  const enEl = document.getElementById('comp-post-edit-en');
+  const ptEl = document.getElementById('comp-post-edit-pt');
+  if (!enEl || !ptEl) return;
+
+  const sourceText = sourceLang === 'en' ? enEl.value.trim() : ptEl.value.trim();
+  if (!sourceText || sourceText.length < 30) return;
+
+  bfTranslating = true;
+  const targetEl = sourceLang === 'en' ? ptEl : enEl;
+  const prev = targetEl.value;
+  targetEl.style.borderColor = 'rgba(200,240,38,0.4)';
+  targetEl.value = sourceLang === 'en' ? 'A traduzir...' : 'Translating...';
+
+  const prompt = sourceLang === 'en'
+    ? `Translate this LinkedIn post into European Portuguese as spoken in Portugal. Keep the same tone, structure, and meaning exactly. Keep it natural and professional — not Brazilian Portuguese. Do not add or remove any content. Return only the translated post, nothing else.\n\n${sourceText}`
+    : `Translate this LinkedIn post into English. Keep the same tone, structure, and meaning exactly. Direct, professional, commercially grounded UK English. Do not add or remove any content. Return only the translated post, nothing else.\n\n${sourceText}`;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are a professional translator specialising in B2B industrial content. Translate accurately and naturally. Return only the translated text with no preamble or explanation.',
+        prompt,
+        max_tokens: 1000
+      })
+    });
+    const data = await res.json();
+    targetEl.value = data.text || data.content || prev;
+    targetEl.style.borderColor = '';
+  } catch(e) {
+    targetEl.value = prev;
+    targetEl.style.borderColor = '';
+  } finally {
+    bfTranslating = false;
+  }
 }
 
 // -- EDITABLE OUTPUT HELPERS --
@@ -1936,7 +1985,7 @@ Write the post entirely in English. Direct, expert, plain-English style. No jarg
 
 // Bare API call that returns the text string directly (used by runGenerator parallel calls)
 async function callClaudeRaw(prompt) {
-  const systemPrompt = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Their primary competitor is Atlas Copco — a global industrial giant. Briskfil's competitive advantage is independence: they are manufacturer-agnostic, genuinely expert, and give clients impartial advice rather than selling proprietary products. Their target audience is plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers, especially in food, pharma, automotive, electronics, biogas, water treatment, laser cutting, oil and gas, wine and viticulture, and medical oxygen sectors.`;
+  const systemPrompt = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Briskfil's competitive advantage is independence: they are manufacturer-agnostic, genuinely expert, and give clients impartial advice rather than selling proprietary products. CRITICAL RULE: Never mention any competitor brand names — not Atlas Copco, not CompAir, not Noxerior, not Novair, not any other manufacturer. Refer to competitors generically as 'large manufacturers' or 'equipment manufacturers' only. Their target audience is plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers, especially in food, pharma, automotive, electronics, biogas, water treatment, laser cutting, oil and gas, wine and viticulture, and medical oxygen sectors.`;
   try {
     const response = await fetch('/api/generate', {
       method: 'POST',
