@@ -1597,7 +1597,7 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
             </div>
             <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;line-height:1.6;">Once your keywords load above, click Analyse to get a full competitive breakdown — which keywords Atlas Copco or CompAir currently own, where Briskfil has a genuine chance to outrank them, and exactly what content to create for each opportunity.</p>
             <div id="kw-analysis-loading" style="display:none;" class="loading"><div class="spinner"></div> Analysing keywords against competition...</div>
-            <div class="out-text" id="kw-analysis-output" style="display:none;font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;margin-top:8px;"></div>
+            <div id="kw-analysis-output" style="display:none;"></div>
           </div>
 
           <!-- KEYWORD GAPS — what to target next -->
@@ -1610,9 +1610,7 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
               <button class="add-btn" onclick="runKwGaps()" id="kw-gaps-btn" style="font-size:12px;padding:8px 16px;">Find gaps</button>
             </div>
             <div id="kw-gaps-loading" style="display:none;" class="loading"><div class="spinner"></div> Identifying gaps...</div>
-            <div id="kw-gaps-output" style="display:none;">
-              <div class="out-text" id="kw-gaps-text" style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;margin-top:8px;"></div>
-            </div>
+            <div id="kw-gaps-output" style="display:none;"></div>
           </div>
 
         </div>
@@ -3592,44 +3590,81 @@ async function runKwAnalysis() {
   btn.disabled = true; btn.textContent = 'Analysing...';
   loading.style.display = 'flex'; output.style.display = 'none';
 
-  // Build keyword list from real GSC data
   const kwList = gscQueryRows.slice(0, 30).map(r =>
-    `${r.keys[0]} (${fmtN(r.impressions)} impressions, position ${fmtPos(r.position)}, ${fmtPct(r.ctr)} CTR)`
+    `${r.keys[0]} | ${fmtN(r.impressions)} impressions | position ${fmtPos(r.position)} | ${fmtPct(r.ctr)} CTR`
   ).join('\n');
 
-  const prompt = `You are an expert SEO strategist working for NXRD on Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy based in Esposende. Their primary competitors are Atlas Copco, CompAir, Noxerior, Groupe Novair, Ultra Controlo, and Oxywise.
+  const prompt = `You are an expert SEO strategist for NXRD working on Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy. Primary competitors: Atlas Copco, CompAir, Noxerior, Groupe Novair, Ultra Controlo, Oxywise.
 
-Here are the actual keywords people search to find briskfil.com (from Google Search Console, last 90 days):
-
+Real keywords from Google Search Console (last 90 days):
 ${kwList}
 
-Analyse these real keywords and provide:
+Return ONLY a valid JSON object with exactly these keys. No preamble, no markdown, no explanation outside the JSON.
 
-1. WHAT THESE KEYWORDS TELL US
-What do these searches reveal about who is finding Briskfil and why? What intent do they show? Are these buyers in decision mode, research mode, or problem-aware mode?
+{
+  "intent_summary": "2-3 sentences on what these searches reveal about buyer intent and stage",
+  "quick_wins": [
+    {
+      "keyword": "exact keyword",
+      "position": "current position e.g. 14.2",
+      "impressions": "e.g. 120/mo",
+      "ctr": "e.g. 1.2%",
+      "action": "one specific sentence on exactly what to do to reach page 1",
+      "timeline": "e.g. 30 days"
+    }
+  ],
+  "competitive_terms": [
+    {
+      "keyword": "exact keyword",
+      "competitor": "Atlas Copco or CompAir etc",
+      "briskfil_position": "current position or Not ranking",
+      "difficulty": "Low or Medium or High",
+      "strategy": "one specific sentence on how to outrank"
+    }
+  ],
+  "portuguese_opportunities": [
+    {
+      "portuguese_term": "the Portuguese keyword",
+      "english_equivalent": "English version",
+      "volume": "estimated monthly PT searches",
+      "action": "one sentence on what content to create"
+    }
+  ],
+  "high_volume_gaps": [
+    {
+      "keyword": "missing keyword",
+      "owned_by": "Atlas Copco or CompAir etc",
+      "volume": "estimated monthly searches",
+      "action": "one sentence on what page to create"
+    }
+  ]
+}
 
-2. COMPETITIVE POSITIONING ON EACH KEY TERM
-For the top 10 keywords by impressions — identify which competitors (Atlas Copco, CompAir, Noxerior, Novair, Ultra Controlo, Oxywise) are currently dominating each term. Explain what Briskfil would need to do to outrank them on each one.
+quick_wins: only keywords from the GSC data above with position between 8 and 25.
+competitive_terms: top 6 keywords by impressions from the GSC data.
+portuguese_opportunities: 4-5 Portuguese language keyword opportunities.
+high_volume_gaps: 5-6 important missing keywords.
 
-3. QUICK WINS — keywords where Briskfil can move from page 2 to page 1 within 60 to 90 days. Identify specifically which keywords currently sitting in positions 11-20 are the best opportunities and exactly what content improvement is needed.
-
-4. HIGH-VOLUME GAPS — important keywords in the industrial gas space that are NOT in this list but should be. These are terms where Atlas Copco or CompAir are getting searches that Briskfil is invisible for.
-
-5. PORTUGUESE-LANGUAGE OPPORTUNITY — identify which keywords are in Portuguese or have a Portuguese equivalent that Briskfil should be targeting but is not appearing for.
-
-Be specific to Briskfil's actual services and situation. No generic advice. Use the real data above as the foundation.`;
+Return only valid JSON. No backticks.`;
 
   try {
     const res = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, systemPrompt: 'You are an expert SEO strategist for B2B industrial companies in Portugal and Europe. Be direct, specific, and commercially focused. Every recommendation must be actionable within 30 to 90 days.' })
+      body: JSON.stringify({
+        prompt,
+        systemPrompt: 'You are an expert SEO strategist for B2B industrial companies in Portugal. Return only valid JSON objects. No markdown, no backticks, no explanation.'
+      })
     });
     const data = await res.json();
-    output.textContent = data.content || data.text || '';
-    output.style.display = 'block';
+    let raw = (data.content || data.text || '').trim().replace(/```json|```/g, '').trim();
+    const startIdx = raw.indexOf('{');
+    const endIdx = raw.lastIndexOf('}');
+    if (startIdx === -1) throw new Error('No JSON found');
+    const analysis = JSON.parse(raw.slice(startIdx, endIdx + 1));
+    renderBfKwAnalysis(analysis, output);
   } catch(e) {
-    output.textContent = 'Error generating analysis. Please try again.';
+    output.innerHTML = `<div style="color:var(--negative);font-size:13px;padding:12px 0;">Could not parse analysis. Please try again.</div>`;
     output.style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'Analyse my keywords';
@@ -3637,11 +3672,120 @@ Be specific to Briskfil's actual services and situation. No generic advice. Use 
   }
 }
 
+function renderBfKwAnalysis(data, container) {
+  let html = '';
+
+  // ── INTENT SUMMARY ─────────────────────────────────────────
+  if (data.intent_summary) {
+    html += `<div style="background:rgba(200,240,38,0.06);border:1px solid rgba(200,240,38,0.2);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;">
+      <div style="font-size:10px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">What your keywords tell us</div>
+      <div style="font-size:13px;color:var(--gray-200);line-height:1.7;">${data.intent_summary}</div>
+    </div>`;
+  }
+
+  // ── QUICK WINS ──────────────────────────────────────────────
+  if (data.quick_wins?.length) {
+    html += `<div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:var(--lime);color:#000;font-size:10px;padding:2px 8px;border-radius:8px;">Quick wins</span>
+        <span style="color:var(--gray-400);font-weight:400;font-size:11px;">Page 1 within 30 to 90 days</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">`;
+    data.quick_wins.forEach(q => {
+      html += `<div style="background:var(--gray-800);border:1px solid rgba(200,240,38,0.2);border-radius:var(--radius);padding:14px 16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:8px;">${q.keyword}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <span style="font-size:11px;background:var(--gray-700);color:var(--gray-300);padding:2px 8px;border-radius:6px;">Pos. ${q.position}</span>
+          <span style="font-size:11px;background:var(--gray-700);color:var(--gray-300);padding:2px 8px;border-radius:6px;">${q.impressions} impr</span>
+          <span style="font-size:11px;background:var(--gray-700);color:var(--gray-300);padding:2px 8px;border-radius:6px;">${q.ctr} CTR</span>
+          <span style="font-size:11px;background:rgba(200,240,38,0.1);color:var(--lime);padding:2px 8px;border-radius:6px;">~${q.timeline}</span>
+        </div>
+        <div style="font-size:12px;color:var(--gray-200);line-height:1.5;border-top:1px solid var(--gray-700);padding-top:8px;">→ ${q.action}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // ── COMPETITIVE TERMS ───────────────────────────────────────
+  if (data.competitive_terms?.length) {
+    const diffCol = { 'Low':'#4ade80', 'Medium':'#f59e0b', 'High':'#f87171' };
+    const diffBg  = { 'Low':'rgba(74,222,128,0.1)', 'Medium':'rgba(245,158,11,0.1)', 'High':'rgba(248,113,113,0.1)' };
+    html += `<div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:var(--red-dim);color:var(--negative);font-size:10px;padding:2px 8px;border-radius:8px;border:1px solid rgba(248,113,113,0.3);">Competitive terms</span>
+        <span style="color:var(--gray-400);font-weight:400;font-size:11px;">Top keywords vs Atlas Copco and CompAir</span>
+      </div>
+      <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="border-bottom:1px solid var(--gray-700);background:var(--gray-700);">
+            <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:10px 16px;text-align:left;">Keyword</th>
+            <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:10px 12px;text-align:left;">Competitor</th>
+            <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:10px 12px;text-align:left;">Your pos.</th>
+            <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:10px 12px;text-align:left;">Difficulty</th>
+            <th style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;padding:10px 16px;text-align:left;">Strategy</th>
+          </tr></thead>
+          <tbody>`;
+    data.competitive_terms.forEach(t => {
+      const dc = diffCol[t.difficulty] || '#a0a0a0';
+      const dbg = diffBg[t.difficulty] || 'rgba(160,160,160,0.1)';
+      html += `<tr style="border-bottom:1px solid var(--gray-700);">
+        <td style="font-size:12px;font-weight:600;color:var(--white);padding:11px 16px;">${t.keyword}</td>
+        <td style="padding:11px 12px;"><span style="font-size:11px;color:#f87171;font-weight:600;">${t.competitor}</span></td>
+        <td style="font-size:12px;color:var(--gray-300);padding:11px 12px;">${t.briskfil_position}</td>
+        <td style="padding:11px 12px;"><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:${dbg};color:${dc};">${t.difficulty}</span></td>
+        <td style="font-size:12px;color:var(--gray-200);padding:11px 16px;line-height:1.5;">${t.strategy}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  }
+
+  // ── PORTUGUESE OPPORTUNITIES ────────────────────────────────
+  if (data.portuguese_opportunities?.length) {
+    html += `<div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:rgba(96,165,250,0.1);color:#60a5fa;font-size:10px;padding:2px 8px;border-radius:8px;border:1px solid rgba(96,165,250,0.2);">🇵🇹 Portuguese opportunities</span>
+        <span style="color:var(--gray-400);font-weight:400;font-size:11px;">Keywords competitors don't own in PT</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">`;
+    data.portuguese_opportunities.forEach(p => {
+      html += `<div style="background:var(--gray-800);border:1px solid rgba(96,165,250,0.2);border-radius:var(--radius);padding:14px 16px;">
+        <div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:4px;">${p.portuguese_term}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;">${p.english_equivalent} · ${p.volume}</div>
+        <div style="font-size:12px;color:var(--gray-200);line-height:1.5;border-top:1px solid var(--gray-700);padding-top:8px;">→ ${p.action}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // ── HIGH VOLUME GAPS ────────────────────────────────────────
+  if (data.high_volume_gaps?.length) {
+    html += `<div style="margin-bottom:8px;">
+      <div style="font-size:11px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:rgba(245,158,11,0.1);color:#f59e0b;font-size:10px;padding:2px 8px;border-radius:8px;border:1px solid rgba(245,158,11,0.2);">High-volume gaps</span>
+        <span style="color:var(--gray-400);font-weight:400;font-size:11px;">Traffic competitors get that Briskfil is missing</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">`;
+    data.high_volume_gaps.forEach(g => {
+      html += `<div style="background:var(--gray-800);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius);padding:14px 16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px;">${g.keyword}</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <span style="font-size:11px;background:var(--red-dim);color:var(--negative);padding:2px 8px;border-radius:6px;">${g.owned_by}</span>
+          <span style="font-size:11px;background:var(--gray-700);color:var(--gray-300);padding:2px 8px;border-radius:6px;">${g.volume}</span>
+        </div>
+        <div style="font-size:12px;color:var(--gray-200);line-height:1.5;border-top:1px solid var(--gray-700);padding-top:8px;">→ ${g.action}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  container.innerHTML = html;
+  container.style.display = 'block';
+}
+
 async function runKwGaps() {
   const btn = document.getElementById('kw-gaps-btn');
   const loading = document.getElementById('kw-gaps-loading');
   const output = document.getElementById('kw-gaps-output');
-  const text = document.getElementById('kw-gaps-text');
   btn.disabled = true; btn.textContent = 'Finding gaps...';
   loading.style.display = 'flex'; output.style.display = 'none';
 
@@ -3653,34 +3797,129 @@ async function runKwGaps() {
 
 ${currentKws}
 
-Identify the most important keyword gaps — high-value search terms in the industrial gas market that Briskfil should be ranking for but is NOT appearing for (based on the list above). Focus on:
+Identify 12 to 15 keyword gaps. Return ONLY a valid JSON array. No preamble, no markdown, no explanation outside the array.
 
-1. HIGH-VOLUME COMPETITOR TERMS — specific keywords Atlas Copco, CompAir, Noxerior, or Groupe Novair rank prominently for in Portuguese and Iberian search results that Briskfil is completely absent from
+Each object must have exactly these keys:
+- keyword: the exact search term (mix Portuguese and English)
+- volume: estimated monthly searches as a short string e.g. "50-200/mo PT" or "200-500/mo"
+- difficulty: one of "Low" "Medium" "High"
+- competitor: which competitor owns this term e.g. "Atlas Copco" "CompAir" or "None — unclaimed"
+- category: one of "Nitrogen generation" "Oxygen generation" "Compressed air quality" "Energy efficiency" "Sector specific" "Portuguese language" "Long-tail opportunity" "Competitor gap"
+- action: one specific sentence on exactly what page or content Briskfil needs to create
+- priority: one of "Urgent" "High" "Medium"
 
-2. PORTUGUESE-LANGUAGE GAPS — important terms in Portuguese (geração de azoto, qualidade ar comprimido, gerador de oxigénio, auditoria energética, etc) that have real search volume and where Briskfil has no content
-
-3. SECTOR-SPECIFIC GAPS — keyword clusters around food and beverage nitrogen, wine nitrogen blanketing, laser cutting nitrogen, water treatment oxygen, pharmaceutical grade nitrogen, energy efficiency ISO 11011 — that Briskfil's competitors rank for
-
-4. INTENT-RICH LONG-TAIL GAPS — specific question-based searches ("how much does nitrogen generation cost", "PSA vs membrane nitrogen", "on-site gas generation vs cylinders") that convert buyers and where independent consultancy content would outperform manufacturer content
-
-For each gap: the keyword, estimated monthly searches in Portugal/Iberia, which competitor owns it, and the specific page or content piece Briskfil needs to create to capture it.`;
+Return only the JSON array.`;
 
   try {
     const res = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, systemPrompt: 'You are an expert B2B SEO strategist specialising in the Portuguese and Iberian industrial market. Be specific, commercially focused, and actionable.' })
+      body: JSON.stringify({
+        prompt,
+        systemPrompt: 'You are an expert B2B SEO strategist for the Portuguese and Iberian industrial market. Return only valid JSON arrays. No markdown, no backticks, no explanation.'
+      })
     });
     const data = await res.json();
-    text.textContent = data.content || data.text || '';
-    output.style.display = 'block';
+    let raw = (data.content || data.text || '').trim();
+    raw = raw.replace(/```json|```/g, '').trim();
+    const startIdx = raw.indexOf('[');
+    const endIdx = raw.lastIndexOf(']');
+    if (startIdx === -1) throw new Error('No JSON array');
+    const gaps = JSON.parse(raw.slice(startIdx, endIdx + 1));
+    renderBfGapCards(gaps, output);
   } catch(e) {
-    text.textContent = 'Error. Please try again.';
+    output.innerHTML = `<div style="color:var(--negative);font-size:13px;padding:12px 0;">Could not parse gap analysis. Please try again.</div>`;
     output.style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'Find gaps';
     loading.style.display = 'none';
   }
+}
+
+function renderBfGapCards(gaps, container) {
+  const priorityConfig = {
+    'Urgent': { col:'var(--negative)', bg:'var(--red-dim)' },
+    'High':   { col:'var(--lime)',     bg:'rgba(200,240,38,0.08)' },
+    'Medium': { col:'#f59e0b',         bg:'rgba(245,158,11,0.1)' }
+  };
+  const catIcons = {
+    'Nitrogen generation':'⬡', 'Oxygen generation':'◎',
+    'Compressed air quality':'◈', 'Energy efficiency':'⚡',
+    'Sector specific':'⚙', 'Portuguese language':'🇵🇹',
+    'Long-tail opportunity':'🎯', 'Competitor gap':'▲'
+  };
+  const diffCol = { 'Low':'#4ade80', 'Medium':'#f59e0b', 'High':'#f87171' };
+  const diffBg  = { 'Low':'rgba(74,222,128,0.1)', 'Medium':'rgba(245,158,11,0.1)', 'High':'rgba(248,113,113,0.1)' };
+
+  const urgent   = gaps.filter(g => g.priority === 'Urgent').length;
+  const high     = gaps.filter(g => g.priority === 'High').length;
+  const medium   = gaps.filter(g => g.priority === 'Medium').length;
+  const unclaimed = gaps.filter(g => (g.competitor||'').toLowerCase().includes('none') || (g.competitor||'').toLowerCase().includes('unclaim')).length;
+
+  const order = { 'Urgent':0, 'High':1, 'Medium':2 };
+  gaps.sort((a,b) => (order[a.priority]||2) - (order[b.priority]||2));
+
+  let html = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+      <div class="metric-card" style="text-align:center;">
+        <div class="metric-val" style="color:var(--negative);font-size:28px;">${urgent}</div>
+        <div class="metric-label">Urgent gaps</div>
+      </div>
+      <div class="metric-card" style="text-align:center;">
+        <div class="metric-val" style="color:var(--lime);font-size:28px;">${high}</div>
+        <div class="metric-label">High priority</div>
+      </div>
+      <div class="metric-card" style="text-align:center;">
+        <div class="metric-val" style="color:#f59e0b;font-size:28px;">${medium}</div>
+        <div class="metric-label">Medium priority</div>
+      </div>
+      <div class="metric-card" style="text-align:center;">
+        <div class="metric-val" style="color:#4ade80;font-size:28px;">${unclaimed}</div>
+        <div class="metric-label">Unclaimed terms</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">`;
+
+  gaps.forEach(g => {
+    const pc  = priorityConfig[g.priority] || priorityConfig['Medium'];
+    const dc  = diffCol[g.difficulty] || '#a0a0a0';
+    const dbg = diffBg[g.difficulty] || 'rgba(160,160,160,0.1)';
+    const icon = catIcons[g.category] || '◎';
+    const isUnclaimed = (g.competitor||'').toLowerCase().includes('none') || (g.competitor||'').toLowerCase().includes('unclaim');
+    const borderCol = pc.col === 'var(--negative)' ? 'rgba(248,113,113,0.25)' : pc.col === 'var(--lime)' ? 'rgba(200,240,38,0.2)' : 'rgba(245,158,11,0.2)';
+    html += `
+      <div style="background:var(--gray-800);border:1px solid ${borderCol};border-radius:var(--radius);padding:16px 18px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;">
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:4px;">${g.keyword}</div>
+            <div style="font-size:11px;color:var(--gray-400);">${icon} ${g.category}</div>
+          </div>
+          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;background:${pc.bg};color:${pc.col};white-space:nowrap;flex-shrink:0;">${g.priority}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div style="background:var(--gray-700);border-radius:var(--radius-sm);padding:8px 10px;text-align:center;">
+            <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Volume</div>
+            <div style="font-size:12px;font-weight:700;color:var(--white);">${g.volume}</div>
+          </div>
+          <div style="background:var(--gray-700);border-radius:var(--radius-sm);padding:8px 10px;text-align:center;">
+            <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Difficulty</div>
+            <div style="font-size:12px;font-weight:700;background:${dbg};color:${dc};padding:1px 6px;border-radius:6px;display:inline-block;">${g.difficulty}</div>
+          </div>
+          <div style="background:${isUnclaimed ? 'rgba(74,222,128,0.08)' : 'var(--gray-700)'};border-radius:var(--radius-sm);padding:8px 10px;text-align:center;${isUnclaimed ? 'border:1px solid rgba(74,222,128,0.2);' : ''}">
+            <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Owned by</div>
+            <div style="font-size:11px;font-weight:700;color:${isUnclaimed ? '#4ade80' : '#f87171'};">${isUnclaimed ? 'Unclaimed ✓' : g.competitor}</div>
+          </div>
+        </div>
+        <div style="background:rgba(200,240,38,0.06);border:1px solid rgba(200,240,38,0.15);border-radius:var(--radius-sm);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">What to do</div>
+          <div style="font-size:12px;color:var(--gray-200);line-height:1.5;">${g.action}</div>
+        </div>
+      </div>`;
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+  container.style.display = 'block';
 }
 
 // Load keyword data when user switches to competition tab and then to keywords sub-tab
