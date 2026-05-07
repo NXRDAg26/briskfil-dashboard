@@ -468,7 +468,7 @@
             <span class="output-label">Generated post</span>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="copy-btn" onclick="copyOutput('event-post-text')">Copy EN</button>
-              <button class="copy-btn" id="event-copy-pt" onclick="copyOutput('event-post-text-pt')" style="display:none;">Copy PT</button>
+              <button class="copy-btn" id="event-copy-pt" onclick="copyOutput('event-post-text-pt')">Copy PT</button>
               <button onclick="sendBfToScheduler('event-post-text','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
             </div>
           </div>
@@ -476,7 +476,7 @@
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;margin-top:8px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
             <div class="generated-output" id="event-post-text">Generating...</div>
           </div>
-          <div id="event-pt-block" style="display:none;margin-top:12px;">
+          <div id="event-pt-block" style="margin-top:12px;">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
             <div class="generated-output" id="event-post-text-pt"></div>
           </div>
@@ -557,7 +557,7 @@
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="copy-btn" id="gen-copy-en" onclick="copyOutput('gen-text')">Copy EN</button>
-              <button class="copy-btn" id="gen-copy-pt" onclick="copyOutput('gen-text-pt')" style="display:none;">Copy PT</button>
+              <button class="copy-btn" id="gen-copy-pt" onclick="copyOutput('gen-text-pt')">Copy PT</button>
               <button onclick="sendBfToScheduler('gen-text','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
             </div>
           </div>
@@ -565,7 +565,7 @@
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
             <div class="generated-output" id="gen-text"></div>
           </div>
-          <div id="gen-pt-block" style="display:none;margin-top:12px;">
+          <div id="gen-pt-block" style="margin-top:12px;">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
             <div class="generated-output" id="gen-text-pt"></div>
           </div>
@@ -619,7 +619,7 @@
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="copy-btn" onclick="copyOutput('content-text')">Copy EN</button>
-              <button class="copy-btn" id="content-copy-pt" onclick="copyOutput('content-text-pt')" style="display:none;">Copy PT</button>
+              <button class="copy-btn" id="content-copy-pt" onclick="copyOutput('content-text-pt')">Copy PT</button>
               <button onclick="sendBfToScheduler('content-text','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
             </div>
           </div>
@@ -627,7 +627,7 @@
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;margin-top:8px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
             <div class="generated-output" id="content-text"></div>
           </div>
-          <div id="content-pt-block" style="display:none;margin-top:12px;">
+          <div id="content-pt-block" style="margin-top:12px;">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
             <div class="generated-output" id="content-text-pt"></div>
           </div>
@@ -757,7 +757,7 @@
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="copy-btn" onclick="copyOutput('comp-post-text-en')">Copy EN</button>
-              <button class="copy-btn" id="comp-post-copy-pt" onclick="copyOutput('comp-post-text-pt')" style="display:none;">Copy PT</button>
+              <button class="copy-btn" id="comp-post-copy-pt" onclick="copyOutput('comp-post-text-pt')">Copy PT</button>
               <button onclick="sendBfToScheduler('comp-post-text-en','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
             </div>
           </div>
@@ -765,7 +765,7 @@
             <div style="display:flex;align-items:center;gap:6px;margin:8px 0 6px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
             <div class="generated-output" id="comp-post-text-en"></div>
           </div>
-          <div id="comp-post-pt-block" style="display:none;margin-top:12px;">
+          <div id="comp-post-pt-block" style="margin-top:12px;">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
             <div class="generated-output" id="comp-post-text-pt"></div>
           </div>
@@ -1745,33 +1745,31 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
              .replace('comp-post-text-en','comp-post-copy-pt')
   );
 
-  // Show/hide blocks based on language
+  // Always generate both languages — show/hide based on toggle
   const showPT = bfGenLang === 'pt' || bfGenLang === 'both';
   const showEN = bfGenLang === 'en' || bfGenLang === 'both';
 
-  if (enBlock) enBlock.style.display = showEN ? 'block' : 'none';
+  // Always show both blocks — EN always visible, PT visible based on toggle
+  if (enBlock) enBlock.style.display = 'block';
   if (ptBlock) ptBlock.style.display = showPT ? 'block' : 'none';
-  if (copyPtBtn) copyPtBtn.style.display = showPT ? 'inline-block' : 'none';
+  if (copyPtBtn) copyPtBtn.style.display = 'inline-block';
 
-  // If no PT block exists (element not found), always show EN
-  const effectiveShowEN = showEN || (!ptBlock && !ptOut);
-  const effectiveShowPT = showPT && (ptBlock || ptOut);
-
-  if (out) out.textContent = effectiveShowEN ? 'Generating...' : '';
-  if (ptOut) ptOut.textContent = effectiveShowPT ? 'A gerar...' : '';
+  if (out) out.textContent = 'Generating...';
+  if (ptOut) ptOut.textContent = 'A gerar...';
 
   const langInstructEN = 'Write in English. Direct, authoritative, commercially grounded.';
   const langInstructPT = 'Write entirely in European Portuguese as spoken in Portugal. Natural, professional, direct. Not Brazilian Portuguese.';
 
   try {
-    const calls = [];
-    if (effectiveShowEN) calls.push(
+    // Always fire both calls simultaneously
+    const hasPTElement = !!(ptBlock || ptOut);
+    const calls = [
       fetch('/api/generate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ system: BF_SYS, prompt: prompt + '\n\n' + langInstructEN, max_tokens: 1000 })
       }).then(r => r.json())
-    );
-    if (effectiveShowPT) calls.push(
+    ];
+    if (hasPTElement) calls.push(
       fetch('/api/generate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ system: BF_SYS, prompt: prompt + '\n\n' + langInstructPT, max_tokens: 1000 })
@@ -1779,15 +1777,13 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
     );
 
     const results = await Promise.all(calls);
-    let idx = 0;
-    if (effectiveShowEN) {
-      const text = results[idx]?.text || results[idx]?.content || 'No response received.';
-      if (out) out.textContent = text;
-      idx++;
-    }
-    if (effectiveShowPT) {
-      const text = results[idx]?.text || results[idx]?.content || 'Sem resposta.';
-      if (ptOut) ptOut.textContent = text;
+    const enText = results[0]?.text || results[0]?.content || 'No response received.';
+    if (out) out.textContent = enText;
+    if (hasPTElement && results[1]) {
+      const ptText = results[1]?.text || results[1]?.content || 'Sem resposta.';
+      if (ptOut) ptOut.textContent = ptText;
+      // Show PT block — always visible once generated
+      if (ptBlock) ptBlock.style.display = 'block';
     }
   } catch(e) {
     if (out) out.textContent = 'Error: ' + e.message;
