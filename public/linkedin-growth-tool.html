@@ -669,7 +669,7 @@
             <span class="pill pill-blue" style="font-size:10px;">PSA systems</span>
             <span class="pill pill-green" style="font-size:10px;">Portugal</span>
           </div>
-          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerGen('Write a LinkedIn post for Briskfil that positions it as the industrial gas expert in Portugal, directly contrasting with companies that focus only on medical applications. Highlight that Briskfil serves food, water treatment, oil and gas, laser cutting, and industrial sectors with the same depth of expertise. Direct, no emojis, under 250 words.')">Generate competitive post ↗</button>
+          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerCompPost('Write a LinkedIn post for Briskfil that positions it as the industrial gas expert in Portugal, directly contrasting with companies that focus only on medical applications. Highlight that Briskfil serves food, water treatment, oil and gas, laser cutting, and industrial sectors with the same depth of expertise. Direct, no emojis, under 250 words.')">Generate competitive post ↗</button>
         </div>
 
         <!-- COMPETITOR ANALYSIS: NOXERIOR -->
@@ -688,7 +688,7 @@
             <span class="pill pill-amber" style="font-size:10px;">Membrane technology</span>
             <span class="pill pill-coral" style="font-size:10px;">Manufacturer</span>
           </div>
-          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerGen('Write a LinkedIn post for Briskfil on why choosing a manufacturer-agnostic gas systems consultant produces better outcomes than buying direct from a single manufacturer. Explain what you gain from independence: impartial technology selection, PSA vs membrane comparison, no vendor bias. Under 260 words, authoritative tone.')">Generate competitive post ↗</button>
+          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerCompPost('Write a LinkedIn post for Briskfil on why choosing a manufacturer-agnostic gas systems consultant produces better outcomes than buying direct from a single manufacturer. Explain what you gain from independence: impartial technology selection, PSA vs membrane comparison, no vendor bias. Under 260 words, authoritative tone.')">Generate competitive post ↗</button>
         </div>
 
         <!-- COMPETITOR ANALYSIS: NOVAIR GROUPE -->
@@ -707,7 +707,7 @@
             <span class="pill pill-amber" style="font-size:10px;">Medical gas</span>
             <span class="pill pill-green" style="font-size:10px;">Global manufacturer</span>
           </div>
-          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerGen('Write a LinkedIn post for Briskfil specifically targeting Portuguese and Iberian manufacturers, positioning Briskfil as the local expert who understands the Portuguese industrial market, speaks the language literally and commercially, and can advise independently on gas systems from any manufacturer including Novair, Atlas Copco, and others. Under 260 words.')">Generate competitive post ↗</button>
+          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerCompPost('Write a LinkedIn post for Briskfil specifically targeting Portuguese and Iberian manufacturers, positioning Briskfil as the local expert who understands the Portuguese industrial market, speaks the language literally and commercially, and can advise independently on gas systems from any manufacturer including Novair, Atlas Copco, and others. Under 260 words.')">Generate competitive post ↗</button>
         </div>
 
         <!-- COMPETITOR ANALYSIS: COMPAIR -->
@@ -726,7 +726,7 @@
             <span class="pill pill-amber" style="font-size:10px;">Oil-free systems</span>
             <span class="pill pill-coral" style="font-size:10px;">IoT monitoring</span>
           </div>
-          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerGen('Write a LinkedIn post for Briskfil about the risk of specifying compressed air and gas systems based on a manufacturer sales process rather than an independent audit. Make the point that the largest manufacturers have a commercial interest in oversizing or misspecifying systems. Position Briskfil as the independent voice that audits any existing system regardless of brand. Under 260 words.')">Generate competitive post ↗</button>
+          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerCompPost('Write a LinkedIn post for Briskfil about the risk of specifying compressed air and gas systems based on a manufacturer sales process rather than an independent audit. Make the point that the largest manufacturers have a commercial interest in oversizing or misspecifying systems. Position Briskfil as the independent voice that audits any existing system regardless of brand. Under 260 words.')">Generate competitive post ↗</button>
         </div>
 
         <!-- COMPETITOR ANALYSIS: OXYWISE -->
@@ -745,7 +745,30 @@
             <span class="pill pill-green" style="font-size:10px;">Aquaculture</span>
             <span class="pill pill-amber" style="font-size:10px;">Medical gas</span>
           </div>
-          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerGen('Write a LinkedIn post for Briskfil on the difference between buying an on-site gas generator as a product versus engaging a full-service industrial gas consultancy. Cover: system design, technology selection, installation management, commissioning, ongoing audit and monitoring. Position Briskfil as the complete partner versus product-only suppliers. Under 270 words.')">Generate competitive post ↗</button>
+          <button class="action-btn" style="font-size:11px;margin-top:10px;" onclick="triggerCompPost('Write a LinkedIn post for Briskfil on the difference between buying an on-site gas generator as a product versus engaging a full-service industrial gas consultancy. Cover: system design, technology selection, installation management, commissioning, ongoing audit and monitoring. Position Briskfil as the complete partner versus product-only suppliers. Under 270 words.')">Generate competitive post ↗</button>
+        </div>
+
+        <!-- COMPETITIVE POST OUTPUT -->
+        <div id="comp-post-output" style="display:none;margin-bottom:20px;">
+          <div class="output-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="output-label">Generated competitive post</span>
+              <span id="comp-post-spinner" style="display:none;"><span class="spinner"></span></span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="copy-btn" onclick="copyOutput('comp-post-text-en')">Copy EN</button>
+              <button class="copy-btn" id="comp-post-copy-pt" onclick="copyOutput('comp-post-text-pt')" style="display:none;">Copy PT</button>
+              <button onclick="sendBfToScheduler('comp-post-text-en','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
+            </div>
+          </div>
+          <div id="comp-post-en-block">
+            <div style="display:flex;align-items:center;gap:6px;margin:8px 0 6px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
+            <div class="generated-output" id="comp-post-text-en"></div>
+          </div>
+          <div id="comp-post-pt-block" style="display:none;margin-top:12px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
+            <div class="generated-output" id="comp-post-text-pt"></div>
+          </div>
         </div>
 
         <!-- SUGGESTED POST OF THE WEEK -->
@@ -1704,17 +1727,22 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
     outputId.replace('gen-text','gen-pt-block')
              .replace('event-post-text','event-pt-block')
              .replace('content-text','content-pt-block')
+             .replace('comp-post-text-en','comp-post-pt-block')
   );
   const enBlock = document.getElementById(
     outputId.replace('gen-text','gen-en-block')
              .replace('event-post-text','event-en-block')
              .replace('content-text','content-en-block')
+             .replace('comp-post-text-en','comp-post-en-block')
   );
-  const ptOut = document.getElementById(ptId);
+  const ptOut = document.getElementById(
+    outputId === 'comp-post-text-en' ? 'comp-post-text-pt' : ptId
+  );
   const copyPtBtn = document.getElementById(
     outputId.replace('gen-text','gen-copy-pt')
              .replace('event-post-text','event-copy-pt')
              .replace('content-text','content-copy-pt')
+             .replace('comp-post-text-en','comp-post-copy-pt')
   );
 
   // Show/hide blocks based on language
@@ -1773,6 +1801,11 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
 function triggerGen(prompt) {
   callClaude(prompt, 'gen-text', 'gen-spinner', 'gen-output');
   document.getElementById('gen-output').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function triggerCompPost(prompt) {
+  callClaude(prompt, 'comp-post-text-en', 'comp-post-spinner', 'comp-post-output');
+  document.getElementById('comp-post-output').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 function genEventPost(prompt) {
