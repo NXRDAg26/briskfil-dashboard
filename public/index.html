@@ -81,7 +81,7 @@ body { font-family: 'Poppins', sans-serif; background: var(--gray-900); color: v
 .post-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
 .icon-btn { background: none; border: 1px solid var(--gray-600); border-radius: 5px; color: var(--gray-400); font-size: 11px; padding: 3px 8px; cursor: pointer; font-family: 'Poppins',sans-serif; transition: all .15s; }
 .icon-btn:hover { border-color: var(--lime); color: var(--lime); }
-.icon-btn.del:hover { border-color: var(--negative); color: var(--negative); }
+.icon-btn.del { border-color: rgba(248,113,113,0.3); color: #f87171; } .icon-btn.del:hover { border-color: var(--negative); color: #fff; background: var(--negative); }
 .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .cal-nav-btn { background: var(--gray-700); border: 1px solid var(--gray-600); color: var(--gray-200); font-family: 'Poppins',sans-serif; font-size: 12px; padding: 5px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: all .15s; }
 .cal-nav-btn:hover { background: var(--lime); color: var(--black); border-color: var(--lime); }
@@ -2446,7 +2446,7 @@ function renderPostList(status) {
       </div>
       <div class="post-card-actions">
         <button class="icon-btn" onclick="openModal('${p.id}')">Edit</button>
-        <button class="icon-btn del" onclick="deletePost('${p.id}')">Delete</button>
+        <button class="icon-btn del" onclick="deletePost('${p.id}')" title="Delete post" style="padding:3px 9px;font-size:13px;">🗑</button>
       </div>
     </div>`;
   }).join('');
