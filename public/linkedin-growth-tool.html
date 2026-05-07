@@ -574,7 +574,11 @@
 
       <!-- ===== CONTENT IDEAS ===== -->
       <div id="panel-content" class="panel">
-        <div class="section-title">Ready-to-brief post concepts for Briskfil</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px;">
+          <div class="section-title" style="margin-bottom:0;">Ready-to-brief post concepts for Briskfil</div>
+          <button onclick="refreshBfPostIdeas()" id="bf-ideas-refresh-btn" style="display:flex;align-items:center;gap:6px;background:rgba(200,240,38,0.1);border:1px solid rgba(200,240,38,0.3);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;padding:7px 16px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;text-transform:uppercase;letter-spacing:0.04em;" onmouseover="this.style.background='rgba(200,240,38,0.2)'" onmouseout="this.style.background='rgba(200,240,38,0.1)'">⟳ Refresh ideas</button>
+        </div>
+        <div id="bf-post-ideas-grid">
 
         <div class="card">
           <div class="card-badges" style="margin-bottom:10px;"><span class="pill pill-blue">Carousel</span><span class="pill pill-green">Education</span></div>
@@ -632,6 +636,8 @@
             <div class="generated-output" id="content-text-pt"></div>
           </div>
         </div>
+        </div><!-- /bf-post-ideas-grid -->
+        <div id="bf-ideas-loading" style="display:none;padding:2rem;text-align:center;"><div class="spinner" style="display:inline-block;"></div> <span style="font-size:13px;color:var(--muted);margin-left:10px;">Generating fresh ideas...</span></div>
       </div>
 
       <!-- ===== POST GENERATOR ===== -->
@@ -773,14 +779,19 @@
         </div>
 
         <!-- SUGGESTED POST OF THE WEEK -->
-        <div class="card" style="border-color:rgba(34,197,94,0.25);margin-bottom:20px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <span class="pill pill-green" style="font-size:10px;">Suggested this week</span>
-            <span style="font-size:12px;font-weight:600;color:var(--text);">Highest opportunity post for Briskfil right now</span>
+        <div class="card" id="bf-suggestion-card" style="border-color:rgba(34,197,94,0.25);margin-bottom:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="pill pill-green" style="font-size:10px;">Suggested this week</span>
+              <span style="font-size:12px;font-weight:600;color:var(--text);">Highest opportunity post for Briskfil right now</span>
+            </div>
+            <button onclick="refreshBfSuggestion()" id="bf-sug-refresh-btn" style="background:rgba(200,240,38,0.1);border:1px solid rgba(200,240,38,0.3);border-radius:6px;color:var(--accent);font-size:10px;font-weight:700;padding:4px 12px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;text-transform:uppercase;letter-spacing:0.04em;" onmouseover="this.style.background='rgba(200,240,38,0.2)'" onmouseout="this.style.background='rgba(200,240,38,0.1)'">⟳ New suggestion</button>
           </div>
-          <p style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;">"Interpack 2026 is happening in Düsseldorf right now. Here is what food and beverage manufacturers need to know about nitrogen in packaging."</p>
-          <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px;">Interpack runs 7 to 13 May 2026 and is the world's biggest food and packaging trade event — 2,800+ exhibitors, 67 countries. Nitrogen in food packaging (modified atmosphere packaging, MAP) is a core theme. Posting this week with Interpack hashtags puts Briskfil in front of 40,000+ visitors who are actively thinking about food packaging gas solutions. Atlas Copco will post about this. Briskfil should be in the same conversation as the independent expert who can actually help Portuguese and Iberian food manufacturers act on what they see at the show.</p>
-          <button class="action-btn" onclick="loadSuggested('interpack')">Load this brief into the generator ↗</button>
+          <div id="bf-suggestion-body">
+            <p style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;">"Interpack 2026 is happening in Düsseldorf right now. Here is what food and beverage manufacturers need to know about nitrogen in packaging."</p>
+            <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px;">Interpack runs 7 to 13 May 2026 and is the world's biggest food and packaging trade event. Nitrogen in food packaging (MAP) is a core theme. Posting this week with Interpack hashtags puts Briskfil in front of 40,000+ visitors actively thinking about food packaging gas solutions. The major manufacturers will post about this — Briskfil should be in the same conversation as the independent expert who can actually help Portuguese and Iberian food manufacturers act on what they see at the show.</p>
+            <button class="action-btn" onclick="loadSuggested('interpack')">Load this brief into the generator ↗</button>
+          </div>
         </div>
 
         <div class="two-col" style="margin-bottom:16px;">
@@ -1698,6 +1709,110 @@ function copyOutput(id) {
 }
 
 // -- CLAUDE API CALL --
+async function refreshBfSuggestion() {
+  const btn = document.getElementById('bf-sug-refresh-btn');
+  const body = document.getElementById('bf-suggestion-body');
+  btn.textContent = '...';
+  btn.disabled = true;
+  body.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">Finding the best opportunity right now...</div>';
+
+  const today = new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const prompt = `Today is ${today}. Generate ONE high-opportunity LinkedIn post suggestion for Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy in Esposende. Consider what is commercially relevant right now — industry events, seasonal manufacturing patterns, EU regulations, energy prices, or sector trends for Portuguese and Iberian manufacturers.
+
+Return ONLY a valid JSON object. No markdown, no backticks.
+
+{
+  "headline": "the post hook/title in quotes — a compelling one-liner",
+  "rationale": "2-3 sentences explaining why this specific post is the highest opportunity RIGHT NOW for Briskfil. Be specific about timing and commercial relevance.",
+  "prompt": "the full generation prompt to write this post — detailed and specific, under 150 words. NEVER mention any competitor brand names."
+}`;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are an expert B2B content strategist. Return only valid JSON. No markdown or backticks.',
+        prompt, max_tokens: 600
+      })
+    });
+    const data = await res.json();
+    let raw = (data.text || data.content || '').trim().replace(/```json|```/g, '').trim();
+    const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+    if (s === -1) throw new Error('No JSON');
+    const sug = JSON.parse(raw.slice(s, e + 1));
+    body.innerHTML = `
+      <p style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;">"${sug.headline}"</p>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px;">${sug.rationale}</p>
+      <button class="action-btn" onclick="document.getElementById('gen-brief').value=${JSON.stringify(sug.prompt)};nav('generator',document.querySelector('.nav-item[onclick*=generator]'))">Load this brief into the generator ↗</button>`;
+  } catch(e) {
+    body.innerHTML = '<div style="font-size:13px;color:var(--muted);">Could not generate suggestion. Please try again.</div>';
+  } finally {
+    btn.textContent = '⟳ New suggestion';
+    btn.disabled = false;
+  }
+}
+
+// ── POST IDEAS REFRESH ───────────────────────────────────────
+async function refreshBfPostIdeas() {
+  const btn = document.getElementById('bf-ideas-refresh-btn');
+  const grid = document.getElementById('bf-post-ideas-grid');
+  const loading = document.getElementById('bf-ideas-loading');
+  btn.textContent = '...';
+  btn.disabled = true;
+  grid.style.display = 'none';
+  loading.style.display = 'block';
+
+  const prompt = `Generate 5 fresh LinkedIn post ideas for Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy in Esposende. Services: compressed air quality, nitrogen generation (PSA and membrane), oxygen generation, energy efficiency audits ISO 11011, industrial gas consulting. Independent and manufacturer-agnostic.
+
+Return ONLY a valid JSON array of 5 objects. No markdown, no backticks, no explanation.
+
+Each object:
+{
+  "badge1": "format e.g. Text post or Carousel or Short video",
+  "badge2": "theme e.g. Education or Lead gen or Thought leadership",
+  "title": "catchy post concept title",
+  "body": "2-3 sentence explanation of the post concept and why it works for Briskfil",
+  "prompt": "full generation prompt for the AI to write this post — detailed, specific, under 200 words"
+}
+
+Make the ideas fresh, specific to Briskfil's positioning, and commercially relevant for Portuguese industrial manufacturers. CRITICAL: never mention any competitor brand names in the prompts.`;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are an expert B2B content strategist. Return only valid JSON arrays. No markdown, no backticks.',
+        prompt, max_tokens: 1500
+      })
+    });
+    const data = await res.json();
+    let raw = (data.text || data.content || '').trim().replace(/```json|```/g, '').trim();
+    const s = raw.indexOf('['), e = raw.lastIndexOf(']');
+    if (s === -1) throw new Error('No JSON');
+    const ideas = JSON.parse(raw.slice(s, e + 1));
+    grid.innerHTML = ideas.map(idea => `
+      <div class="card">
+        <div class="card-badges" style="margin-bottom:10px;">
+          <span class="pill pill-blue">${idea.badge1 || 'Post'}</span>
+          <span class="pill pill-green">${idea.badge2 || 'Content'}</span>
+        </div>
+        <div class="card-title">${idea.title}</div>
+        <div class="card-body">${idea.body}</div>
+        <button class="action-btn" onclick="triggerGen(${JSON.stringify(idea.prompt)})">Write this post ↗</button>
+      </div>`).join('');
+    grid.style.display = 'block';
+  } catch(e) {
+    grid.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">Could not generate new ideas. Please try again.</div>';
+    grid.style.display = 'block';
+  } finally {
+    loading.style.display = 'none';
+    btn.textContent = '⟳ Refresh ideas';
+    btn.disabled = false;
+  }
+}
+
 // ── LANGUAGE TOGGLE ──────────────────────────────────────────
 let bfGenLang = 'en';
 
