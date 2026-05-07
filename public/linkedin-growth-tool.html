@@ -756,18 +756,19 @@
               <span id="comp-post-spinner" style="display:none;"><span class="spinner"></span></span>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="copy-btn" onclick="copyOutput('comp-post-text-en')">Copy EN</button>
-              <button class="copy-btn" id="comp-post-copy-pt" onclick="copyOutput('comp-post-text-pt')">Copy PT</button>
-              <button onclick="sendBfToScheduler('comp-post-text-en','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
+              <button class="copy-btn" onclick="copyEditableOutput('comp-post-edit-en')">Copy EN</button>
+              <button class="copy-btn" id="comp-post-copy-pt" onclick="copyEditableOutput('comp-post-edit-pt')">Copy PT</button>
+              <button onclick="scheduleEditablePost('comp-post-edit-en','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
+              <button onclick="refreshCompSuggestion()" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;font-weight:600;padding:5px 12px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;white-space:nowrap;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">↻ New suggestion</button>
             </div>
           </div>
           <div id="comp-post-en-block">
-            <div style="display:flex;align-items:center;gap:6px;margin:8px 0 6px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
-            <div class="generated-output" id="comp-post-text-en"></div>
+            <div style="display:flex;align-items:center;gap:6px;margin:8px 0 6px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English — edit before scheduling</span></div>
+            <textarea id="comp-post-edit-en" style="width:100%;min-height:180px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:14px 16px;resize:vertical;outline:none;line-height:1.75;box-sizing:border-box;" placeholder="Generating..."></textarea>
           </div>
           <div id="comp-post-pt-block" style="margin-top:12px;">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
-            <div class="generated-output" id="comp-post-text-pt"></div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português — edit before scheduling</span></div>
+            <textarea id="comp-post-edit-pt" style="width:100%;min-height:180px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:14px 16px;resize:vertical;outline:none;line-height:1.75;box-sizing:border-box;" placeholder="A gerar..."></textarea>
           </div>
         </div>
 
@@ -1575,10 +1576,13 @@ function nav(id, btn) {
 document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
 
 // -- ADD TO BRISKFIL SCHEDULER --
-function sendBfToScheduler(textId, format) {
-  const el = document.getElementById(textId);
-  const text = el ? el.textContent : '';
-  if (!text || text === 'Generating...') return;
+function sendBfToScheduler(textId, format, directText) {
+  let text = directText || '';
+  if (!text && textId) {
+    const el = document.getElementById(textId);
+    text = el ? (el.tagName === 'TEXTAREA' ? el.value : el.textContent) : '';
+  }
+  if (!text || text === 'Generating...' || text === 'A gerar...') return;
   try {
     window.parent.postMessage({
       type: 'ADD_TO_SCHEDULER',
@@ -1778,11 +1782,17 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
 
     const results = await Promise.all(calls);
     const enText = results[0]?.text || results[0]?.content || 'No response received.';
-    if (out) out.textContent = enText;
+    // Write to textarea if it exists (editable output), else to div
+    const enEditId = outputId.replace('-text-en', '-edit-en').replace('-text', '-edit-en');
+    const enEdit = document.getElementById(enEditId);
+    if (enEdit && enEdit.tagName === 'TEXTAREA') { enEdit.value = enText; }
+    else if (out) out.textContent = enText;
     if (hasPTElement && results[1]) {
       const ptText = results[1]?.text || results[1]?.content || 'Sem resposta.';
-      if (ptOut) ptOut.textContent = ptText;
-      // Show PT block — always visible once generated
+      const ptEditId = outputId.replace('-text-en', '-edit-pt').replace('-text', '-edit-pt');
+      const ptEdit = document.getElementById(ptEditId);
+      if (ptEdit && ptEdit.tagName === 'TEXTAREA') { ptEdit.value = ptText; }
+      else if (ptOut) ptOut.textContent = ptText;
       if (ptBlock) ptBlock.style.display = 'block';
     }
   } catch(e) {
@@ -1793,15 +1803,60 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
   if (spin) spin.style.display = 'none';
 }
 
-// -- TRIGGERS --
+// -- EDITABLE OUTPUT HELPERS --
+function copyEditableOutput(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.tagName === 'TEXTAREA' ? el.value : el.textContent;
+  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard'));
+}
+
+function scheduleEditablePost(id, format) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.tagName === 'TEXTAREA' ? el.value : el.textContent;
+  if (!text || text === 'Generating...' || text === 'A gerar...') return;
+  sendBfToScheduler(null, format, text);
+}
+
+// -- ROTATING COMPETITION SUGGESTIONS --
+const BF_COMP_POOL = [
+  'Write a LinkedIn post for Briskfil positioning independent industrial gas consultancy against the conflict of interest built into buying advice from equipment manufacturers. Make the argument that a compressed air or nitrogen audit from Atlas Copco will always end with an Atlas Copco recommendation. Briskfil recommends whatever is right. Under 260 words.',
+  'Write a LinkedIn post for Briskfil on the true cost of industrial gas downtime. A nitrogen generator failure, a contaminated compressed air system, or a leaking distribution network all stop production. Position Briskfil as the independent partner who audits and maintains systems from any manufacturer — not just the ones they sell. Under 250 words.',
+  'Write a LinkedIn post for Briskfil on ISO 8573 compressed air purity classification in plain Portuguese and English. Explain what the classes mean in practice for food, pharma, and electronics manufacturers, and why most manufacturers are running their systems at the wrong purity class for their application. Under 270 words.',
+  'Write a LinkedIn post for Briskfil on the PSA versus membrane nitrogen generation decision. Explain in plain language which technology suits which application, what purity levels each achieves, and what the energy trade-offs are. Position Briskfil as the only adviser who can recommend either technology without bias. Under 280 words.',
+  'Write a LinkedIn post for Briskfil on energy efficiency in compressed air systems and ISO 11011 compliance. Make the commercial case: most manufacturing plants waste 20 to 30 percent of their compressed air energy through leaks, incorrect pressure settings, or oversized equipment. An independent audit pays for itself in months. Under 260 words.',
+  'Write a LinkedIn post for Briskfil on the shift from cylinder and bulk liquid gas supply to on-site generation. Cover the commercial argument: lower cost per unit, no delivery dependency, better reliability, and reduced carbon footprint. Target Portuguese food and beverage manufacturers specifically. Under 270 words.',
+  'Write a LinkedIn post for Briskfil celebrating 35 years of combined industrial gas expertise in the founding team. Make it human and specific — not a corporate announcement. Show what 35 years of seeing industrial gas systems go wrong and right actually teaches you. Under 250 words.',
+  'Write a LinkedIn post for Briskfil on the Esposende base — what it means to be a Portuguese industrial gas consultancy serving Portuguese manufacturers in their own market, in their own language, with no multinational overhead. Under 240 words. Direct and local in tone.',
+  'Write a LinkedIn post for Briskfil on on-site oxygen generation for wastewater treatment and biogas upgrading. Explain how on-site oxygen removes both the cost and the reliability risk of delivered oxygen for water treatment plants. Target water treatment plant managers in Portugal. Under 260 words.',
+  'Write a LinkedIn post for Briskfil on nitrogen blanketing for wine production. Explain how on-site nitrogen generation replaces cylinder supply for wine tanks, bottling lines, and storage — with better reliability and lower cost. Target Portuguese and Iberian wine producers. Under 250 words.',
+];
+let bfCompSuggestionIdx = Math.floor(Math.random() * BF_COMP_POOL.length);
+let bfLastCompPrompt = '';
+
+function triggerCompPost(prompt) {
+  bfLastCompPrompt = prompt;
+  callClaude(prompt, 'comp-post-text-en', 'comp-post-spinner', 'comp-post-output');
+  document.getElementById('comp-post-output').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function refreshCompSuggestion() {
+  bfCompSuggestionIdx = (bfCompSuggestionIdx + 1) % BF_COMP_POOL.length;
+  const prompt = BF_COMP_POOL[bfCompSuggestionIdx];
+  bfLastCompPrompt = prompt;
+  // Clear textareas and show loading
+  const enEl = document.getElementById('comp-post-edit-en');
+  const ptEl = document.getElementById('comp-post-edit-pt');
+  if (enEl) enEl.value = 'Generating new suggestion...';
+  if (ptEl) ptEl.value = 'A gerar nova sugestão...';
+  callClaude(prompt, 'comp-post-text-en', 'comp-post-spinner', 'comp-post-output');
+  document.getElementById('comp-post-output').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
 function triggerGen(prompt) {
   callClaude(prompt, 'gen-text', 'gen-spinner', 'gen-output');
   document.getElementById('gen-output').scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
-function triggerCompPost(prompt) {
-  callClaude(prompt, 'comp-post-text-en', 'comp-post-spinner', 'comp-post-output');
-  document.getElementById('comp-post-output').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 function genEventPost(prompt) {
