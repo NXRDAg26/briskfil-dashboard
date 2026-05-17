@@ -11,13 +11,24 @@ if (!process.env.DATABASE_URL) {
   console.error('FATAL: DATABASE_URL is not set. Add it as an environment variable on Render.');
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  // Neon and most hosted Postgres providers require SSL
-  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('sslmode=disable')
-    ? false
-    : { rejectUnauthorized: false }
-});
+// Strip sslmode from the connection string so we can pass SSL config explicitly.
+// This avoids the deprecation warning about pg-connection-string treating
+// 'require' as a strong alias that will change semantics in v3.0.0.
+function buildPoolConfig() {
+  const raw = process.env.DATABASE_URL || '';
+  if (!raw) return { ssl: false };
+
+  // Decide SSL behaviour up front, then remove sslmode from the URL
+  const wantsSsl = !/sslmode=disable/i.test(raw);
+  const cleanUrl = raw.replace(/[?&]sslmode=[^&]+/i, '').replace(/[?&]uselibpqcompat=[^&]+/i, '');
+
+  return {
+    connectionString: cleanUrl,
+    ssl: wantsSsl ? { rejectUnauthorized: false } : false
+  };
+}
+
+const pool = new Pool(buildPoolConfig());
 
 // Single client slug for this deployment. Change CLIENT_SLUG when spinning up
 // the same dashboard for another client (Earl Kendrick, Archway, etc.) — every
