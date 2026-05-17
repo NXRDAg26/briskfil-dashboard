@@ -1908,7 +1908,7 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
 /* ══════════════════════════════════════════════════════════════
    TAB SWITCHING
 ══════════════════════════════════════════════════════════════ */
-function switchTab(tab, btn) {
+async function switchTab(tab, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
   ['welcome','analytics','citation','linkedin','scheduler','seo','competition','copy'].forEach(p => {
@@ -1918,8 +1918,10 @@ function switchTab(tab, btn) {
     const iframe = document.getElementById('linkedin-iframe');
     if (!iframe.src || iframe.src === window.location.href) iframe.src = '/linkedin';
   }
-  if (tab === 'scheduler') { renderCalendar(); renderPostList(); }
-  if (tab === 'seo') { initTechChecklist(); }
+  if (tab === 'welcome') { await loadBfActions(); renderBfActions(); }
+  if (tab === 'scheduler') { await loadPosts(); renderCalendar(); renderPostList(); }
+  if (tab === 'seo') { await initTechChecklist(); }
+  if (tab === 'copy') { await initCopywriter(); }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -2353,11 +2355,40 @@ checkAuth();
 /* ══════════════════════════════════════════════════════════════
    POST SCHEDULER
 ══════════════════════════════════════════════════════════════ */
-const STORAGE_KEY = 'briskfil_posts_v1';
+// Post scheduler now reads and writes through the server so posts are visible
+// to anyone with the dashboard URL. `postsCache` holds the latest snapshot;
+// `loadPosts()` refreshes it from the API. Existing call sites use getPosts()
+// which now returns the cache synchronously.
+let postsCache = [];
 let calYear, calMonth, editingId = null, filterStatus = 'all';
 
-function getPosts() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; } }
-function savePosts(posts) { localStorage.setItem(STORAGE_KEY, JSON.stringify(posts)); }
+function getPosts() { return postsCache; }
+
+async function loadPosts() {
+  try {
+    const r = await fetch('/api/posts');
+    const j = await r.json();
+    if (j.success) postsCache = j.data || [];
+  } catch(e) { console.error('loadPosts failed:', e); }
+}
+
+async function apiSavePost(post) {
+  try {
+    const r = await fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(post)
+    });
+    return r.ok;
+  } catch(e) { console.error('apiSavePost failed:', e); return false; }
+}
+
+async function apiDeletePost(id) {
+  try {
+    const r = await fetch('/api/posts/' + encodeURIComponent(id), { method: 'DELETE' });
+    return r.ok;
+  } catch(e) { console.error('apiDeletePost failed:', e); return false; }
+}
 
 function initCal() {
   const now = new Date();
@@ -2503,11 +2534,10 @@ function closeModal() {
   editingId = null;
 }
 
-function savePost() {
+async function savePost() {
   const title = document.getElementById('post-title').value.trim();
   if (!title) { alert('Please add a post title'); return; }
 
-  const posts = getPosts();
   const postData = {
     id: editingId || 'post_' + Date.now(),
     title,
@@ -2522,22 +2552,20 @@ function savePost() {
     updatedAt: new Date().toISOString()
   };
 
-  if (editingId) {
-    const idx = posts.findIndex(p => p.id === editingId);
-    if (idx !== -1) posts[idx] = postData; else posts.push(postData);
-  } else {
-    posts.push(postData);
-  }
+  const ok = await apiSavePost(postData);
+  if (!ok) { alert('Could not save post. Check your connection and try again.'); return; }
 
-  savePosts(posts);
+  await loadPosts();
   closeModal();
   renderCalendar();
   renderPostList();
 }
 
-function deletePost(id) {
+async function deletePost(id) {
   if (!confirm('Delete this post?')) return;
-  savePosts(getPosts().filter(p => p.id !== id));
+  const ok = await apiDeletePost(id);
+  if (!ok) { alert('Could not delete post. Check your connection and try again.'); return; }
+  await loadPosts();
   renderCalendar();
   renderPostList();
 }
@@ -2550,13 +2578,15 @@ document.getElementById('post-modal').addEventListener('click', e => {
 initCal();
 
 // -- RECEIVE POSTS FROM LINKEDIN GROWTH TOOL IFRAME --
-window.addEventListener('message', e => {
+window.addEventListener('message', async e => {
   // Legacy post sync
   if (e.data?.type === 'BRISKFIL_ADD_POST') {
     const post = e.data.post;
     if (!post || !post.id) return;
-    const posts = getPosts();
-    if (!posts.find(p => p.id === post.id)) { posts.push(post); savePosts(posts); }
+    if (!postsCache.find(p => p.id === post.id)) {
+      await apiSavePost(post);
+      await loadPosts();
+    }
     if (document.getElementById('panel-scheduler').classList.contains('active')) { renderCalendar(); renderPostList(); }
     return;
   }
@@ -3029,11 +3059,31 @@ const TECH_ITEMS = [
   { id:'t20', title:'Google Business Profile claimed and optimised', desc:'Briskfil listed on Google Maps, with correct category (Industrial Consultant), photos, and description.', impact:'high' }
 ];
 
-let techChecked = JSON.parse(localStorage.getItem('briskfil_tech_seo') || '{}');
+// Tech checklist now persists to the server so progress is shared.
+let techChecked = {};
 
-function initTechChecklist() {
+async function loadTechChecklist() {
+  try {
+    const r = await fetch('/api/tech-checklist');
+    const j = await r.json();
+    if (j.success) techChecked = j.data || {};
+  } catch(e) { console.error('loadTechChecklist failed:', e); }
+}
+
+async function persistTechItem(id, checked) {
+  try {
+    await fetch('/api/tech-checklist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item_id: id, checked })
+    });
+  } catch(e) { console.error('persistTechItem failed:', e); }
+}
+
+async function initTechChecklist() {
   const list = document.getElementById('tech-checklist');
-  if (!list || list.children.length > 0) return;
+  if (!list) return;
+  await loadTechChecklist();
 
   list.innerHTML = TECH_ITEMS.map(item => {
     const checked = techChecked[item.id];
@@ -3053,7 +3103,7 @@ function initTechChecklist() {
 
 function toggleTech(id) {
   techChecked[id] = !techChecked[id];
-  localStorage.setItem('briskfil_tech_seo', JSON.stringify(techChecked));
+  persistTechItem(id, techChecked[id]);
   const cb = document.getElementById('tech-cb-' + id);
   const row = cb.closest('.tech-item');
   const titleEl = row.querySelector('.tech-item-title');
@@ -3159,15 +3209,35 @@ const COPY_FORMATS = [
 ];
 
 const BRISKFIL_ONLY = [DEFAULT_CLIENTS[0]];
-let copyClients = BRISKFIL_ONLY;
-// Reset any previously saved multi-client list
-localStorage.setItem('nxrd_copy_clients', JSON.stringify(BRISKFIL_ONLY));
+let copyClients = BRISKFIL_ONLY.slice();
 let selectedClient = 'briskfil';
 let selectedFormat = 'linkedin';
 let selectedLang = 'en';
-let copyHistory = JSON.parse(localStorage.getItem('nxrd_copy_history') || '[]');
+let copyHistory = [];
 
-function initCopywriter() {
+async function loadCopyClients() {
+  try {
+    const r = await fetch('/api/copy-clients');
+    const j = await r.json();
+    if (j.success) {
+      // Always keep the default Briskfil tile, plus any user-added ones from the server
+      const serverClients = (j.data || []).filter(c => c.id !== 'briskfil');
+      copyClients = [DEFAULT_CLIENTS[0], ...serverClients];
+    }
+  } catch(e) { console.error('loadCopyClients failed:', e); }
+}
+
+async function loadCopyHistory() {
+  try {
+    const r = await fetch('/api/copy-history');
+    const j = await r.json();
+    if (j.success) copyHistory = j.data || [];
+  } catch(e) { console.error('loadCopyHistory failed:', e); }
+}
+
+async function initCopywriter() {
+  await loadCopyClients();
+  await loadCopyHistory();
   renderCopyClients();
   renderCopyFormats();
   renderCopyHistory();
@@ -3214,7 +3284,7 @@ function openAddClient() {
 function closeAddClient() {
   document.getElementById('add-client-modal').classList.remove('open');
 }
-function saveNewClient() {
+async function saveNewClient() {
   const name = document.getElementById('new-client-name').value.trim();
   if (!name) { alert('Please enter a client name'); return; }
   const client = {
@@ -3225,8 +3295,14 @@ function saveNewClient() {
     audience: document.getElementById('new-client-audience').value.trim(),
     proof: document.getElementById('new-client-proof').value.trim()
   };
+  try {
+    await fetch('/api/copy-clients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(client)
+    });
+  } catch(e) { console.error('saveNewClient failed:', e); }
   copyClients.push(client);
-  localStorage.setItem('nxrd_copy_clients', JSON.stringify(copyClients));
   selectedClient = client.id;
   renderCopyClients();
   closeAddClient();
@@ -3347,7 +3423,7 @@ function copyCopyOutput(id) {
 }
 
 // ── HISTORY ──────────────────────────────────────────────────
-function saveCopyToHistory() {
+async function saveCopyToHistory() {
   const client = copyClients.find(c => c.id === selectedClient);
   const format = COPY_FORMATS.find(f => f.id === selectedFormat);
   const topic = document.getElementById('copy-topic').value.trim();
@@ -3365,9 +3441,15 @@ function saveCopyToHistory() {
     pt: ptText,
     date: new Date().toLocaleDateString('en-GB')
   };
+  try {
+    await fetch('/api/copy-history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry)
+    });
+  } catch(e) { console.error('saveCopyToHistory failed:', e); }
   copyHistory.unshift(entry);
   copyHistory = copyHistory.slice(0, 30);
-  localStorage.setItem('nxrd_copy_history', JSON.stringify(copyHistory));
   renderCopyHistory();
 }
 
@@ -3399,15 +3481,17 @@ function loadFromHistory(id) {
   document.getElementById('copy-topic').value = h.topic || '';
 }
 
-function clearCopyHistory() {
+async function clearCopyHistory() {
   if (!confirm('Clear all saved copy history?')) return;
+  try {
+    await fetch('/api/copy-history', { method: 'DELETE' });
+  } catch(e) { console.error('clearCopyHistory failed:', e); }
   copyHistory = [];
-  localStorage.removeItem('nxrd_copy_history');
   renderCopyHistory();
 }
 
 // ── SEND TO SCHEDULER ─────────────────────────────────────────
-function sendCopyToScheduler() {
+async function sendCopyToScheduler() {
   const enText = document.getElementById('copy-text-en').textContent.trim();
   const ptText = document.getElementById('copy-text-pt').textContent.trim();
   const topic = document.getElementById('copy-topic').value.trim();
@@ -3437,15 +3521,12 @@ function sendCopyToScheduler() {
     updatedAt: new Date().toISOString()
   };
 
-  const posts = getPosts();
-  posts.push(post);
-  savePosts(posts);
+  const ok = await apiSavePost(post);
+  if (!ok) { alert('Could not save post. Check your connection and try again.'); return; }
 
-  // Switch to scheduler tab
+  // Switch to scheduler tab (switchTab will reload posts and render)
   const schedBtn = document.querySelector('.nav-tab:nth-child(4)');
-  switchTab('scheduler', schedBtn);
-  renderCalendar();
-  renderPostList();
+  await switchTab('scheduler', schedBtn);
 }
 
 // Initialise on first load
@@ -4157,8 +4238,6 @@ function applyFontSize() {
    BRISKFIL WELCOME PANEL
 ══════════════════════════════════════════════════════════════ */
 
-const BF_ACTIONS_KEY = 'briskfil_welcome_actions_v1';
-
 const BF_ACTIONS = [
   {
     id:'bfa1',
@@ -4214,7 +4293,7 @@ const BF_TOOLS = [
 
 const BF_SECTORS = ['Food and beverage','Wine and viticulture','Water treatment','Laser cutting','Oil and gas','Pharmaceutical','Electronics','Medical oxygen','Biogas','Metal fabrication','Automotive','Aerospace'];
 
-function initBfWelcome() {
+async function initBfWelcome() {
   updateBfClock();
   setInterval(updateBfClock, 60000);
   fetchBfWeather();
@@ -4240,6 +4319,7 @@ function initBfWelcome() {
     `<span style="background:var(--gray-700);border:1px solid var(--gray-600);border-radius:var(--radius-sm);padding:5px 12px;font-size:11px;font-weight:600;color:var(--gray-200);">${s}</span>`
   ).join('');
 
+  await loadBfActions();
   renderBfActions();
 }
 
@@ -4299,8 +4379,29 @@ async function fetchBfWeather() {
   }
 }
 
+// Top 5 actions now persist to the server so progress is shared.
+let bfActionsCache = {};
+
 function getBfChecked() {
-  return JSON.parse(localStorage.getItem(BF_ACTIONS_KEY) || '{}');
+  return bfActionsCache;
+}
+
+async function loadBfActions() {
+  try {
+    const r = await fetch('/api/bf-actions');
+    const j = await r.json();
+    if (j.success) bfActionsCache = j.data || {};
+  } catch(e) { console.error('loadBfActions failed:', e); }
+}
+
+async function persistBfAction(id, checked) {
+  try {
+    await fetch('/api/bf-actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action_id: id, checked })
+    });
+  } catch(e) { console.error('persistBfAction failed:', e); }
 }
 
 function renderBfActions() {
@@ -4329,15 +4430,17 @@ function renderBfActions() {
 }
 
 function toggleBfAction(id) {
-  const checked = getBfChecked();
-  checked[id] = !checked[id];
-  localStorage.setItem(BF_ACTIONS_KEY, JSON.stringify(checked));
+  bfActionsCache[id] = !bfActionsCache[id];
+  persistBfAction(id, bfActionsCache[id]);
   renderBfActions();
 }
 
-function resetBfActions() {
+async function resetBfActions() {
   if (!confirm('Reset all actions to unticked?')) return;
-  localStorage.removeItem(BF_ACTIONS_KEY);
+  try {
+    await fetch('/api/bf-actions', { method: 'DELETE' });
+  } catch(e) { console.error('resetBfActions failed:', e); }
+  bfActionsCache = {};
   renderBfActions();
 }
 
