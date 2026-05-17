@@ -1233,10 +1233,10 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
         <div id="seo-plan-output" style="display:none;">
           <div class="chart-header" style="margin-bottom:12px;">
             <div><div class="chart-title">Your SEO growth plan</div></div>
-            <button class="copy-btn" onclick="copySeoOutput('seo-plan-text')">Copy plan</button>
+            <button class="copy-btn" onclick="copyGrowthPlan()">Copy plan</button>
           </div>
           <div class="chart-card">
-            <div class="out-text" id="seo-plan-text" style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;"></div>
+            <div id="seo-plan-text"></div>
           </div>
         </div>
 
@@ -1287,10 +1287,10 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
         <div id="kw-output" style="display:none;">
           <div class="chart-header" style="margin-bottom:12px;">
             <div><div class="chart-title" id="kw-output-title">Keyword targets</div></div>
-            <button class="copy-btn" onclick="copySeoOutput('kw-text')">Copy</button>
+            <button class="copy-btn" onclick="copyKeywordTargets()">Copy</button>
           </div>
           <div class="chart-card">
-            <div class="out-text" id="kw-text" style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;"></div>
+            <div id="kw-text"></div>
           </div>
         </div>
 
@@ -2667,6 +2667,102 @@ function copySeoOutput(id) {
   });
 }
 
+// Serialize structured keyword target data into clean plain text for copy/paste
+function copyKeywordTargets() {
+  if (!lastKeywordData) { copySeoOutput('kw-text'); return; }
+  const k = lastKeywordData;
+  const lines = [];
+  lines.push('KEYWORD TARGETS — ' + document.getElementById('kw-output-title').textContent);
+  lines.push('');
+  if (k.summary) { lines.push('STRATEGIC APPROACH'); lines.push(k.summary); lines.push(''); }
+  const renderTier = (arr, title) => {
+    if (!arr || !arr.length) return;
+    lines.push(title.toUpperCase());
+    arr.forEach(kw => {
+      lines.push(`- ${kw.keyword} | ${kw.volume || '—'} | ${kw.difficulty || '—'} difficulty | ${kw.target_page || '—'}`);
+      if (kw.why) lines.push(`  Why: ${kw.why}`);
+    });
+    lines.push('');
+  };
+  renderTier(k.tier1_primary,    'Tier 1 — Primary keywords');
+  renderTier(k.tier2_secondary,  'Tier 2 — Secondary keywords');
+  renderTier(k.tier3_longtail,   'Tier 3 — Long-tail keywords');
+  if (k.competitor_steals?.length) {
+    lines.push('COMPETITOR KEYWORDS TO STEAL');
+    k.competitor_steals.forEach(s => {
+      lines.push(`- ${s.keyword} | vs ${s.competitor || '—'} | ${s.volume || '—'} | ${s.difficulty || '—'}`);
+      if (s.why) lines.push(`  Why: ${s.why}`);
+    });
+    lines.push('');
+  }
+  if (k.portuguese_keywords?.length) {
+    lines.push('PORTUGUESE LANGUAGE KEYWORDS');
+    k.portuguese_keywords.forEach(p => {
+      lines.push(`- ${p.keyword} | ${p.intent || '—'} | ${p.volume || '—'} | ${p.difficulty || '—'}`);
+      if (p.why) lines.push(`  Why: ${p.why}`);
+    });
+    lines.push('');
+  }
+  if (k.content_gaps?.length) {
+    lines.push('CONTENT GAP OPPORTUNITIES');
+    k.content_gaps.forEach(g => {
+      lines.push(`- ${g.topic}${g.keyword ? ' (target: ' + g.keyword + ')' : ''}`);
+      if (g.why) lines.push(`  Why: ${g.why}`);
+    });
+  }
+  navigator.clipboard.writeText(lines.join('\n')).then(() => flashCopy('kw-text'));
+}
+
+// Serialize structured growth plan data into clean plain text
+function copyGrowthPlan() {
+  if (!lastGrowthPlanData) { copySeoOutput('seo-plan-text'); return; }
+  const p = lastGrowthPlanData;
+  const lines = [];
+  lines.push(`SEO GROWTH PLAN — ${p.duration_months || (p.months||[]).length} MONTHS`);
+  lines.push('');
+  if (p.overview) { lines.push('OVERVIEW'); lines.push(p.overview); lines.push(''); }
+  if (p.quick_wins?.length) {
+    lines.push('QUICK WINS — FIRST 2 WEEKS');
+    p.quick_wins.forEach((w, i) => lines.push(`${i+1}. ${w}`));
+    lines.push('');
+  }
+  if (p.months?.length) {
+    lines.push('MONTH-BY-MONTH ROADMAP');
+    p.months.forEach(m => {
+      lines.push('');
+      lines.push(`MONTH ${m.number || ''}: ${m.theme || ''}`.trim());
+      if (m.tasks?.length) {
+        lines.push('Tasks:');
+        m.tasks.forEach(t => lines.push(`  - ${t}`));
+      }
+      if (m.outcome || m.expected_outcome) lines.push(`Outcome: ${m.outcome || m.expected_outcome}`);
+      if (m.kpi) lines.push(`KPI: ${m.kpi}`);
+    });
+    lines.push('');
+  }
+  if (p.content_priorities?.length) {
+    lines.push('CONTENT PRIORITIES');
+    p.content_priorities.forEach((c, i) => {
+      lines.push(`${i+1}. ${c.title}${c.keyword ? ' — target: ' + c.keyword : ''}${c.volume ? ' (' + c.volume + ')' : ''}`);
+      if (c.why) lines.push(`   Why: ${c.why}`);
+    });
+    lines.push('');
+  }
+  if (p.competitive_notes?.length) {
+    lines.push('COMPETITIVE OPPORTUNITIES');
+    p.competitive_notes.forEach(n => lines.push(`- ${n}`));
+  }
+  navigator.clipboard.writeText(lines.join('\n')).then(() => flashCopy('seo-plan-text'));
+}
+
+function flashCopy(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const orig = el.style.opacity;
+  el.style.opacity = '0.5';
+  setTimeout(() => { el.style.opacity = orig || '1'; }, 300);
+}
+
 // -- PAGE AUDITOR --
 function quickAudit(url) {
   document.getElementById('seo-url').value = url;
@@ -2835,6 +2931,9 @@ function extractSection(text, startMarkers, endMarkers) {
 }
 
 // -- MONTHLY GROWTH PLANNER --
+// Stores the last generated plan so the Copy button can serialize it cleanly
+let lastGrowthPlanData = null;
+
 async function runSeoPlanner() {
   const stage = document.getElementById('seo-stage').value;
   const effort = document.getElementById('seo-effort').value;
@@ -2842,82 +2941,499 @@ async function runSeoPlanner() {
   const goals = document.getElementById('seo-goals').value.trim();
 
   const btn = document.getElementById('seo-plan-btn');
+  const loading = document.getElementById('seo-plan-loading');
+  const wrap = document.getElementById('seo-plan-output');
+  const out = document.getElementById('seo-plan-text');
+
   btn.disabled = true; btn.textContent = 'Generating...';
+  loading.style.display = 'flex';
+  wrap.style.display = 'none';
 
   const stageMap = { new:'brand new website, very little domain authority', early:'some pages indexed, limited backlinks, starting to get clicks', growing:'established presence, some rankings, needs acceleration', established:'good foundation, optimising and scaling' };
   const effortMap = { minimal:'2 to 4 hours per month (NXRD handles most tasks)', moderate:'roughly 1 day per month of combined NXRD and client effort', active:'2 to 3 days per month of focused activity', intensive:'weekly ongoing attention from NXRD' };
 
-  const prompt = `Build a ${months}-month SEO growth plan for Briskfil.com with the following parameters:
+  const example = `{"overview":"string","duration_months":${months},"months":[{"number":1,"theme":"Foundation and quick wins","tasks":["Audit existing 10 pages","Fix critical technical issues","Submit XML sitemap"],"outcome":"Indexation issues resolved, baseline analytics in place","kpi":"100% pages indexed in GSC"}],"content_priorities":[{"title":"Page title","keyword":"keyword phrase","volume":"100-300/mo","why":"strategic reason in one sentence"}],"quick_wins":["Specific 2-week action"],"competitive_notes":["Specific opportunity vs Atlas Copco"]}`;
 
-Current SEO stage: ${stageMap[stage]}
-Available monthly effort: ${effortMap[effort]}
-Primary goals: ${goals || 'rank for industrial gas and compressed air services in Portugal, beat Atlas Copco in local search, generate qualified B2B leads'}
+  const prompt = `Build a ${months}-month SEO growth plan for Briskfil.com.
 
-Structure the plan as follows:
+Parameters:
+- Current SEO stage: ${stageMap[stage]}
+- Monthly effort: ${effortMap[effort]}
+- Primary goals: ${goals || 'rank for industrial gas and compressed air services in Portugal, beat Atlas Copco in local search, generate qualified B2B leads'}
 
-PLAN OVERVIEW
-2 to 3 sentences on the strategic approach and what success looks like at the end of the plan period.
+Return ONLY a JSON object matching this EXACT shape:
+${example}
 
-MONTH-BY-MONTH BREAKDOWN
-For each month, provide:
-Month [N]: [Theme title]
-Priority tasks (3 to 5 specific actions)
-Expected outcome by end of month
-KPI to track
+Rules:
+- "months" array MUST have exactly ${months} entries, numbered 1 to ${months}
+- Each month's "tasks" array: 3 to 5 specific actions, no generic SEO advice
+- Each month's "outcome": one sentence on what will be true at end of that month
+- Each month's "kpi": one specific measurable metric
+- "content_priorities": 6 entries for landing pages or blog posts to create
+- "quick_wins": exactly 3 entries, things doable in the first 2 weeks
+- "competitive_notes": 3 to 5 specific opportunities vs Atlas Copco or other competitors
+- "overview": 2 to 3 sentences on strategic approach and end-of-plan success
+- Reference Briskfil's actual services and sectors throughout
+- Mix Portuguese and English where appropriate
+- Output ONLY the JSON object, start with { and end with }`;
 
-CONTENT PRIORITIES
-List the top 6 blog posts or landing pages to create during this period, with target keyword, estimated monthly search volume (rough), and why this piece matters for Briskfil specifically.
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        systemPrompt: 'You output ONLY valid JSON objects. Your entire response must be a single JSON object starting with { and ending with }. No introduction, no explanation, no markdown fences. Just the object.',
+        max_tokens: 4000
+      })
+    });
+    const data = await res.json();
+    let raw = (data.content || data.text || '').trim().replace(/```json|```/g, '').trim();
+    const s = raw.indexOf('{'), en = raw.lastIndexOf('}');
+    if (s === -1) throw new Error('No JSON object');
+    const plan = JSON.parse(raw.slice(s, en + 1));
+    lastGrowthPlanData = plan;
+    renderGrowthPlan(plan, out);
+  } catch(e) {
+    // Retry once with simpler instructions
+    try {
+      const res2 = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: prompt + '\n\nIMPORTANT: Your entire response must be a valid JSON object starting with { and ending with }. Nothing else.',
+          systemPrompt: 'Output ONLY a JSON object. No words. Just JSON. Start with {',
+          max_tokens: 4000
+        })
+      });
+      const d2 = await res2.json();
+      let r2 = (d2.content || d2.text || '').trim().replace(/```json|```/g, '').trim();
+      const s2 = r2.indexOf('{'), e2 = r2.lastIndexOf('}');
+      if (s2 !== -1) {
+        const plan2 = JSON.parse(r2.slice(s2, e2 + 1));
+        lastGrowthPlanData = plan2;
+        renderGrowthPlan(plan2, out);
+      } else {
+        renderGrowthFallback(r2 || 'No plan returned. Click Generate again.', out);
+      }
+    } catch(e2) {
+      renderGrowthFallback('The plan could not be structured automatically. Click Generate again.', out);
+    }
+  } finally {
+    loading.style.display = 'none';
+    wrap.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Generate growth plan';
+  }
+}
 
-QUICK WINS — DO THESE FIRST
-3 actions that can be completed in the first 2 weeks and will show results fastest.
+function renderGrowthFallback(text, container) {
+  container.innerHTML = `<div style="font-size:13px;color:var(--gray-200);line-height:1.85;white-space:pre-wrap;">${escapeHtml(text)}</div>`;
+}
 
-COMPETITIVE NOTES
-Specific opportunities to take rankings from Atlas Copco and other industrial gas competitors in Portuguese and Iberian search results.
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
 
-Make every task specific and actionable. No generic SEO advice. Reference Briskfil's actual services and sectors throughout.`;
+function renderGrowthPlan(plan, container) {
+  const monthCount = (plan.months || []).length;
+  const dur = plan.duration_months || monthCount;
 
-  await seoGenerate(prompt, 'seo-plan-text', 'seo-plan-loading', 'seo-plan-output');
-  btn.disabled = false; btn.textContent = 'Generate growth plan';
+  // ── Hero overview ────────────────────────────────────────────────────────
+  let html = `
+    <div style="background:linear-gradient(135deg, rgba(200,240,38,0.10) 0%, rgba(200,240,38,0.02) 100%);border:1px solid rgba(200,240,38,0.22);border-radius:var(--radius);padding:20px 22px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:9px;font-weight:700;color:var(--lime);background:rgba(200,240,38,0.15);padding:4px 10px;border-radius:8px;text-transform:uppercase;letter-spacing:0.08em;">${dur}-month plan</span>
+        <span style="font-size:9px;font-weight:700;color:var(--gray-300);background:var(--gray-700);padding:4px 10px;border-radius:8px;text-transform:uppercase;letter-spacing:0.08em;">${(plan.content_priorities||[]).length} priority pages</span>
+        <span style="font-size:9px;font-weight:700;color:var(--gray-300);background:var(--gray-700);padding:4px 10px;border-radius:8px;text-transform:uppercase;letter-spacing:0.08em;">${(plan.quick_wins||[]).length} quick wins</span>
+      </div>
+      <div style="font-size:14px;color:var(--gray-100);line-height:1.6;">${escapeHtml(plan.overview || '')}</div>
+    </div>`;
+
+  // ── Quick wins ────────────────────────────────────────────────────────────
+  if ((plan.quick_wins || []).length) {
+    html += `
+    <div style="background:rgba(200,240,38,0.04);border:1px solid rgba(200,240,38,0.18);border-radius:var(--radius);padding:18px 20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:18px;">⚡</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:0.08em;">First 2 weeks — quick wins</div>
+          <div style="font-size:12px;color:var(--gray-300);margin-top:2px;">Do these immediately. Highest return for lowest effort.</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));gap:12px;">
+        ${plan.quick_wins.map((w, i) => `
+          <div style="background:var(--gray-800);border:1px solid rgba(200,240,38,0.18);border-radius:var(--radius-sm);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:26px;height:26px;border-radius:50%;background:rgba(200,240,38,0.15);color:var(--lime);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
+            <div style="font-size:13px;color:var(--gray-100);line-height:1.5;">${escapeHtml(w)}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // ── Monthly timeline ──────────────────────────────────────────────────────
+  if ((plan.months || []).length) {
+    html += `
+    <div style="margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--gray-700);">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime);flex-shrink:0;"></span>
+        <h3 style="font-size:13px;font-weight:700;color:var(--white);margin:0;text-transform:uppercase;letter-spacing:0.06em;">Month-by-month roadmap</h3>
+        <span style="font-size:11px;color:var(--gray-400);font-weight:600;">${monthCount} month${monthCount === 1 ? '' : 's'}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">`;
+
+    plan.months.forEach((m, idx) => {
+      const isLast = idx === plan.months.length - 1;
+      html += `
+        <div style="display:grid;grid-template-columns:60px 1fr;gap:14px;position:relative;">
+          <!-- Month number column with timeline line -->
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg, rgba(200,240,38,0.18), rgba(200,240,38,0.05));border:1.5px solid rgba(200,240,38,0.35);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+              <div style="font-size:9px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;line-height:1;">M</div>
+              <div style="font-size:18px;font-weight:800;color:var(--lime);line-height:1;">${m.number || (idx+1)}</div>
+            </div>
+            ${isLast ? '' : '<div style="flex:1;width:2px;background:var(--gray-700);margin-top:6px;min-height:20px;"></div>'}
+          </div>
+          <!-- Month content card -->
+          <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:18px 20px;margin-bottom:${isLast ? '0' : '6px'};">
+            <div style="font-size:15px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:14px;">${escapeHtml(m.theme || ('Month ' + (m.number || idx+1)))}</div>
+            <!-- Tasks list -->
+            <div style="margin-bottom:14px;">
+              <div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Priority tasks</div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                ${(m.tasks || []).map(t => `
+                  <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--gray-100);line-height:1.55;">
+                    <span style="color:var(--lime);font-weight:700;flex-shrink:0;margin-top:1px;">→</span>
+                    <span>${escapeHtml(t)}</span>
+                  </div>`).join('')}
+              </div>
+            </div>
+            <!-- Outcome + KPI -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div style="background:var(--gray-900);border-radius:var(--radius-sm);padding:10px 12px;border-left:3px solid var(--positive);">
+                <div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Expected outcome</div>
+                <div style="font-size:12px;color:var(--gray-100);line-height:1.5;">${escapeHtml(m.outcome || m.expected_outcome || '')}</div>
+              </div>
+              <div style="background:var(--gray-900);border-radius:var(--radius-sm);padding:10px 12px;border-left:3px solid #60a5fa;">
+                <div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">KPI to track</div>
+                <div style="font-size:12px;color:var(--gray-100);line-height:1.5;font-weight:600;">${escapeHtml(m.kpi || '')}</div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // ── Content priorities ───────────────────────────────────────────────────
+  if ((plan.content_priorities || []).length) {
+    html += `
+    <div style="margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-700);">
+        <span style="width:8px;height:8px;border-radius:50%;background:#60a5fa;box-shadow:0 0 12px #60a5fa;flex-shrink:0;"></span>
+        <h3 style="font-size:13px;font-weight:700;color:var(--white);margin:0;text-transform:uppercase;letter-spacing:0.06em;">Content priorities</h3>
+        <span style="font-size:11px;color:var(--gray-400);font-weight:600;">${plan.content_priorities.length} pages to create</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:12px;">
+        ${plan.content_priorities.map((c, i) => `
+          <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:14px 16px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <span style="font-size:10px;font-weight:700;color:#60a5fa;background:rgba(96,165,250,0.12);padding:2px 8px;border-radius:6px;">#${i+1}</span>
+              ${c.volume ? `<span style="font-size:10px;font-weight:700;color:var(--gray-300);background:var(--gray-700);padding:2px 8px;border-radius:6px;">${escapeHtml(c.volume)}</span>` : ''}
+            </div>
+            <div style="font-size:14px;font-weight:700;color:var(--white);line-height:1.35;margin-bottom:6px;">${escapeHtml(c.title || '')}</div>
+            ${c.keyword ? `<div style="font-size:11px;color:var(--lime);font-weight:600;margin-bottom:8px;">⌖ ${escapeHtml(c.keyword)}</div>` : ''}
+            <div style="font-size:12px;color:var(--gray-300);line-height:1.5;border-top:1px solid var(--gray-700);padding-top:8px;">${escapeHtml(c.why || '')}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // ── Competitive notes ────────────────────────────────────────────────────
+  if ((plan.competitive_notes || []).length) {
+    html += `
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-700);">
+        <span style="width:8px;height:8px;border-radius:50%;background:#f87171;box-shadow:0 0 12px #f87171;flex-shrink:0;"></span>
+        <h3 style="font-size:13px;font-weight:700;color:var(--white);margin:0;text-transform:uppercase;letter-spacing:0.06em;">Competitive opportunities</h3>
+        <span style="font-size:11px;color:var(--gray-400);font-weight:600;">vs Atlas Copco and competitors</span>
+      </div>
+      <div style="background:var(--gray-800);border:1px solid rgba(248,113,113,0.18);border-radius:var(--radius);padding:18px 20px;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${plan.competitive_notes.map(n => `
+            <div style="display:flex;gap:12px;align-items:flex-start;font-size:13px;color:var(--gray-100);line-height:1.55;">
+              <span style="color:#f87171;font-weight:700;flex-shrink:0;margin-top:1px;">▲</span>
+              <span>${escapeHtml(n)}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
 }
 
 // -- KEYWORD GENERATOR --
+let lastKeywordData = null;
+
 async function runKeywordGen() {
   const sector = document.getElementById('kw-sector').value;
   const geo = document.getElementById('kw-geo').value;
 
   const btn = document.getElementById('kw-gen-btn');
+  const loading = document.getElementById('kw-loading');
+  const wrap = document.getElementById('kw-output');
+  const out = document.getElementById('kw-text');
+
   btn.disabled = true; btn.textContent = 'Researching...';
   document.getElementById('kw-output-title').textContent = sector + ' — ' + geo;
+  loading.style.display = 'flex';
+  wrap.style.display = 'none';
 
-  const prompt = `Generate a comprehensive keyword target list for Briskfil.com for the following:
+  const example = `{"summary":"strategic 2-3 sentence overview","tier1_primary":[{"keyword":"keyword phrase","volume":"100-300/mo","difficulty":"Low","target_page":"new page needed","why":"one sentence strategic reason"}],"tier2_secondary":[{...}],"tier3_longtail":[{...}],"competitor_steals":[{"keyword":"...","volume":"...","difficulty":"Low","competitor":"Atlas Copco","why":"why Briskfil can outrank"}],"portuguese_keywords":[{"keyword":"...","volume":"...","difficulty":"Low","intent":"informational|commercial","why":"why this matters"}],"content_gaps":[{"topic":"topic description","keyword":"target keyword","why":"why this gap exists and matters"}]}`;
+
+  const prompt = `Generate a comprehensive keyword target list for Briskfil.com.
 
 Service area: ${sector}
 Target geography: ${geo}
 
-Structure your output as:
+Return ONLY a JSON object matching this EXACT shape:
+${example}
 
-TIER 1 — PRIMARY KEYWORDS (highest commercial intent, direct service queries)
-For each keyword: keyword phrase | estimated monthly searches | difficulty (low/medium/high) | current page to target or "new page needed" | why this matters for Briskfil
+Rules:
+- "summary": 2-3 sentences on strategic approach for this sector and geography
+- "tier1_primary": 6 to 8 high commercial intent keywords (direct service queries)
+- "tier2_secondary": 8 to 10 informational, comparison, problem-aware keywords
+- "tier3_longtail": 8 to 10 low competition, highly specific long-tail keywords
+- "competitor_steals": 5 to 7 keywords competitors rank for that Briskfil can target
+- "portuguese_keywords": 8 to 10 European Portuguese keywords as a Portuguese B2B customer would type them
+- "content_gaps": 4 to 6 topic gaps where good Portuguese/Iberian content does not exist yet
+- Each keyword entry: keyword (the actual phrase), volume (rough monthly range with /mo suffix), difficulty (Low|Medium|High), target_page ("existing: /url" OR "new page needed" OR similar), why (one sentence strategic note)
+- Be specific to Briskfil's actual business. No generic SEO terms.
+- Mix Portuguese and English appropriately for the geography
+- Output ONLY the JSON object, start with { and end with }`;
 
-TIER 2 — SECONDARY KEYWORDS (informational, comparison, problem-aware)
-Same format. 8 to 10 keywords.
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        systemPrompt: 'You output ONLY valid JSON objects. Your entire response must be a single JSON object starting with { and ending with }. No introduction, no explanation, no markdown fences. Just the object.',
+        max_tokens: 4000
+      })
+    });
+    const data = await res.json();
+    let raw = (data.content || data.text || '').trim().replace(/```json|```/g, '').trim();
+    const s = raw.indexOf('{'), en = raw.lastIndexOf('}');
+    if (s === -1) throw new Error('No JSON object');
+    const kw = JSON.parse(raw.slice(s, en + 1));
+    lastKeywordData = kw;
+    renderKeywordTargets(kw, out);
+  } catch(e) {
+    try {
+      const res2 = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: prompt + '\n\nIMPORTANT: Your entire response must be a valid JSON object starting with { and ending with }. Nothing else.',
+          systemPrompt: 'Output ONLY a JSON object. No words. Just JSON. Start with {',
+          max_tokens: 4000
+        })
+      });
+      const d2 = await res2.json();
+      let r2 = (d2.content || d2.text || '').trim().replace(/```json|```/g, '').trim();
+      const s2 = r2.indexOf('{'), e2 = r2.lastIndexOf('}');
+      if (s2 !== -1) {
+        const kw2 = JSON.parse(r2.slice(s2, e2 + 1));
+        lastKeywordData = kw2;
+        renderKeywordTargets(kw2, out);
+      } else {
+        renderGrowthFallback(r2 || 'No keyword targets returned. Click Generate again.', out);
+      }
+    } catch(e2) {
+      renderGrowthFallback('The keyword targets could not be structured automatically. Click Generate again.', out);
+    }
+  } finally {
+    loading.style.display = 'none';
+    wrap.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Generate keyword targets';
+  }
+}
 
-TIER 3 — LONG-TAIL AND NICHE KEYWORDS (low competition, highly specific)
-Same format. 8 to 10 keywords.
+function renderKeywordTargets(kw, container) {
+  // Shared configs
+  const diffMeta = {
+    'Low':    { col:'#4ade80', bars:1, note:'Quick win' },
+    'Medium': { col:'#f59e0b', bars:2, note:'Moderate effort' },
+    'High':   { col:'#f87171', bars:3, note:'Long play' }
+  };
 
-COMPETITOR KEYWORDS TO STEAL
-Keywords where Atlas Copco or other industrial gas competitors are currently ranking that Briskfil could target. Include why Briskfil has a genuine chance of outranking them.
+  // Counts
+  const tier1 = kw.tier1_primary || [];
+  const tier2 = kw.tier2_secondary || [];
+  const tier3 = kw.tier3_longtail || [];
+  const steals = kw.competitor_steals || [];
+  const ptKws = kw.portuguese_keywords || [];
+  const gaps = kw.content_gaps || [];
+  const total = tier1.length + tier2.length + tier3.length;
 
-PORTUGUESE LANGUAGE KEYWORDS
-The same intent keywords but in European Portuguese as a potential customer in Portugal would actually type them. Include both formal and informal search phrasing.
+  // Build a tier card
+  const buildKwCard = (k, accent) => {
+    const dm = diffMeta[k.difficulty] || diffMeta['Medium'];
+    const bars = [1,2,3].map(n =>
+      `<div style="flex:1;height:3px;border-radius:2px;background:${n <= dm.bars ? dm.col : 'var(--gray-700)'};"></div>`
+    ).join('');
+    const isNew = (k.target_page || '').toLowerCase().includes('new');
+    const pageBadge = k.target_page
+      ? `<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:${isNew ? 'rgba(200,240,38,0.12)' : 'var(--gray-700)'};color:${isNew ? 'var(--lime)' : 'var(--gray-300)'};">${escapeHtml(k.target_page)}</span>`
+      : '';
 
-CONTENT GAP KEYWORDS
-Topics that potential Briskfil customers are searching for but no good answer exists yet in Portuguese or for the Iberian market specifically.
+    return `
+      <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:14px 16px;border-left:3px solid ${accent};">
+        <div style="font-size:14px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:8px;word-break:break-word;">${escapeHtml(k.keyword || '')}</div>
 
-Be specific to Briskfil's actual business and the ${geo} market. Estimated volumes can be rough ranges, clearly marked as estimates.`;
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+          ${k.volume ? `<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--gray-900);color:var(--gray-200);">${escapeHtml(k.volume)}</span>` : ''}
+          ${pageBadge}
+        </div>
 
-  await seoGenerate(prompt, 'kw-text', 'kw-loading', 'kw-output');
-  btn.disabled = false; btn.textContent = 'Generate keyword targets';
+        <div style="background:var(--gray-900);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-size:9px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Difficulty</span>
+            <span style="font-size:10px;font-weight:700;color:${dm.col};">${escapeHtml(k.difficulty || 'Medium')} — ${dm.note}</span>
+          </div>
+          <div style="display:flex;gap:3px;">${bars}</div>
+        </div>
+
+        ${k.why ? `<div style="font-size:12px;color:var(--gray-300);line-height:1.5;">${escapeHtml(k.why)}</div>` : ''}
+      </div>`;
+  };
+
+  const buildTierSection = (items, tierNum, title, sub, accent) => {
+    if (!items.length) return '';
+    return `
+      <div style="margin-top:24px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-700);">
+          <span style="font-size:11px;font-weight:800;color:${accent};background:${accent === 'var(--lime)' ? 'rgba(200,240,38,0.15)' : accent === '#60a5fa' ? 'rgba(96,165,250,0.15)' : 'rgba(167,139,250,0.15)'};padding:5px 10px;border-radius:6px;letter-spacing:0.06em;">TIER ${tierNum}</span>
+          <h3 style="font-size:13px;font-weight:700;color:var(--white);margin:0;">${title}</h3>
+          <span style="font-size:11px;color:var(--gray-400);font-weight:600;margin-left:auto;">${items.length} keywords</span>
+        </div>
+        <div style="font-size:12px;color:var(--gray-400);margin-bottom:14px;">${sub}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;">
+          ${items.map(k => buildKwCard(k, accent)).join('')}
+        </div>
+      </div>`;
+  };
+
+  // ── Compose ───────────────────────────────────────────────────────────────
+  let html = `
+    <!-- Strategic summary -->
+    <div style="background:linear-gradient(135deg, rgba(200,240,38,0.08) 0%, rgba(200,240,38,0.02) 100%);border:1px solid rgba(200,240,38,0.2);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;">
+      <div style="font-size:10px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Strategic approach</div>
+      <div style="font-size:14px;color:var(--gray-100);line-height:1.6;">${escapeHtml(kw.summary || '')}</div>
+    </div>
+
+    <!-- Hero stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px;">
+      <div style="background:var(--gray-800);border:1px solid var(--gray-700);border-radius:var(--radius);padding:16px;text-align:center;">
+        <div style="font-size:28px;font-weight:800;color:var(--white);line-height:1;margin-bottom:6px;">${total}</div>
+        <div style="font-size:11px;color:var(--gray-300);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Total keywords</div>
+      </div>
+      <div style="background:var(--gray-800);border:1px solid rgba(200,240,38,0.2);border-radius:var(--radius);padding:16px;text-align:center;">
+        <div style="font-size:28px;font-weight:800;color:var(--lime);line-height:1;margin-bottom:6px;">${tier1.length}</div>
+        <div style="font-size:11px;color:var(--gray-300);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Tier 1 primary</div>
+      </div>
+      <div style="background:var(--gray-800);border:1px solid rgba(96,165,250,0.2);border-radius:var(--radius);padding:16px;text-align:center;">
+        <div style="font-size:28px;font-weight:800;color:#60a5fa;line-height:1;margin-bottom:6px;">${tier2.length}</div>
+        <div style="font-size:11px;color:var(--gray-300);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Tier 2 secondary</div>
+      </div>
+      <div style="background:var(--gray-800);border:1px solid rgba(167,139,250,0.2);border-radius:var(--radius);padding:16px;text-align:center;">
+        <div style="font-size:28px;font-weight:800;color:#a78bfa;line-height:1;margin-bottom:6px;">${tier3.length}</div>
+        <div style="font-size:11px;color:var(--gray-300);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Tier 3 long-tail</div>
+      </div>
+    </div>`;
+
+  // Three tier sections
+  html += buildTierSection(tier1, 1, 'Primary keywords', 'Highest commercial intent — direct service queries. Target these first.', 'var(--lime)');
+  html += buildTierSection(tier2, 2, 'Secondary keywords', 'Informational, comparison, and problem-aware searches.', '#60a5fa');
+  html += buildTierSection(tier3, 3, 'Long-tail and niche keywords', 'Low competition, highly specific. Quick wins.', '#a78bfa');
+
+  // Competitor steals — strategic callout
+  if (steals.length) {
+    html += `
+    <div style="margin-top:28px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-700);">
+        <span style="width:8px;height:8px;border-radius:50%;background:#f87171;box-shadow:0 0 12px #f87171;flex-shrink:0;"></span>
+        <h3 style="font-size:13px;font-weight:700;color:var(--white);margin:0;text-transform:uppercase;letter-spacing:0.06em;">Competitor keywords to steal</h3>
+        <span style="font-size:11px;color:var(--gray-400);font-weight:600;margin-left:auto;">${steals.length} opportunities</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:12px;">
+        ${steals.map(s => {
+          const dm = diffMeta[s.difficulty] || diffMeta['Medium'];
+          return `
+          <div style="background:var(--gray-800);border:1px solid rgba(248,113,113,0.18);border-radius:var(--radius);padding:14px 16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+              <span style="font-size:10px;font-weight:700;color:#f87171;background:rgba(248,113,113,0.12);padding:3px 8px;border-radius:6px;">vs ${escapeHtml(s.competitor || 'Atlas Copco')}</span>
+              <span style="font-size:10px;font-weight:700;color:${dm.col};">${escapeHtml(s.difficulty || 'Medium')}</span>
+            </div>
+            <div style="font-size:14px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:6px;word-break:break-word;">${escapeHtml(s.keyword || '')}</div>
+            ${s.volume ? `<div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;">${escapeHtml(s.volume)}</div>` : ''}
+            <div style="font-size:12px;color:var(--gray-300);line-height:1.5;border-top:1px solid var(--gray-700);padding-top:8px;">${escapeHtml(s.why || '')}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Portuguese keywords
+  if (ptKws.length) {
+    html += `
+    <div style="margin-top:28px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-700);">
+        <span style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 12px #4ade80;flex-shrink:0;"></span>
+        <h3 style="font-size:13px;font-weight:700;color:var(--white);margin:0;text-transform:uppercase;letter-spacing:0.06em;">Portuguese language keywords</h3>
+        <span style="font-size:11px;color:var(--gray-400);font-weight:600;margin-left:auto;">${ptKws.length} terms</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;">
+        ${ptKws.map(p => {
+          const dm = diffMeta[p.difficulty] || diffMeta['Medium'];
+          return `
+          <div style="background:var(--gray-800);border:1px solid rgba(74,222,128,0.18);border-radius:var(--radius);padding:14px 16px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+              <span style="font-size:9px;font-weight:800;color:#4ade80;background:rgba(74,222,128,0.12);padding:3px 7px;border-radius:5px;letter-spacing:0.06em;">PT</span>
+              ${p.intent ? `<span style="font-size:10px;font-weight:700;color:var(--gray-300);background:var(--gray-700);padding:3px 8px;border-radius:6px;text-transform:capitalize;">${escapeHtml(p.intent)}</span>` : ''}
+              <span style="font-size:10px;font-weight:700;color:${dm.col};margin-left:auto;">${escapeHtml(p.difficulty || 'Medium')}</span>
+            </div>
+            <div style="font-size:14px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:6px;word-break:break-word;">${escapeHtml(p.keyword || '')}</div>
+            ${p.volume ? `<div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;">${escapeHtml(p.volume)}</div>` : ''}
+            ${p.why ? `<div style="font-size:12px;color:var(--gray-300);line-height:1.5;border-top:1px solid var(--gray-700);padding-top:8px;">${escapeHtml(p.why)}</div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Content gaps
+  if (gaps.length) {
+    html += `
+    <div style="margin-top:28px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-700);">
+        <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 12px #f59e0b;flex-shrink:0;"></span>
+        <h3 style="font-size:13px;font-weight:700;color:var(--white);margin:0;text-transform:uppercase;letter-spacing:0.06em;">Content gap opportunities</h3>
+        <span style="font-size:11px;color:var(--gray-400);font-weight:600;margin-left:auto;">${gaps.length} unaddressed topics</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:12px;">
+        ${gaps.map(g => `
+          <div style="background:var(--gray-800);border:1px solid rgba(245,158,11,0.18);border-radius:var(--radius);padding:14px 16px;">
+            <div style="font-size:14px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:6px;">${escapeHtml(g.topic || '')}</div>
+            ${g.keyword ? `<div style="font-size:11px;color:#f59e0b;font-weight:600;margin-bottom:8px;">⌖ ${escapeHtml(g.keyword)}</div>` : ''}
+            <div style="font-size:12px;color:var(--gray-300);line-height:1.5;border-top:1px solid var(--gray-700);padding-top:8px;">${escapeHtml(g.why || '')}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
 }
 
 // -- PAGE BUILDER RECOMMENDATIONS --
