@@ -1575,6 +1575,41 @@
 </div><!-- /shell -->
 
 <script>
+/* ══════════════════════════════════════════════════════════════
+   NXRD COPYWRITER VOICE — shared with the main dashboard
+   ══════════════════════════════════════════════════════════════
+   Mirrors the voice rules in index.html. Single source of truth
+   would be cleaner, but the LinkedIn tool is iframed and runs
+   in its own document, so it needs its own copy. Keep these two
+   blocks in sync. */
+const NXRD_VOICE_RULES = `You write in the NXRD voice. Direct, authoritative, commercially grounded. Plain English. Confident without being arrogant. You write for B2B decision makers who are pressed for time and immune to marketing fluff. Proof over assertion. Direction over decoration.
+
+STRICT FORMATTING RULES — the output is being pasted directly into a scheduling tool, so it must be plain text ready to publish.
+- NEVER use markdown formatting of any kind. No asterisks for bold (**word**), no underscores for italic (__word__), no pound signs for headers (# Title), no greater-than signs for quotes (> quote), no asterisks or dashes as bullet point prefixes.
+- NEVER use hyphens or em dashes anywhere in the copy. Use commas, full stops, or rewrite the sentence.
+- NEVER use emojis.
+- NEVER use section labels like "Hook:", "Body:", "CTA:", "Caption:" prefixing the content. Just write the content itself.
+- NEVER use filler phrases like "in today's world", "in the ever-changing landscape", "it goes without saying", "moreover", "furthermore", "in conclusion".
+- NEVER preamble the response with "Here is your post" or similar. Output the finished copy only.
+- Open with a statement, not a question. The first line must earn the scroll.
+- Every sentence earns its place. If it can be cut, cut it.`;
+
+function cleanCopy(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1$2')
+    .replace(/__([^_\n]+)__/g, '$1')
+    .replace(/(^|[^_])_([^_\n]+)_(?!_)/g, '$1$2')
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s{0,3}>\s+/gm, '')
+    .replace(/^\s{0,3}[\*\-\+]\s+/gm, '')
+    .replace(/^(Hook|Body|CTA|Caption|Headline|Post|Subject line|Subject)\s*:\s*/gim, '')
+    .replace(/`([^`\n]+)`/g, '$1')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 // -- NAVIGATION --
 function nav(id, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -1641,7 +1676,9 @@ async function runBfInstagramCaption() {
     story: '150 to 200 words — personal and narrative-led'
   };
 
-  const sysPrompt = `You are an expert bilingual Instagram content writer for Briskfil (@briskfil_), a Portuguese B2B industrial gas consultancy based in Esposende, Portugal. They specialise in compressed air quality, on-site nitrogen and oxygen generation, energy efficiency audits (ISO 11011), and independent industrial gas consulting. They are 100% manufacturer agnostic — they give truly independent advice. Their website is briskfil.com. Write in a direct, expert, human tone. No emojis in excess. No hyphens. Portuguese comes first — it is the priority market.`;
+  const sysPrompt = `${NXRD_VOICE_RULES}
+
+Context: You are writing Instagram captions for @briskfil_, a Portuguese B2B industrial gas consultancy based in Esposende, Portugal. They specialise in compressed air quality, on-site nitrogen and oxygen generation, energy efficiency audits (ISO 11011), and independent industrial gas consulting. They are 100% manufacturer agnostic — they give truly independent advice. Their website is briskfil.com. Portuguese comes first — it is the priority market.`;
 
   const makePrompt = (lang) => `Write an Instagram caption for @briskfil_ in ${lang === 'pt' ? 'European Portuguese as spoken in Portugal' : 'English'}.
 
@@ -1651,15 +1688,13 @@ Length: ${lengthMap[length] || length}
 ${brief ? 'Additional details: ' + brief : ''}
 
 Instagram caption rules:
-- Start with a strong visual hook — one line that earns the scroll
+- Start with a strong visual hook
 - Let the visual content do the work — caption supports, does not over-explain
-- Maximum 2 emojis if used at all
-- No hyphens
 - End with a soft CTA or question that invites engagement
 - Do NOT include hashtags — these are added separately
 - ${lang === 'pt' ? 'Write in natural, professional European Portuguese — not Brazilian Portuguese' : 'Write in clear, direct UK English'}
 
-Write only the caption. No preamble. No label saying "Caption:"`;
+Output the caption only, plain text. Follow every voice and formatting rule in your system instructions.`;
 
   try {
     const [ptRes, enRes] = await Promise.all([
@@ -1675,8 +1710,8 @@ Write only the caption. No preamble. No label saying "Caption:"`;
       }).then(r => r.json())
     ]);
 
-    document.getElementById('bf-ig-pt').textContent = ptRes.content || ptRes.text || 'Error generating Portuguese caption.';
-    document.getElementById('bf-ig-en').textContent = enRes.content || enRes.text || 'Error generating English caption.';
+    document.getElementById('bf-ig-pt').textContent = cleanCopy(ptRes.content || ptRes.text || 'Error generating Portuguese caption.');
+    document.getElementById('bf-ig-en').textContent = cleanCopy(enRes.content || enRes.text || 'Error generating English caption.');
     output.style.display = 'block';
   } catch(e) {
     document.getElementById('bf-ig-pt').textContent = 'Error. Please try again.';
@@ -1830,7 +1865,9 @@ function setGenLang(lang) {
   });
 }
 
-const BF_SYS = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial gas consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Briskfil's competitive advantage is independence: manufacturer-agnostic, genuinely expert, impartial advice. Target audience: plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers. Write in a direct, expert style. No jargon without explanation. No hype. No emojis. No hyphens. Authoritative but approachable. CRITICAL RULE: Never mention any competitor brand names in any post — not Atlas Copco, not CompAir, not Noxerior, not Novair, not Ultra Controlo, not Oxywise, not any other manufacturer. Always position Briskfil by what Briskfil does and what it stands for. Refer to competitors generically as "large manufacturers", "multinational suppliers", or "equipment manufacturers" if contrast is needed.`;
+const BF_SYS = `${NXRD_VOICE_RULES}
+
+Context: You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial gas consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Briskfil's competitive advantage is independence: manufacturer-agnostic, genuinely expert, impartial advice. Target audience: plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers. CRITICAL RULE: Never mention any competitor brand names in any post. Not Atlas Copco, not CompAir, not Noxerior, not Novair, not Ultra Controlo, not Oxywise, not any other manufacturer. Always position Briskfil by what Briskfil does and what it stands for. Refer to competitors generically as "large manufacturers", "multinational suppliers", or "equipment manufacturers" if contrast is needed.`;
 
 async function callClaude(prompt, outputId, spinnerId, wrapId) {
   const out = document.getElementById(outputId);
@@ -1896,14 +1933,14 @@ async function callClaude(prompt, outputId, spinnerId, wrapId) {
     );
 
     const results = await Promise.all(calls);
-    const enText = results[0]?.text || results[0]?.content || 'No response received.';
+    const enText = cleanCopy(results[0]?.text || results[0]?.content || 'No response received.');
     // Write to textarea if it exists (editable output), else to div
     const enEditId = outputId.replace('-text-en', '-edit-en').replace('-text', '-edit-en');
     const enEdit = document.getElementById(enEditId);
     if (enEdit && enEdit.tagName === 'TEXTAREA') { enEdit.value = enText; }
     else if (out) out.textContent = enText;
     if (hasPTElement && results[1]) {
-      const ptText = results[1]?.text || results[1]?.content || 'Sem resposta.';
+      const ptText = cleanCopy(results[1]?.text || results[1]?.content || 'Sem resposta.');
       const ptEditId = outputId.replace('-text-en', '-edit-pt').replace('-text', '-edit-pt');
       const ptEdit = document.getElementById(ptEditId);
       if (ptEdit && ptEdit.tagName === 'TEXTAREA') { ptEdit.value = ptText; }
@@ -1957,7 +1994,7 @@ async function translatePost(sourceLang) {
       })
     });
     const data = await res.json();
-    targetEl.value = data.text || data.content || prev;
+    targetEl.value = cleanCopy(data.text || data.content || prev);
     targetEl.style.borderColor = '';
   } catch(e) {
     targetEl.value = prev;
@@ -2100,7 +2137,9 @@ Write the post entirely in English. Direct, expert, plain-English style. No jarg
 
 // Bare API call that returns the text string directly (used by runGenerator parallel calls)
 async function callClaudeRaw(prompt) {
-  const systemPrompt = `You are an expert LinkedIn content strategist and copywriter working for NXRD, a UK-based digital marketing agency. You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Briskfil's competitive advantage is independence: they are manufacturer-agnostic, genuinely expert, and give clients impartial advice rather than selling proprietary products. CRITICAL RULE: Never mention any competitor brand names — not Atlas Copco, not CompAir, not Noxerior, not Novair, not any other manufacturer. Refer to competitors generically as 'large manufacturers' or 'equipment manufacturers' only. Their target audience is plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers, especially in food, pharma, automotive, electronics, biogas, water treatment, laser cutting, oil and gas, wine and viticulture, and medical oxygen sectors.`;
+  const systemPrompt = `${NXRD_VOICE_RULES}
+
+Context: You are creating LinkedIn content for Briskfil, a Portuguese B2B industrial consultancy founded in 2021, based in Esposende, Portugal. Briskfil specialises in: compressed air quality analysis and energy efficiency, on-site nitrogen generation (PSA and membrane systems), on-site oxygen generation, industrial fluid filtration, microbiological sterilisation of compressed air and vacuum, compressed air and industrial gas consulting, Industry 4.0 implementation, energy efficiency audits (ISO 11011), and machinery marketing, maintenance and rental. They have 35 years of combined expertise behind the founding team. Briskfil's competitive advantage is independence: they are manufacturer-agnostic, genuinely expert, and give clients impartial advice rather than selling proprietary products. CRITICAL RULE: Never mention any competitor brand names — not Atlas Copco, not CompAir, not Noxerior, not Novair, not any other manufacturer. Refer to competitors generically as 'large manufacturers' or 'equipment manufacturers' only. Their target audience is plant engineers, maintenance managers, energy managers, procurement leads, and factory directors at mid to large Portuguese and European manufacturers, especially in food, pharma, automotive, electronics, biogas, water treatment, laser cutting, oil and gas, wine and viticulture, and medical oxygen sectors.`;
   try {
     const response = await fetch('/api/generate', {
       method: 'POST',
@@ -2109,7 +2148,7 @@ async function callClaudeRaw(prompt) {
     });
     const data = await response.json();
     if (!data.success) throw new Error(data.error || 'Server error');
-    return data.text || '';
+    return cleanCopy(data.text || '');
   } catch(e) {
     return 'Error generating: ' + e.message;
   }
