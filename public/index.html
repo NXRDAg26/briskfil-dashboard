@@ -1906,6 +1906,49 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
 
 <script>
 /* ══════════════════════════════════════════════════════════════
+   NXRD COPYWRITER VOICE — shared across every content generator
+   ══════════════════════════════════════════════════════════════
+   Single source of truth for how all generated copy should sound
+   and look. Applied to every system prompt that produces text
+   destined for the scheduler. Paired with cleanCopy() below as
+   a defensive post-process that strips any markdown the model
+   leaks through anyway. */
+const NXRD_VOICE_RULES = `You write in the NXRD voice. Direct, authoritative, commercially grounded. Plain English. Confident without being arrogant. You write for B2B decision makers who are pressed for time and immune to marketing fluff. Proof over assertion. Direction over decoration.
+
+STRICT FORMATTING RULES — the output is being pasted directly into a scheduling tool, so it must be plain text ready to publish.
+- NEVER use markdown formatting of any kind. No asterisks for bold (**word**), no underscores for italic (__word__), no pound signs for headers (# Title), no greater-than signs for quotes (> quote), no asterisks or dashes as bullet point prefixes.
+- NEVER use hyphens or em dashes anywhere in the copy. Use commas, full stops, or rewrite the sentence.
+- NEVER use emojis.
+- NEVER use section labels like "Hook:", "Body:", "CTA:", "Caption:" prefixing the content. Just write the content itself.
+- NEVER use filler phrases like "in today's world", "in the ever-changing landscape", "it goes without saying", "moreover", "furthermore", "in conclusion".
+- NEVER preamble the response with "Here is your post" or similar. Output the finished copy only.
+- Open with a statement, not a question. The first line must earn the scroll.
+- Every sentence earns its place. If it can be cut, cut it.`;
+
+/* Strips markdown artefacts the model may emit anyway, so the
+   output is always clean enough to paste directly. */
+function cleanCopy(text) {
+  if (!text) return '';
+  return String(text)
+    // Strip bold/italic markers, keep inner text
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1$2')
+    .replace(/__([^_\n]+)__/g, '$1')
+    .replace(/(^|[^_])_([^_\n]+)_(?!_)/g, '$1$2')
+    // Strip leading markdown headers, blockquotes, bullets at start of lines
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s{0,3}>\s+/gm, '')
+    .replace(/^\s{0,3}[\*\-\+]\s+/gm, '')
+    // Strip stray leading section labels
+    .replace(/^(Hook|Body|CTA|Caption|Headline|Post|Subject line|Subject)\s*:\s*/gim, '')
+    // Strip backtick code marks
+    .replace(/`([^`\n]+)`/g, '$1')
+    // Collapse 3+ blank lines to 2
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/* ══════════════════════════════════════════════════════════════
    TAB SWITCHING
 ══════════════════════════════════════════════════════════════ */
 async function switchTab(tab, btn) {
@@ -3857,7 +3900,9 @@ async function runCopywriter() {
     warm: 'Warm and approachable. Professional but human. Conversational without being casual. Builds relationship before building argument.'
   };
 
-  const system = `You are the NXRD Male Copywriter. You write B2B copy for NXRD, a UK-based digital marketing agency, and their clients. Your voice is direct, authoritative, and commercially grounded. You write with confidence and precision. You never use hyphens. You never use emojis. You never use bullet point lists in creative copy. You never use filler phrases like "in today's world", "in the ever-changing landscape", or "it goes without saying". You open statements with force. Every sentence earns its place. You write for B2B decision makers who are pressed for time and immune to marketing fluff. Commercial weight behind every claim. Proof over assertion. Direction over decoration.`;
+  const system = `${NXRD_VOICE_RULES}
+
+You write B2B copy for ${client.name}, a client of NXRD (UK-based digital marketing agency). Apply all voice and formatting rules above without exception.`;
 
   const clientContext = `Client: ${client.name}
 Sector: ${client.sector}
@@ -3877,7 +3922,7 @@ Tone: ${toneMap[tone]}
 Length: ${lengthMap[length]}
 ${lang === 'pt' ? 'Write entirely in European Portuguese as spoken in Portugal. Natural, professional, direct.' : 'Write in English.'}
 
-Deliver only the finished copy, ready to use. No preamble, no notes, no explanation. No hyphens. No emojis.`;
+Output the finished copy only, plain text, ready to paste into a scheduler. Follow every voice and formatting rule in your system instructions.`;
 
   // Show/hide blocks
   document.getElementById('copy-block-en').style.display = (selectedLang === 'en' || selectedLang === 'both') ? 'block' : 'none';
@@ -3892,12 +3937,12 @@ Deliver only the finished copy, ready to use. No preamble, no notes, no explanat
     document.getElementById('copy-text-en').textContent = 'Writing...';
     document.getElementById('copy-text-pt').textContent = '';
     const text = await callCopyAPI(buildPrompt('en'), system);
-    document.getElementById('copy-text-en').textContent = text;
+    document.getElementById('copy-text-en').textContent = cleanCopy(text);
   } else if (selectedLang === 'pt') {
     document.getElementById('copy-text-pt').textContent = 'A escrever...';
     document.getElementById('copy-text-en').textContent = '';
     const text = await callCopyAPI(buildPrompt('pt'), system);
-    document.getElementById('copy-text-pt').textContent = text;
+    document.getElementById('copy-text-pt').textContent = cleanCopy(text);
   } else {
     document.getElementById('copy-text-en').textContent = 'Writing...';
     document.getElementById('copy-text-pt').textContent = 'A escrever...';
@@ -3905,8 +3950,8 @@ Deliver only the finished copy, ready to use. No preamble, no notes, no explanat
       callCopyAPI(buildPrompt('en'), system),
       callCopyAPI(buildPrompt('pt'), system)
     ]);
-    document.getElementById('copy-text-en').textContent = en;
-    document.getElementById('copy-text-pt').textContent = pt;
+    document.getElementById('copy-text-en').textContent = cleanCopy(en);
+    document.getElementById('copy-text-pt').textContent = cleanCopy(pt);
   }
 
   document.getElementById('copy-spinner').style.display = 'none';
@@ -4708,7 +4753,9 @@ async function runCounterPost() {
 
   const compProfile = COMP_PROFILES[comp] || COMP_PROFILES.atlas;
 
-  const sysPrompt = `You are an expert LinkedIn content strategist working for NXRD on the Briskfil account. Briskfil is a Portuguese B2B industrial gas consultancy based in Esposende. They specialise in compressed air quality analysis, on-site nitrogen and oxygen generation (PSA and membrane), energy efficiency audits (ISO 11011), industrial gas consulting, and machinery maintenance. They are 100% manufacturer agnostic — they give independent advice and do not sell their own equipment. Their website is briskfil.com. Write direct, confident, expert copy. No hyphens. No emojis. Always position Briskfil's independence as the core differentiator.`;
+  const sysPrompt = `${NXRD_VOICE_RULES}
+
+Context: You are writing LinkedIn content for Briskfil, a Portuguese B2B industrial gas consultancy based in Esposende. They specialise in compressed air quality analysis, on-site nitrogen and oxygen generation (PSA and membrane), energy efficiency audits (ISO 11011), industrial gas consulting, and machinery maintenance. They are 100% manufacturer agnostic — they give independent advice and do not sell their own equipment. Their website is briskfil.com. Always position Briskfil's independence as the core differentiator.`;
 
   const genPost = async (lang) => {
     const langInstr = lang === 'pt' ? 'Write entirely in European Portuguese as spoken in Portugal. Natural, professional, expert tone.' : 'Write in English. Direct, authoritative, commercially grounded.';
@@ -4720,7 +4767,9 @@ Write a LinkedIn counter-post for Briskfil that responds to this competitor's an
 
 ${langInstr}
 
-Format: Under 270 words. Strong opening line that earns the scroll. Specific and commercially grounded. End with a soft CTA (comment or DM).`;
+Length: Under 270 words. Strong opening line that earns the scroll. Specific and commercially grounded. End with a soft CTA (comment or DM).
+
+Output the finished post only. Plain text. Follow every voice and formatting rule in your system instructions.`;
 
     const res = await fetch('/api/generate', {
       method: 'POST',
@@ -4728,7 +4777,7 @@ Format: Under 270 words. Strong opening line that earns the scroll. Specific and
       body: JSON.stringify({ prompt, systemPrompt: sysPrompt })
     });
     const data = await res.json();
-    return data.content || data.text || '';
+    return cleanCopy(data.content || data.text || '');
   };
 
   try {
