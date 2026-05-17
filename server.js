@@ -4,6 +4,7 @@ const session = require('express-session');
 const { google } = require('googleapis');
 const { BetaAnalyticsDataClient } = require('@google-analytics/data');
 const path = require('path');
+const { pool, initSchema, CLIENT } = require('./db');
 
 const app = express();
 app.use(express.json());
@@ -293,55 +294,325 @@ app.get('/api/ai-referrals', requireAuth, async (req, res) => {
 
 // ── AI VISIBILITY TRACKER ─────────────────────────────────────────────────────
 
-let aiVisibilityLog = [];
-
-app.get('/api/ai-visibility', (req, res) => res.json({ success: true, data: aiVisibilityLog }));
-
-app.post('/api/ai-visibility', (req, res) => {
-  const { platform, query, cited, notes, date } = req.body;
-  const entry = {
-    id: Date.now(),
-    platform,
-    query,
-    cited: cited === true || cited === 'true',
-    notes: notes || '',
-    date: date || new Date().toISOString().split('T')[0]
-  };
-  aiVisibilityLog.unshift(entry);
-  aiVisibilityLog = aiVisibilityLog.slice(0, 100);
-  res.json({ success: true, data: entry });
+app.get('/api/ai-visibility', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT id, platform, query, cited, notes, date FROM ai_visibility WHERE client = $1 ORDER BY id DESC LIMIT 100',
+      [CLIENT]
+    );
+    res.json({ success: true, data: r.rows });
+  } catch (err) {
+    console.error('AI visibility GET error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-app.delete('/api/ai-visibility/:id', (req, res) => {
-  aiVisibilityLog = aiVisibilityLog.filter(e => e.id !== parseInt(req.params.id));
-  res.json({ success: true });
+app.post('/api/ai-visibility', async (req, res) => {
+  try {
+    const { platform, query, cited, notes, date } = req.body;
+    const id = Date.now();
+    const citedBool = cited === true || cited === 'true';
+    const dateStr = date || new Date().toISOString().split('T')[0];
+    const r = await pool.query(
+      `INSERT INTO ai_visibility (id, client, platform, query, cited, notes, date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, platform, query, cited, notes, date`,
+      [id, CLIENT, platform, query, citedBool, notes || '', dateStr]
+    );
+    res.json({ success: true, data: r.rows[0] });
+  } catch (err) {
+    console.error('AI visibility POST error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/ai-visibility/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM ai_visibility WHERE id = $1 AND client = $2', [parseInt(req.params.id), CLIENT]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('AI visibility DELETE error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ── LINKEDIN TRACKER ──────────────────────────────────────────────────────────
 
-let linkedInLog = [];
-
-app.get('/api/linkedin', (req, res) => res.json({ success: true, data: linkedInLog }));
-
-app.post('/api/linkedin', (req, res) => {
-  const { type, topic, impressions, engagement, followers, date } = req.body;
-  const entry = {
-    id: Date.now(),
-    type: type || 'post',
-    topic,
-    impressions: parseInt(impressions) || 0,
-    engagement: parseFloat(engagement) || 0,
-    followers: parseInt(followers) || 0,
-    date: date || new Date().toISOString().split('T')[0]
-  };
-  linkedInLog.unshift(entry);
-  linkedInLog = linkedInLog.slice(0, 200);
-  res.json({ success: true, data: linkedInLog });
+app.get('/api/linkedin', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT id, type, topic, impressions, engagement, followers, date FROM linkedin_log WHERE client = $1 ORDER BY id DESC LIMIT 200',
+      [CLIENT]
+    );
+    res.json({ success: true, data: r.rows });
+  } catch (err) {
+    console.error('LinkedIn GET error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-app.delete('/api/linkedin/:id', (req, res) => {
-  linkedInLog = linkedInLog.filter(e => e.id !== parseInt(req.params.id));
-  res.json({ success: true, data: linkedInLog });
+app.post('/api/linkedin', async (req, res) => {
+  try {
+    const { type, topic, impressions, engagement, followers, date } = req.body;
+    const id = Date.now();
+    await pool.query(
+      `INSERT INTO linkedin_log (id, client, type, topic, impressions, engagement, followers, date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [id, CLIENT, type || 'post', topic, parseInt(impressions) || 0, parseFloat(engagement) || 0, parseInt(followers) || 0, date || new Date().toISOString().split('T')[0]]
+    );
+    const all = await pool.query(
+      'SELECT id, type, topic, impressions, engagement, followers, date FROM linkedin_log WHERE client = $1 ORDER BY id DESC LIMIT 200',
+      [CLIENT]
+    );
+    res.json({ success: true, data: all.rows });
+  } catch (err) {
+    console.error('LinkedIn POST error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/linkedin/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM linkedin_log WHERE id = $1 AND client = $2', [parseInt(req.params.id), CLIENT]);
+    const all = await pool.query(
+      'SELECT id, type, topic, impressions, engagement, followers, date FROM linkedin_log WHERE client = $1 ORDER BY id DESC LIMIT 200',
+      [CLIENT]
+    );
+    res.json({ success: true, data: all.rows });
+  } catch (err) {
+    console.error('LinkedIn DELETE error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── POST SCHEDULER ────────────────────────────────────────────────────────────
+
+app.get('/api/posts', async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT id, title, copy, format, status, date, time, hashtags, link, notes,
+              to_char(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "updatedAt"
+       FROM posts WHERE client = $1 ORDER BY date NULLS LAST, time NULLS LAST`,
+      [CLIENT]
+    );
+    res.json({ success: true, data: r.rows });
+  } catch (err) {
+    console.error('Posts GET error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/posts', async (req, res) => {
+  try {
+    const p = req.body || {};
+    const id = p.id || 'post_' + Date.now();
+    await pool.query(
+      `INSERT INTO posts (id, client, title, copy, format, status, date, time, hashtags, link, notes, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+       ON CONFLICT (id) DO UPDATE SET
+         title = EXCLUDED.title,
+         copy = EXCLUDED.copy,
+         format = EXCLUDED.format,
+         status = EXCLUDED.status,
+         date = EXCLUDED.date,
+         time = EXCLUDED.time,
+         hashtags = EXCLUDED.hashtags,
+         link = EXCLUDED.link,
+         notes = EXCLUDED.notes,
+         updated_at = NOW()`,
+      [id, CLIENT, p.title || '', p.copy || '', p.format || 'text', p.status || 'draft',
+       p.date || '', p.time || '', p.hashtags || '', p.link || '', p.notes || '']
+    );
+    res.json({ success: true, id });
+  } catch (err) {
+    console.error('Posts POST error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/posts/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM posts WHERE id = $1 AND client = $2', [req.params.id, CLIENT]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Posts DELETE error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── TECH SEO CHECKLIST ────────────────────────────────────────────────────────
+
+app.get('/api/tech-checklist', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT item_id, checked FROM tech_checklist WHERE client = $1',
+      [CLIENT]
+    );
+    const map = {};
+    r.rows.forEach(row => { map[row.item_id] = row.checked; });
+    res.json({ success: true, data: map });
+  } catch (err) {
+    console.error('Tech checklist GET error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/tech-checklist', async (req, res) => {
+  try {
+    const { item_id, checked } = req.body;
+    if (!item_id) return res.status(400).json({ success: false, error: 'item_id required' });
+    await pool.query(
+      `INSERT INTO tech_checklist (client, item_id, checked, updated_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (client, item_id) DO UPDATE SET checked = EXCLUDED.checked, updated_at = NOW()`,
+      [CLIENT, item_id, !!checked]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Tech checklist POST error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── TOP 5 ACTIONS CHECKLIST ───────────────────────────────────────────────────
+
+app.get('/api/bf-actions', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT action_id, checked FROM bf_actions WHERE client = $1',
+      [CLIENT]
+    );
+    const map = {};
+    r.rows.forEach(row => { map[row.action_id] = row.checked; });
+    res.json({ success: true, data: map });
+  } catch (err) {
+    console.error('BF actions GET error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/bf-actions', async (req, res) => {
+  try {
+    const { action_id, checked } = req.body;
+    if (!action_id) return res.status(400).json({ success: false, error: 'action_id required' });
+    await pool.query(
+      `INSERT INTO bf_actions (client, action_id, checked, updated_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (client, action_id) DO UPDATE SET checked = EXCLUDED.checked, updated_at = NOW()`,
+      [CLIENT, action_id, !!checked]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('BF actions POST error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/bf-actions', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM bf_actions WHERE client = $1', [CLIENT]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('BF actions DELETE error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── COPYWRITER CLIENTS ────────────────────────────────────────────────────────
+
+app.get('/api/copy-clients', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT id, name, sector, description AS desc, audience, proof FROM copy_clients WHERE client = $1 ORDER BY created_at ASC',
+      [CLIENT]
+    );
+    res.json({ success: true, data: r.rows });
+  } catch (err) {
+    console.error('Copy clients GET error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/copy-clients', async (req, res) => {
+  try {
+    const c = req.body || {};
+    const id = c.id || 'custom_' + Date.now();
+    await pool.query(
+      `INSERT INTO copy_clients (id, client, name, sector, description, audience, proof)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (id) DO UPDATE SET
+         name = EXCLUDED.name,
+         sector = EXCLUDED.sector,
+         description = EXCLUDED.description,
+         audience = EXCLUDED.audience,
+         proof = EXCLUDED.proof`,
+      [id, CLIENT, c.name || '', c.sector || '', c.desc || c.description || '', c.audience || '', c.proof || '']
+    );
+    res.json({ success: true, id });
+  } catch (err) {
+    console.error('Copy clients POST error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/copy-clients/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM copy_clients WHERE id = $1 AND client = $2', [req.params.id, CLIENT]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Copy clients DELETE error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── COPYWRITER HISTORY ────────────────────────────────────────────────────────
+
+app.get('/api/copy-history', async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT id, copy_client_name AS client, format, topic, lang, en, pt, date
+       FROM copy_history WHERE client = $1 ORDER BY created_at DESC LIMIT 30`,
+      [CLIENT]
+    );
+    res.json({ success: true, data: r.rows });
+  } catch (err) {
+    console.error('Copy history GET error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/copy-history', async (req, res) => {
+  try {
+    const h = req.body || {};
+    const id = h.id || 'copy_' + Date.now();
+    await pool.query(
+      `INSERT INTO copy_history (id, client, copy_client_name, format, topic, lang, en, pt, date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (id) DO NOTHING`,
+      [id, CLIENT, h.client || h.copy_client_name || '', h.format || '', h.topic || '', h.lang || 'en', h.en || '', h.pt || '', h.date || '']
+    );
+    // Keep only the most recent 30 entries for this client
+    await pool.query(
+      `DELETE FROM copy_history WHERE client = $1 AND id NOT IN (
+        SELECT id FROM copy_history WHERE client = $1 ORDER BY created_at DESC LIMIT 30
+      )`,
+      [CLIENT]
+    );
+    res.json({ success: true, id });
+  } catch (err) {
+    console.error('Copy history POST error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/copy-history', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM copy_history WHERE client = $1', [CLIENT]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Copy history DELETE error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ── CITATION TOOL ─────────────────────────────────────────────────────────────
@@ -525,4 +796,12 @@ app.get('/api/gsc/pages', requireAuth, async (req, res) => {
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Briskfil dashboard running on port ${PORT}`));
+
+(async () => {
+  try {
+    await initSchema();
+  } catch (err) {
+    console.error('Failed to initialise database schema. Server starting anyway.');
+  }
+  app.listen(PORT, () => console.log(`Briskfil dashboard running on port ${PORT}`));
+})();
