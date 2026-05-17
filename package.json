@@ -1,6 +1,6 @@
 {
   "name": "briskfil-analytics-dashboard",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Briskfil GA4 Analytics Dashboard by NXRD",
   "main": "server.js",
   "scripts": {
@@ -13,6 +13,7 @@
     "express": "^4.18.2",
     "express-session": "^1.17.3",
     "google-auth-library": "^9.4.1",
-    "googleapis": "^140.0.0"
+    "googleapis": "^140.0.0",
+    "pg": "^8.11.3"
   }
 }
