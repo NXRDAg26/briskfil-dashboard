@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const { google } = require('googleapis');
 const { BetaAnalyticsDataClient } = require('@google-analytics/data');
 const path = require('path');
@@ -9,7 +10,16 @@ const { pool, initSchema, CLIENT } = require('./db');
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Sessions live in the same Postgres database as the rest of the dashboard.
+// Removes the MemoryStore production warning and means Google sign-in
+// survives Render restarts and redeploys.
 app.use(session({
+  store: new pgSession({
+    pool,
+    tableName: 'user_sessions',
+    createTableIfMissing: true
+  }),
   secret: process.env.SESSION_SECRET || 'nxrd-briskfil-secret-2024',
   resave: false,
   saveUninitialized: false,
