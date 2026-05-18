@@ -2852,6 +2852,43 @@ function renderEmployees() {
       ? `<a href="${emp.url}" target="_blank" class="copy-btn" style="text-decoration:none;font-size:11px;">LinkedIn ↗</a>`
       : '';
 
+    // Scan results panel — only renders if a scan has been run on this employee
+    const scanBlock = emp.scanResult
+      ? `<div style="margin-top:14px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.3);border-radius:var(--radius-sm);padding:14px 16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.06em;">Profile scan results</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px;">Scanned ${emp.scanResult.scannedAt ? new Date(emp.scanResult.scannedAt).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="background:var(--surface);border:1px solid rgba(96,165,250,0.4);border-radius:8px;padding:4px 12px;">
+                <span style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">AI scan score</span>
+                <span style="font-size:16px;font-weight:800;color:#60a5fa;margin-left:6px;">${emp.scanResult.aiScore != null ? emp.scanResult.aiScore : '—'}/100</span>
+              </div>
+            </div>
+          </div>
+          ${emp.scanResult.summary ? `<div style="font-size:12.5px;color:var(--text);line-height:1.7;margin-bottom:10px;">${escapeHtmlMp(emp.scanResult.summary)}</div>` : ''}
+          ${(emp.scanResult.strengths && emp.scanResult.strengths.length) ? `
+            <div style="margin-bottom:8px;">
+              <div style="font-size:10px;font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">✓ Strengths found</div>
+              <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--text);line-height:1.7;">
+                ${emp.scanResult.strengths.map(s => `<li>${escapeHtmlMp(s)}</li>`).join('')}
+              </ul>
+            </div>` : ''}
+          ${(emp.scanResult.gaps && emp.scanResult.gaps.length) ? `
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">✕ Gaps to fix</div>
+              <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--text);line-height:1.7;">
+                ${emp.scanResult.gaps.map(g => `<li>${escapeHtmlMp(g)}</li>`).join('')}
+              </ul>
+            </div>` : ''}
+          ${(emp.scanResult.autoTicked && emp.scanResult.autoTicked.length) ? `
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(96,165,250,0.2);font-size:11px;color:var(--muted);">
+              <strong style="color:#60a5fa;">Auto-ticked ${emp.scanResult.autoTicked.length} criteria</strong> based on evidence in the pasted text. Manual criteria (engagement, posting frequency, network) need you to tick them based on what you observe.
+            </div>` : ''}
+        </div>`
+      : '';
+
     const aiBlock = emp.aiSuggestions
       ? `<div style="margin-top:14px;background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-sm);padding:14px 16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">
@@ -2861,6 +2898,21 @@ function renderEmployees() {
           <div style="font-size:12.5px;color:var(--text);line-height:1.7;white-space:pre-wrap;">${escapeHtmlMp(emp.aiSuggestions)}</div>
         </div>`
       : '';
+
+    // Profile scan input area — collapsed by default. Toggled per employee via showScanInput()
+    const scanInputOpen = scanInputOpenFor === emp.id;
+    const scanInputBlock = `
+      <details ${scanInputOpen ? 'open' : ''} style="margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0;" id="emp-scan-details-${emp.id}">
+        <summary style="cursor:pointer;padding:12px 16px;font-size:12px;font-weight:600;color:var(--text);user-select:none;display:flex;align-items:center;justify-content:space-between;list-style:none;">
+          <span>⚡ Paste profile text to run AI scan${emp.scanResult ? ' (rerun)' : ''}</span>
+          <span style="font-size:10px;color:var(--muted);font-weight:500;">Click to expand</span>
+        </summary>
+        <div style="padding:0 16px 16px;">
+          <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;">Open ${escapeHtmlMp(emp.name)}'s LinkedIn profile and copy across the <strong>Headline</strong>, full <strong>About section</strong>, and <strong>current Experience block</strong>. Paste below. The AI will score the profile, identify gaps, and auto-tick the criteria it can verify from the text.</div>
+          <textarea id="emp-scan-input-${emp.id}" rows="6" placeholder="Paste headline + About + current Experience here..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:12.5px;padding:10px 12px;outline:none;resize:vertical;line-height:1.65;box-sizing:border-box;">${emp.scanInputText ? escapeHtmlMp(emp.scanInputText) : ''}</textarea>
+          <button class="add-btn" onclick="runEmpScan('${emp.id}')" style="margin-top:10px;width:100%;padding:9px;font-size:12px;letter-spacing:0.05em;">${emp.scanResult ? '↻ Rescan profile' : '⚡ Run AI profile scan'}</button>
+        </div>
+      </details>`;
 
     return `<div class="emp-card">
       <div class="emp-card-head">
@@ -2879,15 +2931,175 @@ function renderEmployees() {
           </div>
           <div style="display:flex;flex-direction:column;gap:5px;">
             ${linkBtn}
+            <button class="copy-btn" style="font-size:11px;${emp.scanResult ? '' : 'background:rgba(96,165,250,0.15);border-color:rgba(96,165,250,0.4);color:#60a5fa;'}" onclick="showScanInput('${emp.id}')">${emp.scanResult ? '⚡ Rescan profile' : '⚡ Scan profile'}</button>
             <button class="copy-btn" style="font-size:11px;" onclick="runEmpSuggestions('${emp.id}')">${emp.aiSuggestions ? '↻ Refresh AI plan' : '⚡ AI improvement plan'}</button>
             <button onclick="removeEmployee('${emp.id}')" style="background:transparent;border:1px solid rgba(239,68,68,0.4);border-radius:6px;color:#f87171;font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Poppins',sans-serif;">Remove</button>
           </div>
         </div>
       </div>
       ${groupsHtml}
+      ${scanBlock}
+      ${scanInputBlock}
       ${aiBlock}
     </div>`;
   }).join('');
+}
+
+// Tracks which employee's scan input panel is open. Resets on each render.
+let scanInputOpenFor = null;
+
+// Open the scan input area for a specific employee. If it's already open,
+// the click just scrolls to it. If closed, we open it and re-render so
+// the <details> element starts open.
+function showScanInput(empId) {
+  scanInputOpenFor = empId;
+  renderEmployees();
+  // After re-render, scroll the scan area into view so it's obvious where to paste
+  setTimeout(() => {
+    const el = document.getElementById('emp-scan-details-' + empId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const ta = document.getElementById('emp-scan-input-' + empId);
+      if (ta) ta.focus();
+    }
+  }, 50);
+}
+
+// The criteria the AI is allowed to auto-tick. Anything not in this list
+// (engagement frequency, posting cadence, network size) cannot be verified
+// from pasted profile text alone, so the user has to tick those manually.
+// Keeping this explicit prevents the AI from overclaiming what it "saw".
+const EMP_SCAN_TICKABLE = [
+  'profile_photo',       // visible if photo URL or mention present
+  'banner',              // visible if banner mentioned
+  'headline',            // visible — first line of pasted text
+  'about_section',       // visible — substantive About present
+  'experience',          // visible — Experience block has substance
+  'connected_team',      // sometimes mentioned in About
+  'follows_briskfil',    // implicit if they work there
+  'posts_industry',      // visible if About/Experience mentions industry topics
+  'posts_bilingual',     // visible if About/Experience contains both languages
+  'connections_industry',// visible if About signals target audience
+  'creator_mode'         // visible if profile shows creator-mode topics
+];
+
+async function runEmpScan(empId) {
+  const emp = bfEmployees.find(e => e.id === empId);
+  if (!emp) return;
+  const textareaEl = document.getElementById('emp-scan-input-' + empId);
+  if (!textareaEl) return;
+  const pasted = textareaEl.value.trim();
+  if (!pasted) { toast('Paste the profile headline, About, and Experience text first.'); return; }
+  if (pasted.length < 50) { toast('Profile text looks too short to scan. Please paste more.'); return; }
+
+  // Persist the pasted text so it survives re-renders
+  emp.scanInputText = pasted;
+  saveEmployees();
+
+  toast('Scanning ' + emp.name + "'s profile...");
+
+  // Build a list of criteria the AI is allowed to mark as evidenced.
+  const tickableCriteria = EMP_CRITERIA.filter(c => EMP_SCAN_TICKABLE.includes(c.id));
+  const tickableList = tickableCriteria.map(c => `- id: "${c.id}" — ${c.label}`).join('\n');
+
+  const prompt = `${NXRD_VOICE_RULES}
+
+You are an expert LinkedIn profile auditor. You will scan the pasted profile text for a Briskfil team member and return a structured analysis.
+
+ABOUT BRISKFIL: A Portuguese B2B industrial gas consultancy in Esposende. Services include compressed air audits, on-site nitrogen and oxygen generation, energy efficiency audits (ISO 11011), and industrial gas consulting. Manufacturer-agnostic. Their primary competitor is Atlas Copco. The audience for these profiles is plant engineers, procurement managers, energy managers, and factory directors in Portugal and the wider Iberian / European industrial market.
+
+TEAM MEMBER: ${emp.name}
+ROLE: ${emp.role || 'Not specified'}
+LINKEDIN URL: ${emp.url || 'Not provided'}
+
+PASTED PROFILE TEXT (headline + About + current Experience):
+"""
+${pasted}
+"""
+
+YOUR TASK — return ONLY a valid JSON object with this exact shape, no markdown or backticks:
+
+{
+  "aiScore": 0-100 integer reflecting how well the visible profile content positions this person to drive Briskfil's organic LinkedIn reach. Score the VISIBLE content only — headline strength, About keyword coverage and positioning, Experience substance. Do NOT score engagement or posting frequency since those are not visible from pasted text.,
+  "summary": "2-3 sentences in plain language describing the overall state of the profile content. Address what the headline, About, and Experience actually say.",
+  "strengths": [
+    "Up to 4 specific strengths in the visible profile content. Each one a single sentence. Reference the actual text."
+  ],
+  "gaps": [
+    "Up to 5 specific gaps or weaknesses in the visible profile content. Each one a single sentence with a concrete fix. Reference the actual text — do not give generic advice."
+  ],
+  "evidence": [
+    { "criterion_id": "matches one of the IDs below", "evidence": "the exact phrase or sentence from the pasted text that proves this criterion is met. If you cannot cite a specific phrase, do NOT include this criterion." }
+  ]
+}
+
+CRITERIA THE AI MAY MARK AS EVIDENCED (only include criteria you have a specific text quote for):
+${tickableList}
+
+Rules:
+- Be honest. If the headline is weak, say so in "gaps".
+- Only include a criterion in "evidence" if you can cite specific text. No assumptions.
+- The "aiScore" must reflect VISIBLE content quality only, not engagement assumptions.
+- All strings in English.
+- Return ONLY the JSON object. No introduction. No explanation. Start with { and end with }.`;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are an expert LinkedIn profile auditor. Return only valid JSON objects. No markdown, no backticks, no preamble.',
+        prompt, max_tokens: 1500
+      })
+    });
+    const data = await res.json();
+    let raw = (data.text || data.content || '').trim().replace(/```json|```/g, '').trim();
+    const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+    if (s === -1) throw new Error('No JSON object returned');
+    const parsed = JSON.parse(raw.slice(s, e + 1));
+
+    // Validate and coerce
+    const aiScore = (typeof parsed.aiScore === 'number') ? Math.max(0, Math.min(100, Math.round(parsed.aiScore))) : null;
+    const summary = String(parsed.summary || '').trim();
+    const strengths = Array.isArray(parsed.strengths) ? parsed.strengths.map(s => String(s).trim()).filter(Boolean).slice(0, 6) : [];
+    const gaps = Array.isArray(parsed.gaps) ? parsed.gaps.map(g => String(g).trim()).filter(Boolean).slice(0, 8) : [];
+    const evidence = Array.isArray(parsed.evidence) ? parsed.evidence : [];
+
+    // Only auto-tick criteria whose IDs are in the tickable allow-list AND
+    // for which the AI provided actual evidence text
+    const tickableIds = new Set(EMP_SCAN_TICKABLE);
+    const autoTicked = [];
+    emp.checks = emp.checks || {};
+    evidence.forEach(ev => {
+      const cid = ev && ev.criterion_id;
+      const evText = ev && ev.evidence;
+      if (cid && evText && tickableIds.has(cid) && String(evText).trim().length > 10) {
+        if (!emp.checks[cid]) {
+          emp.checks[cid] = true;
+          autoTicked.push(cid);
+        }
+      }
+    });
+
+    emp.scanResult = {
+      aiScore,
+      summary,
+      strengths,
+      gaps,
+      autoTicked,
+      scannedAt: new Date().toISOString()
+    };
+    saveEmployees();
+    scanInputOpenFor = null; // collapse the input panel after a successful scan
+    renderEmployees();
+    if (autoTicked.length) {
+      toast('Scan complete — ' + autoTicked.length + ' criteria auto-ticked');
+    } else {
+      toast('Scan complete — no criteria auto-ticked. See findings below.');
+    }
+  } catch(err) {
+    toast('Could not scan profile. Please try again or paste more text.');
+  }
 }
 
 async function runEmpSuggestions(empId) {
