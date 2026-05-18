@@ -1509,6 +1509,7 @@
               <div id="emp-team-score" style="font-size:36px;font-weight:800;color:var(--accent);line-height:1;margin-bottom:4px;">0</div>
               <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">out of 100</div>
               <div id="emp-team-label" style="font-size:11px;color:var(--muted2);margin-top:8px;">No employees added yet</div>
+              <button id="emp-team-export-btn" class="copy-btn" style="margin-top:10px;font-size:10px;background:rgba(74,222,128,0.12);border-color:rgba(74,222,128,0.4);color:#4ade80;display:none;" onclick="exportTeamPdf()">📄 Export full team report</button>
             </div>
           </div>
         </div>
@@ -2812,9 +2813,14 @@ function renderEmployees() {
     empty.style.display = 'block';
     teamScoreEl.textContent = '0';
     teamLabelEl.textContent = 'No employees added yet';
+    const tBtn = document.getElementById('emp-team-export-btn');
+    if (tBtn) tBtn.style.display = 'none';
     return;
   }
   empty.style.display = 'none';
+  // Show the team export button once at least one employee exists
+  const tBtn = document.getElementById('emp-team-export-btn');
+  if (tBtn) tBtn.style.display = 'inline-flex';
 
   const teamScore = calcTeamScore();
   teamScoreEl.textContent = teamScore;
@@ -2933,6 +2939,7 @@ function renderEmployees() {
             ${linkBtn}
             <button class="copy-btn" style="font-size:11px;${emp.scanResult ? '' : 'background:rgba(96,165,250,0.15);border-color:rgba(96,165,250,0.4);color:#60a5fa;'}" onclick="showScanInput('${emp.id}')">${emp.scanResult ? '⚡ Rescan profile' : '⚡ Scan profile'}</button>
             <button class="copy-btn" style="font-size:11px;" onclick="runEmpSuggestions('${emp.id}')">${emp.aiSuggestions ? '↻ Refresh AI plan' : '⚡ AI improvement plan'}</button>
+            <button class="copy-btn" style="font-size:11px;background:rgba(74,222,128,0.12);border-color:rgba(74,222,128,0.4);color:#4ade80;" onclick="exportEmpPdf('${emp.id}')" title="Open a printable report to send to ${escapeHtmlMp(emp.name)}">📄 Export PDF</button>
             <button onclick="removeEmployee('${emp.id}')" style="background:transparent;border:1px solid rgba(239,68,68,0.4);border-radius:6px;color:#f87171;font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Poppins',sans-serif;">Remove</button>
           </div>
         </div>
@@ -3167,6 +3174,252 @@ function copyEmpSuggestions(empId) {
     if (typeof showToast === 'function') showToast('Activation plan copied');
     else toast('Copied');
   });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PDF EXPORT — opens a clean printable window for one employee
+   or the full team. The customer hits "Save as PDF" in their
+   browser's print dialog. No backend, no library dependencies.
+   ══════════════════════════════════════════════════════════════ */
+
+// Generate the HTML for a single employee's report card. Used both
+// for the per-employee PDF and the full team PDF (where it is
+// repeated for each team member).
+function _buildEmpReportHtml(emp) {
+  const score = calcEmpScore(emp);
+  const scoreCol = score >= 70 ? '#16a34a' : score >= 40 ? '#d97706' : '#dc2626';
+  const empLabel = getEmpLabel(score);
+  const initials = getEmpInitials(emp.name);
+
+  // Group criteria with tick state
+  const groups = ['Profile foundation', 'Engagement', 'Original posting', 'Network'];
+  const groupsHtml = groups.map(g => {
+    const items = EMP_CRITERIA.filter(c => c.group === g);
+    const itemsHtml = items.map(c => {
+      const checked = emp.checks && emp.checks[c.id];
+      return `<tr>
+        <td style="padding:7px 10px;width:22px;vertical-align:top;">
+          <span style="display:inline-flex;width:16px;height:16px;border-radius:4px;border:1.5px solid ${checked ? '#16a34a' : '#cbd5e1'};background:${checked ? '#16a34a' : '#fff'};color:#fff;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1;">${checked ? '✓' : ''}</span>
+        </td>
+        <td style="padding:7px 10px;font-size:11.5px;color:${checked ? '#0f172a' : '#475569'};line-height:1.5;">${_escPdf(c.label)}</td>
+        <td style="padding:7px 10px;font-size:10px;color:#64748b;font-weight:700;text-align:right;white-space:nowrap;">+${c.points} pts</td>
+      </tr>`;
+    }).join('');
+    return `<div style="margin-bottom:14px;page-break-inside:avoid;">
+      <div style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">${g}</div>
+      <table style="width:100%;border-collapse:collapse;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        ${itemsHtml}
+      </table>
+    </div>`;
+  }).join('');
+
+  // Scan block (only if a scan has been run)
+  const scanBlock = emp.scanResult ? `
+    <div style="margin:18px 0;padding:16px 18px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;page-break-inside:avoid;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:10px;flex-wrap:wrap;">
+        <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.06em;">Profile scan summary</div>
+        <div style="font-size:13px;font-weight:700;color:#2563eb;">AI scan score: ${emp.scanResult.aiScore != null ? emp.scanResult.aiScore : '—'}/100</div>
+      </div>
+      ${emp.scanResult.summary ? `<div style="font-size:12px;color:#1e293b;line-height:1.7;margin-bottom:10px;">${_escPdf(emp.scanResult.summary)}</div>` : ''}
+      ${(emp.scanResult.strengths && emp.scanResult.strengths.length) ? `
+        <div style="margin-bottom:8px;">
+          <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">✓ Strengths to keep</div>
+          <ul style="margin:0;padding-left:18px;font-size:11.5px;color:#1e293b;line-height:1.65;">
+            ${emp.scanResult.strengths.map(s => `<li>${_escPdf(s)}</li>`).join('')}
+          </ul>
+        </div>` : ''}
+      ${(emp.scanResult.gaps && emp.scanResult.gaps.length) ? `
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">✕ Gaps to fix</div>
+          <ul style="margin:0;padding-left:18px;font-size:11.5px;color:#1e293b;line-height:1.65;">
+            ${emp.scanResult.gaps.map(g => `<li>${_escPdf(g)}</li>`).join('')}
+          </ul>
+        </div>` : ''}
+    </div>` : '';
+
+  // AI activation plan block (only if it's been generated)
+  const planBlock = emp.aiSuggestions ? `
+    <div style="margin:18px 0;padding:16px 18px;background:#fefce8;border:1px solid #fde68a;border-radius:8px;page-break-inside:avoid;">
+      <div style="font-size:12px;font-weight:700;color:#854d0e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Your activation plan for the next 30 days</div>
+      <div style="font-size:12px;color:#0f172a;line-height:1.75;white-space:pre-wrap;">${_escPdf(emp.aiSuggestions)}</div>
+    </div>` : '';
+
+  return `
+    <div class="emp-report-block" style="page-break-after:always;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:16px;padding:18px 0;border-bottom:2px solid #c8f026;margin-bottom:20px;">
+        <div style="width:54px;height:54px;border-radius:50%;background:#c8f026;color:#000;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:20px;font-weight:800;color:#0f172a;line-height:1.2;">${_escPdf(emp.name)}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:3px;">${_escPdf(emp.role || 'Briskfil team member')}</div>
+          ${emp.url ? `<div style="font-size:11px;color:#2563eb;margin-top:3px;word-break:break-all;">${_escPdf(emp.url)}</div>` : ''}
+        </div>
+        <div style="text-align:center;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:10px 16px;flex-shrink:0;">
+          <div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">Activation score</div>
+          <div style="font-size:28px;font-weight:800;color:${scoreCol};line-height:1;">${score}/100</div>
+          <div style="font-size:10px;color:#475569;margin-top:5px;font-weight:600;">${_escPdf(empLabel)}</div>
+        </div>
+      </div>
+      ${scanBlock}
+      <div style="margin:18px 0;">
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;">Your activation checklist</div>
+        <div style="font-size:11px;color:#64748b;margin-bottom:14px;line-height:1.6;">These are the 17 things that determine how much organic reach your profile drives for Briskfil. Ticked items show what is already in place. Unticked items are where the next gains are.</div>
+        ${groupsHtml}
+      </div>
+      ${planBlock}
+    </div>`;
+}
+
+// HTML-escape helper for PDF content (use a distinct name so the
+// existing escapeHtmlMp isn't accidentally rewired).
+function _escPdf(s) {
+  return String(s || '').replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+}
+
+// Compose the full printable document. Header, intro letter, then one
+// or many employee report blocks. Returns a complete HTML string.
+function _buildReportDocument(empArray, options) {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+  const isTeam = empArray.length > 1;
+  const docTitle = isTeam
+    ? 'Briskfil — LinkedIn activation team report'
+    : 'LinkedIn activation report for ' + empArray[0].name;
+  const greetingName = isTeam ? 'Briskfil team' : empArray[0].name.split(/\s+/)[0];
+
+  const reportBlocks = empArray.map(_buildEmpReportHtml).join('');
+
+  const teamSummary = isTeam ? `
+    <div style="margin:20px 0;padding:18px 20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;page-break-inside:avoid;">
+      <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Team summary</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="border-bottom:1px solid #cbd5e1;">
+            <th style="text-align:left;padding:8px 10px;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Team member</th>
+            <th style="text-align:left;padding:8px 10px;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Role</th>
+            <th style="text-align:right;padding:8px 10px;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Score</th>
+            <th style="text-align:left;padding:8px 10px;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${empArray.map(e => {
+            const s = calcEmpScore(e);
+            const col = s >= 70 ? '#16a34a' : s >= 40 ? '#d97706' : '#dc2626';
+            return `<tr style="border-bottom:1px solid #e2e8f0;">
+              <td style="padding:9px 10px;font-weight:600;color:#0f172a;">${_escPdf(e.name)}</td>
+              <td style="padding:9px 10px;color:#475569;">${_escPdf(e.role || '—')}</td>
+              <td style="padding:9px 10px;text-align:right;color:${col};font-weight:700;">${s}/100</td>
+              <td style="padding:9px 10px;color:#475569;font-size:11px;">${_escPdf(getEmpLabel(s))}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="page-break-after:always;"></div>` : '';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${_escPdf(docTitle)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Poppins', sans-serif; background: #fff; color: #0f172a; margin: 0; padding: 32px 36px; max-width: 820px; margin: 0 auto; line-height: 1.5; }
+  @media print {
+    body { padding: 16px 20px; }
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+  }
+  .print-actions { position: sticky; top: 12px; background: #0f172a; color: #fff; padding: 14px 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 24px; box-shadow: 0 8px 20px rgba(15,23,42,0.18); flex-wrap: wrap; }
+  .print-actions-text { font-size: 12.5px; line-height: 1.5; flex: 1; min-width: 240px; }
+  .print-actions-text strong { color: #c8f026; }
+  .print-btn { background: #c8f026; color: #000; border: none; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; padding: 9px 18px; cursor: pointer; }
+  .print-btn:hover { background: #b8e020; }
+  h1, h2, h3 { color: #0f172a; }
+</style>
+</head>
+<body>
+
+  <div class="print-actions no-print">
+    <div class="print-actions-text">
+      <strong>Ready to send.</strong> Click the button to open the print dialog, then choose <strong>Save as PDF</strong> as the destination. Attach the PDF to an email to ${_escPdf(greetingName)}.
+    </div>
+    <button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+  </div>
+
+  <!-- NXRD HEADER -->
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:3px solid #c8f026;margin-bottom:24px;">
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px;">NXRD AI Marketing Tool · Briskfil</div>
+      <div style="font-size:24px;font-weight:800;color:#0f172a;line-height:1.2;">${_escPdf(docTitle)}</div>
+      <div style="font-size:12px;color:#475569;margin-top:6px;">${dateStr}</div>
+    </div>
+    <div style="text-align:right;font-size:11px;color:#64748b;line-height:1.55;">
+      <div style="font-weight:700;color:#0f172a;">NXRD</div>
+      <div>Digital and creative marketing</div>
+      <div>nx-rd.com</div>
+    </div>
+  </div>
+
+  <!-- INTRO LETTER -->
+  <div style="margin-bottom:26px;padding:20px 24px;background:linear-gradient(135deg,rgba(200,240,38,0.10) 0%,rgba(200,240,38,0.02) 100%);border:1px solid rgba(200,240,38,0.4);border-radius:10px;page-break-inside:avoid;">
+    <div style="font-size:14px;color:#0f172a;line-height:1.75;">
+      <p style="margin:0 0 12px;">Hi ${_escPdf(greetingName)},</p>
+      <p style="margin:0 0 12px;">This is your LinkedIn activation report. Every Briskfil employee who is active on LinkedIn roughly doubles the organic reach of the Briskfil company page. LinkedIn's own data shows that employees have on average ten times more first-degree connections than their company has followers, and content shared by employees gets eight times more engagement than the same content from the brand page.</p>
+      <p style="margin:0 0 12px;">${isTeam ? 'Inside this report you will find a score for each team member, the strengths in their current profile, the gaps to fix, and a clear plan for the next thirty days. Work through the unticked items in your checklist first. Quick wins compound fast.' : 'Inside you will find your activation score, the strengths in your current profile, the gaps to fix, and a clear plan for the next thirty days. Work through the unticked items in the checklist first. Quick wins compound fast.'}</p>
+      <p style="margin:0;">Any questions, email james@nx-rd.com and we will talk it through.</p>
+    </div>
+  </div>
+
+  ${teamSummary}
+  ${reportBlocks}
+
+  <!-- FOOTER -->
+  <div style="margin-top:30px;padding-top:18px;border-top:1px solid #e2e8f0;font-size:10px;color:#64748b;text-align:center;">
+    Generated by NXRD · ${dateStr} · ${_escPdf(docTitle)}
+  </div>
+
+  <script>
+    // Auto-open the print dialog shortly after load so the customer doesn't
+    // have to hunt for the Save button. Wrapped in a timeout so fonts and
+    // layout settle first.
+    setTimeout(function() { try { window.print(); } catch(e) {} }, 600);
+  <\/script>
+</body>
+</html>`;
+}
+
+function exportEmpPdf(empId) {
+  const emp = bfEmployees.find(e => e.id === empId);
+  if (!emp) return;
+  // Warn-but-allow if scan or plan hasn't been generated yet
+  if (!emp.scanResult && !emp.aiSuggestions) {
+    if (!confirm(emp.name + ' has no profile scan and no AI plan yet. The PDF will only show the checklist. Continue?')) return;
+  }
+  const html = _buildReportDocument([emp]);
+  _openPrintWindow(html, 'briskfil-activation-' + emp.name.toLowerCase().replace(/\s+/g, '-'));
+}
+
+function exportTeamPdf() {
+  if (!bfEmployees.length) { toast('Add at least one team member first.'); return; }
+  // Sort by score desc so the strongest profiles lead the report
+  const sorted = bfEmployees.slice().sort((a, b) => calcEmpScore(b) - calcEmpScore(a));
+  const html = _buildReportDocument(sorted);
+  _openPrintWindow(html, 'briskfil-team-activation-report');
+}
+
+function _openPrintWindow(html, suggestedFilename) {
+  const w = window.open('', '_blank', 'width=900,height=1100');
+  if (!w) {
+    // Popup blocked — fall back to data URL approach
+    toast('Popup blocked. Please allow popups for this site, then try again.');
+    return;
+  }
+  // Pre-set a title so browsers default to it for the saved PDF filename
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  try { w.document.title = suggestedFilename; } catch(e) {}
 }
 
 // Load employees from localStorage on page boot
