@@ -9,7 +9,48 @@ const { pool, initSchema, CLIENT } = require('./db');
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DASHBOARD PASSWORD GATE
+// ─────────────────────────────────────────────────────────────────────────────
+// Sets up before static file serving and any route so the entire dashboard
+// (HTML pages and API endpoints) requires unlocking via the shared password.
+// Sessions persist for 30 days so users only re-enter the password on a new
+// device or after the session expires. The actual password is read from the
+// DASHBOARD_PASSWORD env var so it never sits in this file or git history.
+
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'change-me-set-DASHBOARD_PASSWORD-env';
+
+// Paths that must remain reachable WITHOUT the dashboard password,
+// otherwise the login page itself cannot load or function.
+const DASHBOARD_PUBLIC_PATHS = new Set([
+  '/dashboard-login',
+  '/dashboard-login.html',
+  '/dashboard-auth',
+  '/dashboard-logout',
+  '/favicon.ico',
+  '/favicon-32.png',
+  '/apple-touch-icon.png',
+  '/nxrd-logo.jpg'
+]);
+
+function isDashboardPublicPath(reqPath) {
+  if (DASHBOARD_PUBLIC_PATHS.has(reqPath)) return true;
+  // Allow static assets needed by the login page (fonts, images that the
+  // browser may request alongside it). Keep this conservative.
+  return false;
+}
+
+function requireDashboardAccess(req, res, next) {
+  if (req.session && req.session.dashboardUnlocked) return next();
+  if (isDashboardPublicPath(req.path)) return next();
+  // For API or fetch requests, return JSON 401 so the frontend can react
+  // sensibly. For everything else, redirect to the login page.
+  if (req.path.startsWith('/api/') || req.path.startsWith('/auth/')) {
+    return res.status(401).json({ success: false, error: 'Dashboard locked', needsLogin: true });
+  }
+  return res.redirect('/dashboard-login');
+}
 
 // Sessions live in the same Postgres database as the rest of the dashboard.
 // Removes the MemoryStore production warning and means Google sign-in
@@ -23,8 +64,16 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'nxrd-briskfil-secret-2024',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 }
+  // 30 days — matches the chosen "remember me" duration
+  cookie: { secure: false, maxAge: 30 * 24 * 60 * 60 * 1000 }
 }));
+
+// Apply the gate AFTER the session middleware so req.session is available.
+app.use(requireDashboardAccess);
+
+// Static serving sits AFTER the gate so /index.html cannot be reached without
+// a valid dashboard session. The login page asset is whitelisted above.
+app.use(express.static(path.join(__dirname, 'public')));
 
 const PROPERTY_ID = process.env.GA4_PROPERTY_ID || '307311147';
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -97,6 +146,87 @@ app.get('/auth/status', (req, res) => {
 app.get('/auth/logout', (req, res) => {
   req.session.destroy();
   res.json({ success: true });
+});
+
+// ── DASHBOARD PASSWORD GATE ROUTES ────────────────────────────────────────────
+// Serves the standalone login page, validates the shared password POST,
+// and provides a logout route. Brute-force protection via in-memory per-IP
+// failure tracking. For a single shared password this is sufficient; if
+// multiple accounts are ever added, move to per-user lockout.
+
+const DASH_FAILED_ATTEMPTS = new Map(); // key: req.ip, value: { count, until }
+const DASH_MAX_ATTEMPTS = 5;
+const DASH_LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+function dashFailureCheck(ip) {
+  const rec = DASH_FAILED_ATTEMPTS.get(ip);
+  if (!rec) return { locked: false };
+  if (rec.until && Date.now() < rec.until) {
+    const minsLeft = Math.ceil((rec.until - Date.now()) / 60000);
+    return { locked: true, minsLeft };
+  }
+  // Expired lockout — clear and start fresh
+  if (rec.until && Date.now() >= rec.until) {
+    DASH_FAILED_ATTEMPTS.delete(ip);
+  }
+  return { locked: false };
+}
+
+function dashRecordFailure(ip) {
+  const rec = DASH_FAILED_ATTEMPTS.get(ip) || { count: 0 };
+  rec.count += 1;
+  if (rec.count >= DASH_MAX_ATTEMPTS) {
+    rec.until = Date.now() + DASH_LOCKOUT_MS;
+  }
+  DASH_FAILED_ATTEMPTS.set(ip, rec);
+}
+
+function dashClearFailures(ip) {
+  DASH_FAILED_ATTEMPTS.delete(ip);
+}
+
+app.get('/dashboard-login', (req, res) => {
+  if (req.session && req.session.dashboardUnlocked) return res.redirect('/');
+  res.sendFile(path.join(__dirname, 'public', 'dashboard-login.html'));
+});
+
+app.post('/dashboard-auth', (req, res) => {
+  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+  const check = dashFailureCheck(ip);
+  if (check.locked) {
+    return res.status(429).json({
+      success: false,
+      locked: true,
+      error: `Too many failed attempts. Try again in ${check.minsLeft} minute${check.minsLeft === 1 ? '' : 's'}.`
+    });
+  }
+  const submitted = (req.body && typeof req.body.password === 'string') ? req.body.password : '';
+  if (!submitted) {
+    return res.status(400).json({ success: false, error: 'Password required.' });
+  }
+  if (submitted === DASHBOARD_PASSWORD) {
+    req.session.dashboardUnlocked = true;
+    req.session.dashboardUnlockedAt = new Date().toISOString();
+    dashClearFailures(ip);
+    return res.json({ success: true });
+  }
+  dashRecordFailure(ip);
+  const recAfter = DASH_FAILED_ATTEMPTS.get(ip);
+  const attemptsLeft = Math.max(0, DASH_MAX_ATTEMPTS - (recAfter ? recAfter.count : 0));
+  return res.status(401).json({
+    success: false,
+    error: 'Incorrect password.',
+    attemptsLeft
+  });
+});
+
+app.get('/dashboard-logout', (req, res) => {
+  if (req.session) {
+    req.session.dashboardUnlocked = false;
+    // Keep the Google OAuth tokens if present so a re-login does not lose
+    // the Analytics auth state. If you want full logout, use req.session.destroy().
+  }
+  res.redirect('/dashboard-login');
 });
 
 // ── ANALYTICS API ─────────────────────────────────────────────────────────────
