@@ -240,6 +240,7 @@
       <button class="nav-item" onclick="nav('trends',this)"><span class="icon">▲</span> Trends</button>
       <button class="nav-item" onclick="nav('content',this)"><span class="icon">✦</span> Post ideas</button>
       <button class="nav-item" onclick="nav('generator',this)"><span class="icon">⚡</span> Post generator</button>
+      <button class="nav-item" onclick="nav('media-posts',this)"><span class="icon">▦</span> Media to posts</button>
       <button class="nav-item" onclick="nav('hashtags',this)"><span class="icon">#</span> Hashtags</button>
     </div>
 
@@ -998,6 +999,81 @@
 
       </div>
       <!-- end hashtags panel -->
+
+      <!-- ===== MEDIA TO POSTS ===== -->
+      <div id="panel-media-posts" class="panel">
+        <div class="section-title">Generate posts from your media</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">Upload an image or video, describe what it shows and your angle, and the AI will generate at least 2 distinct post concepts you can copy or add straight to the scheduler. Designed for when you already have content (a site photo, a job in progress, a piece of kit) and need post copy fast.</p>
+
+        <!-- INPUT CARD -->
+        <div class="card" style="margin-bottom:18px;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Brief</div>
+              <div class="card-meta">All fields except the description are optional</div>
+            </div>
+          </div>
+
+          <!-- UPLOAD AREA -->
+          <div style="margin-bottom:16px;">
+            <label class="form-label" style="display:block;margin-bottom:8px;">Image or video (optional preview)</label>
+            <div id="mp-upload-zone" onclick="document.getElementById('mp-file-input').click()" style="border:1.5px dashed var(--border2);border-radius:var(--radius);padding:24px 20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface);" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='var(--surface)'">
+              <div style="font-size:28px;line-height:1;margin-bottom:8px;">▦</div>
+              <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:4px;">Click to upload image or video</div>
+              <div style="font-size:11px;color:var(--muted);">JPG, PNG, MP4, MOV up to 50MB. Preview only — the AI generates posts from your description below.</div>
+            </div>
+            <input type="file" id="mp-file-input" accept="image/*,video/*" style="display:none;" onchange="onMediaUpload(event)">
+            <div id="mp-preview-wrap" style="display:none;margin-top:12px;position:relative;"></div>
+          </div>
+
+          <!-- DESCRIPTION -->
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Describe what's in the media and your angle <span style="color:var(--red)">*</span></label>
+            <textarea id="mp-description" rows="4" placeholder="e.g. Photo of a Briskfil engineer carrying out an ISO 11011 compressed air audit at a Portuguese food manufacturer. Want to use this to show technical depth and position the audit as the entry point to working with us." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:11px 13px;outline:none;resize:vertical;line-height:1.6;box-sizing:border-box;"></textarea>
+          </div>
+
+          <!-- AUDIENCE + COUNT + LANGUAGE -->
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">Target audience (optional)</label>
+              <input class="form-input" id="mp-audience" type="text" placeholder="e.g. Plant managers in food manufacturing">
+            </div>
+            <div class="form-group">
+              <label class="form-label">How many posts</label>
+              <select class="form-select" id="mp-count">
+                <option value="2">2 posts (minimum)</option>
+                <option value="3" selected>3 posts</option>
+                <option value="4">4 posts</option>
+                <option value="5">5 posts</option>
+                <option value="6">6 posts</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Language</label>
+              <select class="form-select" id="mp-lang">
+                <option value="en">English</option>
+                <option value="pt">Portuguese</option>
+                <option value="both">Both</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="add-btn" onclick="runMediaToPosts()" id="mp-gen-btn" style="width:100%;padding:11px;font-size:13px;letter-spacing:0.05em;">Generate posts from this media</button>
+        </div>
+
+        <!-- LOADING -->
+        <div id="mp-loading" style="display:none;padding:2rem;text-align:center;">
+          <div class="spinner" style="display:inline-block;"></div>
+          <span style="font-size:13px;color:var(--muted);margin-left:10px;">Writing your posts...</span>
+        </div>
+
+        <!-- RESULTS PANEL -->
+        <div id="mp-results" style="display:none;">
+          <div class="section-title">Generated posts</div>
+          <div id="mp-results-grid" style="display:grid;grid-template-columns:1fr;gap:14px;"></div>
+        </div>
+      </div>
+      <!-- end media-posts panel -->
 
       <!-- ===== VIDEO PROGRAM ===== -->
       <div id="panel-video" class="panel">
@@ -1891,6 +1967,240 @@ Make the idea fresh, specific to Briskfil's positioning, and commercially releva
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   MEDIA TO POSTS — upload image/video + description -> N posts
+   ══════════════════════════════════════════════════════════════ */
+
+// Render the preview when a file is selected. Keeps the file local;
+// nothing is uploaded to the server. The AI generates from the
+// user's description, not from the media itself.
+function onMediaUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  const wrap = document.getElementById('mp-preview-wrap');
+  if (!file) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+  // 50MB guard
+  if (file.size > 50 * 1024 * 1024) {
+    wrap.style.display = 'block';
+    wrap.innerHTML = '<div style="font-size:12px;color:var(--red);padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius-sm);">File is over 50MB. Please use a smaller file or just describe it in the box below.</div>';
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  const isVideo = file.type.startsWith('video/');
+  const meta = `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;font-size:11px;color:var(--muted);">
+    <span>${file.name} — ${(file.size / (1024 * 1024)).toFixed(1)} MB</span>
+    <button class="copy-btn" onclick="clearMediaUpload()" style="padding:3px 10px;font-size:10px;">Remove</button>
+  </div>`;
+  if (isVideo) {
+    wrap.innerHTML = `<video src="${url}" controls style="max-width:100%;max-height:280px;border-radius:var(--radius-sm);border:1px solid var(--border);display:block;"></video>${meta}`;
+  } else {
+    wrap.innerHTML = `<img src="${url}" alt="Preview" style="max-width:100%;max-height:280px;border-radius:var(--radius-sm);border:1px solid var(--border);display:block;">${meta}`;
+  }
+  wrap.style.display = 'block';
+}
+
+function clearMediaUpload() {
+  const input = document.getElementById('mp-file-input');
+  const wrap = document.getElementById('mp-preview-wrap');
+  if (input) input.value = '';
+  if (wrap) { wrap.style.display = 'none'; wrap.innerHTML = ''; }
+}
+
+// Holds the most recently generated posts so the Schedule / Copy
+// buttons can reach them by index without HTML attribute escaping.
+let mpGeneratedPosts = [];
+
+async function runMediaToPosts() {
+  const description = document.getElementById('mp-description').value.trim();
+  if (!description) { toast('Please describe what is in the media and the angle you want before generating.'); return; }
+
+  const audience = document.getElementById('mp-audience').value.trim();
+  const count = parseInt(document.getElementById('mp-count').value, 10) || 3;
+  const lang = document.getElementById('mp-lang').value;
+
+  const btn = document.getElementById('mp-gen-btn');
+  const loading = document.getElementById('mp-loading');
+  const results = document.getElementById('mp-results');
+  const grid = document.getElementById('mp-results-grid');
+
+  btn.disabled = true; btn.textContent = 'Writing...';
+  loading.style.display = 'block';
+  results.style.display = 'none';
+  grid.innerHTML = '';
+
+  const file = document.getElementById('mp-file-input').files[0];
+  const mediaNote = file ? `The user has also attached a ${file.type.startsWith('video/') ? 'video' : 'image'} file (filename: ${file.name}). They will publish their actual file alongside the post copy you write — so write copy that complements visual media.` : 'The user has not attached a file — they are writing post copy that may be published with or without media.';
+
+  const langInstr = lang === 'pt'
+    ? 'Every post must be written in European Portuguese (pt-PT). Every word in Portuguese. Use "azoto" not "nitrogénio", "facto" not "fato".'
+    : lang === 'both'
+      ? 'For each post return BOTH a Portuguese (pt-PT) version and an English (UK) version. Portuguese uses "azoto" not "nitrogénio". The two versions should carry the same idea, not be word-for-word translations.'
+      : 'Every post must be written in English (UK), direct and commercially grounded.';
+
+  const example = lang === 'both'
+    ? `{ "format": "Text post|Carousel|Short video", "angle": "1-3 word angle label", "title": "headline of the post concept", "post_pt": "the full Portuguese post copy ready to publish", "post_en": "the full English post copy ready to publish" }`
+    : `{ "format": "Text post|Carousel|Short video", "angle": "1-3 word angle label", "title": "headline of the post concept", "post": "the full post copy ready to publish, in the chosen language" }`;
+
+  const prompt = `${NXRD_VOICE_RULES || ''}
+
+You are generating LinkedIn post copy for Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy in Esposende. Services: compressed air quality, nitrogen generation (PSA and membrane), oxygen generation, energy efficiency audits ISO 11011, industrial gas consulting. Independent and manufacturer-agnostic.
+
+The user wants ${count} DISTINCT post concepts from a single piece of media.
+
+${mediaNote}
+
+Their description and angle:
+"""
+${description}
+"""
+
+${audience ? `Target audience for these posts: ${audience}.` : ''}
+
+LANGUAGE REQUIREMENT (NON-NEGOTIABLE): ${langInstr}
+
+Each post must take a genuinely different angle on the same media. Do not just rewrite the same idea ${count} times. Vary format, opening line, hook, and call-to-action across the set. Some can be short punchy text posts, others longer educational pieces, some can be framed as a question, a story, a stat, or a behind-the-scenes piece.
+
+Return ONLY a valid JSON array of exactly ${count} objects. No markdown, no backticks, no explanation outside the JSON.
+
+Each object MUST follow this exact shape:
+${example}
+
+Each post copy must be ready to paste straight into LinkedIn — under 280 words, no markdown, no hyphens, no emojis. End every post with a soft CTA or question.`;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are an expert B2B content strategist. Return only valid JSON arrays. No markdown, no backticks, no explanation outside the JSON.',
+        prompt, max_tokens: 2500
+      })
+    });
+    const data = await res.json();
+    let raw = (data.text || data.content || '').trim().replace(/```json|```/g, '').trim();
+    const s = raw.indexOf('['), e = raw.lastIndexOf(']');
+    if (s === -1) throw new Error('No JSON array returned');
+    const posts = JSON.parse(raw.slice(s, e + 1));
+    if (!Array.isArray(posts) || !posts.length) throw new Error('Empty result');
+    mpGeneratedPosts = posts.map(p => ({
+      format: p.format || 'Text post',
+      angle:  p.angle || '',
+      title:  p.title || '',
+      post_pt: (typeof cleanCopy === 'function' ? cleanCopy(p.post_pt || '') : (p.post_pt || '')),
+      post_en: (typeof cleanCopy === 'function' ? cleanCopy(p.post_en || '') : (p.post_en || '')),
+      post:   (typeof cleanCopy === 'function' ? cleanCopy(p.post || '') : (p.post || ''))
+    }));
+    renderMediaPostCards(mpGeneratedPosts, lang);
+    results.style.display = 'block';
+  } catch(err) {
+    grid.innerHTML = `<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius);padding:14px 18px;color:var(--red);font-size:13px;">Could not generate posts. Please try again or simplify the description. (${err.message})</div>`;
+    results.style.display = 'block';
+  } finally {
+    loading.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = 'Generate posts from this media';
+  }
+}
+
+function renderMediaPostCards(posts, lang) {
+  const grid = document.getElementById('mp-results-grid');
+  if (!grid) return;
+  const isBoth = lang === 'both';
+  const isPt = lang === 'pt';
+
+  grid.innerHTML = posts.map((p, i) => {
+    const fmtLower = (p.format || '').toLowerCase();
+    let formatClass = 'text', formatIcon = '✍';
+    if (fmtLower.includes('carousel')) { formatClass = 'carousel'; formatIcon = '▤'; }
+    else if (fmtLower.includes('video')) { formatClass = 'video'; formatIcon = '▶'; }
+
+    let bodyHtml = '';
+    if (isBoth) {
+      bodyHtml = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:16px;">🇵🇹</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Português</span></div>
+            <div id="mp-text-pt-${i}" style="font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;min-height:140px;">${escapeHtmlMp(p.post_pt)}</div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:16px;">🇬🇧</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">English</span></div>
+            <div id="mp-text-en-${i}" style="font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;min-height:140px;">${escapeHtmlMp(p.post_en)}</div>
+          </div>
+        </div>`;
+    } else {
+      const flag = isPt ? '🇵🇹' : '🇬🇧';
+      const langLbl = isPt ? 'Português' : 'English';
+      bodyHtml = `
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:16px;">${flag}</span><span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">${langLbl}</span></div>
+          <div id="mp-text-${i}" style="font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;min-height:140px;">${escapeHtmlMp(p.post || '')}</div>
+        </div>`;
+    }
+
+    let actionsHtml = '';
+    if (isBoth) {
+      actionsHtml = `
+        <button class="copy-btn" onclick="copyMpPost(${i},'pt')">Copy PT</button>
+        <button class="copy-btn" onclick="copyMpPost(${i},'en')">Copy EN</button>
+        <button onclick="scheduleMpPost(${i},'pt')" title="Schedule the Portuguese version only" style="background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.4);border-radius:6px;color:#60a5fa;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;">+ Schedule PT</button>
+        <button onclick="scheduleMpPost(${i},'en')" title="Schedule the English version only" style="background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.4);border-radius:6px;color:#60a5fa;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;">+ Schedule EN</button>
+        <button onclick="scheduleMpPost(${i},'both')" title="Schedule both languages together" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;">+ Schedule Both</button>`;
+    } else {
+      actionsHtml = `
+        <button class="copy-btn" onclick="copyMpPost(${i},'${isPt ? 'pt' : 'en'}')">Copy</button>
+        <button onclick="scheduleMpPost(${i},'${isPt ? 'pt' : 'en'}')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;">+ Schedule</button>`;
+    }
+
+    return `
+      <div class="card" style="margin-bottom:0;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+            <div class="idea-card" style="display:contents;"></div>
+            <div style="width:34px;height:34px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:${formatClass==='text'?'var(--amber-dim)':formatClass==='carousel'?'var(--accent-dim)':'var(--coral-dim)'};color:${formatClass==='text'?'var(--amber)':formatClass==='carousel'?'var(--accent)':'var(--coral)'};">${formatIcon}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">${escapeHtmlMp(p.format || 'Post')} ${p.angle ? '· ' + escapeHtmlMp(p.angle) : ''}</div>
+              <div style="font-size:14px;font-weight:600;color:var(--text);line-height:1.4;">${escapeHtmlMp(p.title || ('Post ' + (i + 1)))}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">${actionsHtml}</div>
+        </div>
+        ${bodyHtml}
+      </div>`;
+  }).join('');
+}
+
+function escapeHtmlMp(s) {
+  return String(s || '').replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+}
+
+function copyMpPost(idx, lang) {
+  const p = mpGeneratedPosts[idx];
+  if (!p) return;
+  let text = '';
+  if (lang === 'pt') text = p.post_pt || p.post;
+  else if (lang === 'en') text = p.post_en || p.post;
+  else text = p.post;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    if (typeof showToast === 'function') showToast('Copied to clipboard');
+  });
+}
+
+function scheduleMpPost(idx, lang) {
+  const p = mpGeneratedPosts[idx];
+  if (!p) return;
+  let text = '';
+  if (lang === 'pt') text = p.post_pt;
+  else if (lang === 'en') text = p.post_en;
+  else if (lang === 'both') {
+    const pt = p.post_pt || '', en = p.post_en || '';
+    text = (pt && en) ? `🇵🇹 PORTUGUÊS\n\n${pt}\n\n---\n\n🇬🇧 ENGLISH\n\n${en}` : (pt || en);
+  } else {
+    text = p.post;
+  }
+  if (!text) return;
+  sendBfToScheduler(null, 'LinkedIn post', text);
+}
+
 function loadBfSuggestionIntoGenerator() {
   if (!bfLatestSuggestionPrompt) { toast('No suggestion loaded.'); return; }
   const briefEl = document.getElementById('gen-brief');
@@ -2303,16 +2613,16 @@ async function refreshBfPostIdeas() {
   // Format-specific instruction injected into the prompt
   const fmtInstructions = {
     all:      `Mix formats: include text posts, carousels, and short videos. Set "badge1" to "Text post", "Carousel", or "Short video" to match the concept.`,
-    text:     `EVERY idea must be a Text post — no carousels, no videos. Long-form LinkedIn text posts only. Set "badge1" to "Text post" for all 5 ideas. Tailor each "prompt" field to ask for a written post under 280 words with a strong hook line.`,
-    carousel: `EVERY idea must be a Carousel — no text posts, no videos. LinkedIn carousels of 6 to 10 slides. Set "badge1" to "Carousel" for all 5 ideas. Tailor each "prompt" field to ask for a hook slide, content slides (each with a slide headline and 2-3 line body), and a CTA closing slide.`,
-    video:    `EVERY idea must be a Short video — no text posts, no carousels. LinkedIn short-form video concepts under 90 seconds. Set "badge1" to "Short video" for all 5 ideas. Tailor each "prompt" field to ask for a video script with a 3-second hook, the main content broken into shots, and a closing CTA.`
+    text:     `EVERY idea must be a Text post — no carousels, no videos. Long-form LinkedIn text posts only. Set "badge1" to "Text post" for all 12 ideas. Tailor each "prompt" field to ask for a written post under 280 words with a strong hook line.`,
+    carousel: `EVERY idea must be a Carousel — no text posts, no videos. LinkedIn carousels of 6 to 10 slides. Set "badge1" to "Carousel" for all 12 ideas. Tailor each "prompt" field to ask for a hook slide, content slides (each with a slide headline and 2-3 line body), and a CTA closing slide.`,
+    video:    `EVERY idea must be a Short video — no text posts, no carousels. LinkedIn short-form video concepts under 90 seconds. Set "badge1" to "Short video" for all 12 ideas. Tailor each "prompt" field to ask for a video script with a 3-second hook, the main content broken into shots, and a closing CTA.`
   };
 
-  const prompt = `Generate 5 fresh LinkedIn post ideas for Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy in Esposende. Services: compressed air quality, nitrogen generation (PSA and membrane), oxygen generation, energy efficiency audits ISO 11011, industrial gas consulting. Independent and manufacturer-agnostic.
+  const prompt = `Generate 12 fresh LinkedIn post ideas for Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy in Esposende. Services: compressed air quality, nitrogen generation (PSA and membrane), oxygen generation, energy efficiency audits ISO 11011, industrial gas consulting. Independent and manufacturer-agnostic.
 
 FORMAT CONSTRAINT: ${fmtInstructions[bfIdeaFormat] || fmtInstructions.all}
 
-Return ONLY a valid JSON array of 5 objects. No markdown, no backticks, no explanation.
+Return ONLY a valid JSON array of 12 objects. No markdown, no backticks, no explanation.
 
 Each object:
 {
@@ -2323,7 +2633,7 @@ Each object:
   "prompt": "full generation prompt for the AI to write this post — detailed, specific, under 200 words"
 }
 
-Make the ideas fresh, specific to Briskfil's positioning, and commercially relevant for Portuguese industrial manufacturers. CRITICAL: never mention any competitor brand names in the prompts.`;
+Make each idea genuinely distinct from the others — vary the angle, format, sector focus, and content type. Specific to Briskfil's positioning, commercially relevant for Portuguese industrial manufacturers. CRITICAL: never mention any competitor brand names in the prompts.`;
 
   try {
     const res = await fetch('/api/generate', {
@@ -2331,7 +2641,7 @@ Make the ideas fresh, specific to Briskfil's positioning, and commercially relev
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         system: 'You are an expert B2B content strategist. Return only valid JSON arrays. No markdown, no backticks.',
-        prompt, max_tokens: 1500
+        prompt, max_tokens: 3500
       })
     });
     const data = await res.json();
