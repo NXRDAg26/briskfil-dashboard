@@ -94,6 +94,24 @@
   .card-meta { font-size: 10px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
   .card-body { font-size: 13px; color: var(--muted2); line-height: 1.65; margin-bottom: 12px; }
 
+  /* POST IDEA CARDS — enriched card design with animated swap */
+  .idea-card { position: relative; opacity: 1; transform: translateY(0) scale(1); transition: opacity 0.4s ease, transform 0.4s ease, border-color 0.15s; margin-bottom: 0; }
+  .idea-card.entering { opacity: 0; transform: translateY(18px) scale(0.96); }
+  .idea-card.leaving { opacity: 0; transform: translateY(-18px) scale(0.96); pointer-events: none; }
+  .idea-card.fresh { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(200,240,38,0.25); }
+  .idea-card.fresh::after { content: 'Fresh idea'; position: absolute; top: 10px; right: 10px; background: var(--accent); color: #000; font-size: 9px; font-weight: 700; padding: 3px 9px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.06em; animation: ideaFreshFade 2.6s ease forwards; }
+  @keyframes ideaFreshFade { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
+  .idea-card .idea-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .idea-card .format-icon { width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; font-weight: 700; }
+  .idea-card .format-icon.text { background: var(--amber-dim); color: var(--amber); }
+  .idea-card .format-icon.carousel { background: var(--accent-dim); color: var(--accent); }
+  .idea-card .format-icon.video { background: var(--coral-dim); color: var(--coral); }
+  .idea-card .idea-meta { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .idea-card .idea-format-label { font-size: 10px; font-weight: 700; color: var(--text); text-transform: uppercase; letter-spacing: 0.06em; }
+  .idea-card .idea-theme { font-size: 10px; font-weight: 600; color: var(--muted); }
+  .idea-card .idea-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 8px; }
+  .idea-card .idea-body { font-size: 12px; color: var(--muted2); line-height: 1.65; margin-bottom: 14px; }
+
   /* ACTION BTN */
   .action-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 6px 14px; border-radius: var(--radius-sm); background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); cursor: pointer; font-family: var(--font); font-weight: 600; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em; }
   .action-btn:hover { background: rgba(200,240,38,0.18); }
@@ -769,10 +787,12 @@
               <span class="output-label">Generated post</span>
               <span id="gen2-spinner" style="display:none;"><span class="spinner"></span></span>
             </div>
-            <div style="display:flex;gap:6px;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
               <button class="copy-btn" onclick="copyOutput('gen2-text-pt')">Copy PT</button>
               <button class="copy-btn" onclick="copyOutput('gen2-text-en')">Copy EN</button>
-              <button onclick="sendBfToScheduler('gen2-text-en','LinkedIn post')" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule</button>
+              <button onclick="sendBfToScheduler('gen2-text-pt','LinkedIn post')" title="Schedule the Portuguese version only" style="background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.4);border-radius:6px;color:#60a5fa;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;white-space:nowrap;" onmouseover="this.style.background='rgba(96,165,250,0.25)'" onmouseout="this.style.background='rgba(96,165,250,0.15)'">+ Schedule PT</button>
+              <button onclick="sendBfToScheduler('gen2-text-en','LinkedIn post')" title="Schedule the English version only" style="background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.4);border-radius:6px;color:#60a5fa;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;white-space:nowrap;" onmouseover="this.style.background='rgba(96,165,250,0.25)'" onmouseout="this.style.background='rgba(96,165,250,0.15)'">+ Schedule EN</button>
+              <button onclick="sendBfToScheduler('gen2-text','LinkedIn post')" title="Schedule both languages together" style="background:#c8f026;border:none;border-radius:6px;color:#000;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='#b8e020'" onmouseout="this.style.background='#c8f026'">+ Schedule Both</button>
             </div>
           </div>
 
@@ -1753,14 +1773,122 @@ let bfIdeaTitles  = []; // parallel array, used to mark dismissed on click
 // Same pattern for the single "today's suggestion" card on the home view.
 let bfLatestSuggestionPrompt = '';
 
-function triggerGenFromIdea(idx) {
+async function triggerGenFromIdea(idx) {
   const p = bfIdeaPrompts[idx];
   const t = bfIdeaTitles[idx];
   if (!p) { toast('Could not load this idea. Please refresh.'); return; }
-  markIdeaDismissed(t);
-  // Re-render the grid so the dismissed card disappears immediately
-  renderBfIdeasFromCache();
+
+  // Fire the generation immediately so the user sees the post appear in the generator
   triggerGen(p);
+
+  // Find the card in the DOM and animate it out
+  const grid = document.getElementById('bf-post-ideas-grid');
+  const usedCard = grid ? grid.querySelector(`.idea-card[data-idea-idx="${idx}"]`) : null;
+  if (usedCard) usedCard.classList.add('leaving');
+
+  // Mark dismissed so it won't reappear on a same-day reload
+  markIdeaDismissed(t);
+
+  // Fetch a single replacement idea in parallel with the animation
+  let replacement = null;
+  try { replacement = await fetchSingleIdea(); } catch(e) { replacement = null; }
+
+  // Wait for the slide-out to complete
+  await new Promise(r => setTimeout(r, 380));
+
+  if (!replacement) {
+    // No replacement available — fall back to the dismissed-rerender behaviour
+    if (usedCard) usedCard.remove();
+    renderBfIdeasFromCache();
+    return;
+  }
+
+  // Splice the replacement into the cache at the same slot so refreshes
+  // and dismissal logic keep working consistently
+  try {
+    const raw = localStorage.getItem(BF_IDEAS_CACHE_KEY);
+    const cache = raw ? JSON.parse(raw) : null;
+    if (cache && Array.isArray(cache.ideas)) {
+      const dismissed = new Set(getDismissedIdeas().titles);
+      const visible = cache.ideas.filter(i => !dismissed.has(i.title));
+      // Replace by visible index (which is what data-idea-idx points to)
+      const targetTitle = visible[idx] ? visible[idx].title : null;
+      const cacheIdx = targetTitle ? cache.ideas.findIndex(i => i.title === targetTitle) : -1;
+      if (cacheIdx !== -1) {
+        cache.ideas.splice(cacheIdx, 1, replacement);
+      } else {
+        cache.ideas.push(replacement);
+      }
+      localStorage.setItem(BF_IDEAS_CACHE_KEY, JSON.stringify(cache));
+    }
+  } catch(e) {}
+
+  // Update the in-memory parallel arrays for this slot
+  bfIdeaPrompts[idx] = replacement.prompt || '';
+  bfIdeaTitles[idx]  = replacement.title  || '';
+
+  // Replace the card in the DOM with the new one, animating it in
+  if (usedCard) {
+    const newHtml = buildIdeaCardHtml(replacement, idx, true);
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = newHtml.trim();
+    const newCard = wrapper.firstElementChild;
+    usedCard.replaceWith(newCard);
+    requestAnimationFrame(() => {
+      newCard.classList.remove('entering');
+      newCard.classList.add('fresh');
+      setTimeout(() => newCard.classList.remove('fresh'), 2700);
+    });
+  }
+}
+
+// Fetch a single fresh post idea from the API, respecting the current
+// format filter. Returns null on any failure.
+async function fetchSingleIdea() {
+  const fmtInstructions = {
+    all:      `Mix of text post, carousel, or short video — pick whichever fits the concept best.`,
+    text:     `Must be a Text post under 280 words. Set "badge1" to "Text post".`,
+    carousel: `Must be a Carousel of 6 to 10 slides. Set "badge1" to "Carousel".`,
+    video:    `Must be a Short video under 90 seconds. Set "badge1" to "Short video".`
+  };
+  // Avoid repeating any title the user has already seen today
+  let avoid = [];
+  try { avoid = (getDismissedIdeas().titles || []).slice(-12); } catch(e) {}
+  const avoidLine = avoid.length ? `\n\nAvoid repeating any of these titles: ${avoid.map(t => '"' + t + '"').join(', ')}.` : '';
+
+  const prompt = `Generate ONE fresh LinkedIn post idea for Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy in Esposende. Services: compressed air quality, nitrogen generation (PSA and membrane), oxygen generation, energy efficiency audits ISO 11011, industrial gas consulting. Independent and manufacturer-agnostic.
+
+FORMAT CONSTRAINT: ${fmtInstructions[bfIdeaFormat] || fmtInstructions.all}
+
+Return ONLY a valid JSON object. No markdown, no backticks, no explanation.
+
+{
+  "badge1": "format e.g. Text post or Carousel or Short video",
+  "badge2": "theme e.g. Education or Lead gen or Thought leadership",
+  "title": "catchy post concept title",
+  "body": "2-3 sentence explanation of the post concept and why it works for Briskfil",
+  "prompt": "full generation prompt for the AI to write this post — detailed, specific, under 200 words"
+}
+
+Make the idea fresh, specific to Briskfil's positioning, and commercially relevant for Portuguese industrial manufacturers. CRITICAL: never mention any competitor brand names in the prompt.${avoidLine}`;
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'You are an expert B2B content strategist. Return only valid JSON objects. No markdown, no backticks.',
+        prompt, max_tokens: 600
+      })
+    });
+    const data = await res.json();
+    let raw = (data.text || data.content || '').trim().replace(/```json|```/g, '').trim();
+    const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+    if (s === -1) return null;
+    return JSON.parse(raw.slice(s, e + 1));
+  } catch(e) {
+    return null;
+  }
 }
 
 function loadBfSuggestionIntoGenerator() {
@@ -2057,30 +2185,48 @@ function paintIdeasGrid(ideas) {
   if (!grid) return;
   bfIdeaPrompts = ideas.map(i => i.prompt || '');
   bfIdeaTitles  = ideas.map(i => i.title  || '');
+  // Switch the grid to a responsive multi-column layout
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(320px, 1fr))';
+  grid.style.gap = '14px';
   if (!ideas.length) {
-    grid.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">All ideas used today. Hit Refresh ideas for a new batch.</div>';
     grid.style.display = 'block';
+    grid.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">All ideas used today. Hit Refresh ideas for a new batch.</div>';
     return;
   }
-  grid.innerHTML = ideas.map((idea, i) => {
-    const fmtLower = (idea.badge1 || '').toLowerCase();
-    let pillClass = 'pill-blue';
-    let actionLabel = 'Write this post';
-    if (fmtLower.includes('carousel')) { pillClass = 'pill-blue'; actionLabel = 'Write full carousel'; }
-    else if (fmtLower.includes('video')) { pillClass = 'pill-coral'; actionLabel = 'Write video script'; }
-    else { pillClass = 'pill-amber'; actionLabel = 'Write this post'; }
-    return `
-    <div class="card">
-      <div class="card-badges" style="margin-bottom:10px;">
-        <span class="pill ${pillClass}">${idea.badge1 || 'Post'}</span>
-        <span class="pill pill-green">${idea.badge2 || 'Content'}</span>
+  grid.innerHTML = ideas.map((idea, i) => buildIdeaCardHtml(idea, i, true)).join('');
+  // Animate each card in with a staggered delay
+  requestAnimationFrame(() => {
+    grid.querySelectorAll('.idea-card').forEach((c, i) => {
+      setTimeout(() => c.classList.remove('entering'), i * 55);
+    });
+  });
+}
+
+// Build the HTML for a single idea card. Used by paintIdeasGrid and by the
+// animated replacement flow in useIdeaCard.
+function buildIdeaCardHtml(idea, i, entering) {
+  const fmtLower = (idea.badge1 || '').toLowerCase();
+  let formatClass = 'text';
+  let formatIcon  = '✍';
+  let actionLabel = 'Write this post';
+  if (fmtLower.includes('carousel')) { formatClass = 'carousel'; formatIcon = '▤'; actionLabel = 'Write full carousel'; }
+  else if (fmtLower.includes('video')) { formatClass = 'video'; formatIcon = '▶'; actionLabel = 'Write video script'; }
+  const enterCls = entering ? 'entering' : '';
+  const safeTitle = String(idea.title || '').replace(/"/g, '&quot;');
+  return `
+    <div class="card idea-card ${enterCls}" data-idea-idx="${i}" data-idea-title="${safeTitle}">
+      <div class="idea-header">
+        <div class="format-icon ${formatClass}">${formatIcon}</div>
+        <div class="idea-meta">
+          <span class="idea-format-label">${idea.badge1 || 'Post'}</span>
+          <span class="idea-theme">${idea.badge2 || 'Content'}</span>
+        </div>
       </div>
-      <div class="card-title">${idea.title}</div>
-      <div class="card-body">${idea.body}</div>
+      <div class="idea-title">${idea.title || ''}</div>
+      <div class="idea-body">${idea.body || ''}</div>
       <button class="action-btn" onclick="triggerGenFromIdea(${i})">${actionLabel} ↗</button>
     </div>`;
-  }).join('');
-  grid.style.display = 'block';
 }
 
 // Check on page load whether ideas need refreshing today
