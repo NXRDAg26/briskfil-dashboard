@@ -1002,11 +1002,17 @@ body.large-text #font-toggle-btn { color: var(--lime); border-color: var(--lime)
 
       <!-- POST LIST -->
       <div class="section-title">All posts</div>
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-right:4px;">Status</span>
         <button class="icon-btn" style="font-size:11px;" onclick="filterPosts('all')">All</button>
         <button class="icon-btn" onclick="filterPosts('draft')">Draft</button>
         <button class="icon-btn" onclick="filterPosts('scheduled')">Scheduled</button>
         <button class="icon-btn" onclick="filterPosts('published')">Published</button>
+        <span style="width:1px;height:18px;background:var(--gray-700);margin:0 6px;"></span>
+        <span style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-right:4px;">Approval</span>
+        <button class="icon-btn" onclick="filterApproval('all')" id="appr-filter-all">All</button>
+        <button class="icon-btn" onclick="filterApproval('approved')" id="appr-filter-approved" style="border-color:rgba(74,222,128,0.3);color:#4ade80;">✓ Approved</button>
+        <button class="icon-btn" onclick="filterApproval('pending')" id="appr-filter-pending" style="border-color:rgba(245,158,11,0.3);color:#f59e0b;">Pending</button>
       </div>
       <div class="post-list" id="post-list"></div>
 
@@ -2500,9 +2506,10 @@ function renderCalendar() {
     const isToday = c.cur && new Date(calYear, calMonth, c.day).getTime() === today.getTime();
     const chips = dayPosts.slice(0,3).map(p => {
       const fmtCls = {text:'fmt-text',carousel:'fmt-carousel',video:'fmt-video',image:'fmt-image'}[p.format]||'fmt-text';
-      const chipTitle = (p.title||'Untitled').length > 28 ? (p.title||'Untitled').substring(0,28)+'…' : (p.title||'Untitled');
-      return `<div class="cal-post-chip chip-${p.status}" onclick="event.stopPropagation();openModal('${p.id}')" title="${p.title}">
-        <span class="format-badge ${fmtCls}">${p.format}</span>${chipTitle}
+      const chipTitle = (p.title||'Untitled').length > 26 ? (p.title||'Untitled').substring(0,26)+'…' : (p.title||'Untitled');
+      const apprTick = p.approved ? '<span style="color:#4ade80;font-weight:700;margin-right:3px;" title="Approved">✓</span>' : '';
+      return `<div class="cal-post-chip chip-${p.status}" onclick="event.stopPropagation();openModal('${p.id}')" title="${p.title}${p.approved ? ' (approved)' : ''}">
+        ${apprTick}<span class="format-badge ${fmtCls}">${p.format}</span>${chipTitle}
       </div>`;
     }).join('');
     const extra = dayPosts.length > 3 ? `<div style="font-size:9px;color:var(--gray-400)">+${dayPosts.length-3} more</div>` : '';
@@ -2517,13 +2524,16 @@ function renderPostList(status) {
   if (status !== undefined) filterStatus = status;
   let posts = getPosts();
   if (filterStatus !== 'all') posts = posts.filter(p => p.status === filterStatus);
+  // Approval filter
+  if (filterApprovalStatus === 'approved') posts = posts.filter(p => !!p.approved);
+  else if (filterApprovalStatus === 'pending') posts = posts.filter(p => !p.approved);
   posts.sort((a,b) => (a.date||'9999') < (b.date||'9999') ? -1 : 1);
 
   const fmtLabels = {text:'Text post',carousel:'Carousel',video:'Short video',image:'Image post'};
   const fmtCls = {text:'fmt-text',carousel:'fmt-carousel',video:'fmt-video',image:'fmt-image'};
 
   if (!posts.length) {
-    document.getElementById('post-list').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray-400);font-size:13px">No posts yet. Click "+ New post" to add one.</div>';
+    document.getElementById('post-list').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray-400);font-size:13px">No posts match the current filter.</div>';
     return;
   }
 
@@ -2531,21 +2541,35 @@ function renderPostList(status) {
     const dotCls = {draft:'dot-draft',scheduled:'dot-scheduled',published:'dot-published'}[p.status]||'dot-draft';
     const linkChip = p.link ? `<a class="content-link-chip" href="${p.link}" target="_blank">🔗 Linked content</a>` : '';
     const excerpt = (p.copy||'').length > 100 ? (p.copy||'').slice(0,100)+'...' : (p.copy||'No copy added yet');
-    return `<div class="post-card">
+    const isApproved = !!p.approved;
+    const apprBadge = isApproved
+      ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.35);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.05em;margin-left:6px;vertical-align:middle;">✓ Approved</span>`
+      : '';
+    // The green tick toggle button. When already approved, shows as filled green; when not, shows as outlined awaiting approval.
+    const apprBtn = isApproved
+      ? `<button onclick="toggleApproval('${p.id}')" title="Approved — click to unapprove" style="background:#4ade80;border:none;border-radius:6px;color:#000;font-size:13px;font-weight:700;padding:6px 12px;cursor:pointer;font-family:'Poppins',sans-serif;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='#22c55e'" onmouseout="this.style.background='#4ade80'">✓ Approved</button>`
+      : `<button onclick="toggleApproval('${p.id}')" title="Approve this post" style="background:transparent;border:1.5px solid #4ade80;border-radius:6px;color:#4ade80;font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:'Poppins',sans-serif;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='rgba(74,222,128,0.12)'" onmouseout="this.style.background='transparent'">✓ Approve</button>`;
+    // Approval metadata line — only shown when approved
+    const apprMeta = isApproved && p.approvedAt
+      ? `<div style="font-size:10px;color:#4ade80;margin-top:3px;">Approved ${new Date(p.approvedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`
+      : '';
+    return `<div class="post-card" style="${isApproved ? 'border-left:3px solid #4ade80;' : ''}">
       <div class="status-dot ${dotCls}"></div>
       <div class="post-card-body">
         <div class="post-card-title">
           <span class="format-badge ${fmtCls[p.format]||'fmt-text'}">${fmtLabels[p.format]||p.format}</span>
-          ${p.title||'Untitled post'}
+          ${p.title||'Untitled post'}${apprBadge}
         </div>
         <div class="post-card-meta">${p.date||'No date'} ${p.time?'at '+p.time:''} &nbsp;·&nbsp; ${p.status}</div>
         <div style="font-size:11px;color:var(--gray-300);margin-top:4px;line-height:1.5;">${excerpt}</div>
         ${p.hashtags ? `<div style="font-size:10px;color:var(--gray-400);margin-top:3px;">${p.hashtags}</div>` : ''}
         ${linkChip}
         ${p.notes ? `<div style="font-size:10px;color:var(--gray-400);margin-top:3px;">Notes: ${p.notes}</div>` : ''}
+        ${apprMeta}
       </div>
-      <div class="post-card-actions">
-        <button class="icon-btn" onclick="openModal('${p.id}')">Edit</button>
+      <div class="post-card-actions" style="flex-direction:column;gap:6px;">
+        ${apprBtn}
+        <button class="icon-btn" onclick="openModal('${p.id}')" style="width:100%;text-align:center;">Edit</button>
         <button onclick="deletePost('${p.id}')" title="Delete post" style="background:#ef4444;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;padding:6px 14px;cursor:pointer;font-family:'Poppins',sans-serif;flex-shrink:0;transition:background .15s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">🗑 Delete</button>
       </div>
     </div>`;
@@ -2554,6 +2578,47 @@ function renderPostList(status) {
 
 function filterPosts(status) {
   renderPostList(status);
+  highlightStatusFilter(status);
+}
+
+// Approval filter state — separate from status filter so the two can combine
+let filterApprovalStatus = 'all';
+function filterApproval(state) {
+  filterApprovalStatus = state;
+  renderPostList();
+  // Highlight the active approval filter button
+  ['all','approved','pending'].forEach(s => {
+    const btn = document.getElementById('appr-filter-' + s);
+    if (btn) btn.style.background = (s === state) ? 'var(--gray-700)' : '';
+  });
+}
+
+function highlightStatusFilter(status) {
+  // No specific IDs on status filter buttons so this is a no-op placeholder
+  // for future styling — kept as a stub so the call site stays clean.
+}
+
+// Toggle a post's approved flag and persist via the same /api/posts endpoint
+async function toggleApproval(id) {
+  const posts = getPosts();
+  const p = posts.find(x => x.id === id);
+  if (!p) return;
+  const wasApproved = !!p.approved;
+  // Optimistically update the local cache so the UI reacts instantly
+  p.approved = !wasApproved;
+  p.approvedAt = p.approved ? new Date().toISOString() : null;
+  p.updatedAt = new Date().toISOString();
+  renderCalendar();
+  renderPostList();
+  const ok = await apiSavePost(p);
+  if (!ok) {
+    // Revert on failure
+    p.approved = wasApproved;
+    p.approvedAt = wasApproved ? p.approvedAt : null;
+    renderCalendar();
+    renderPostList();
+    alert('Could not save approval. Check your connection and try again.');
+  }
 }
 
 function openModal(id, prefillDate) {
@@ -2600,6 +2665,14 @@ async function savePost() {
   const title = document.getElementById('post-title').value.trim();
   if (!title) { alert('Please add a post title'); return; }
 
+  // Carry over approval fields from the existing post if this is an edit,
+  // so editing copy or status does not silently wipe the client's approval.
+  let existing = null;
+  if (editingId) {
+    const posts = getPosts();
+    existing = posts.find(x => x.id === editingId) || null;
+  }
+
   const postData = {
     id: editingId || 'post_' + Date.now(),
     title,
@@ -2611,6 +2684,8 @@ async function savePost() {
     hashtags: document.getElementById('post-hashtags').value,
     link: document.getElementById('post-link').value,
     notes: document.getElementById('post-notes').value,
+    approved: existing ? !!existing.approved : false,
+    approvedAt: existing ? (existing.approvedAt || null) : null,
     updatedAt: new Date().toISOString()
   };
 
