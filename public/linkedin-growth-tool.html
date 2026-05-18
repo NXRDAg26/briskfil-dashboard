@@ -578,6 +578,18 @@
           <div class="section-title" style="margin-bottom:0;">Ready-to-brief post concepts for Briskfil</div>
           <button onclick="refreshBfPostIdeas()" id="bf-ideas-refresh-btn" style="display:flex;align-items:center;gap:6px;background:rgba(200,240,38,0.1);border:1px solid rgba(200,240,38,0.3);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;padding:7px 16px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;text-transform:uppercase;letter-spacing:0.04em;" onmouseover="this.style.background='rgba(200,240,38,0.2)'" onmouseout="this.style.background='rgba(200,240,38,0.1)'">⟳ Refresh ideas</button>
         </div>
+
+        <!-- Format filter -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Filter by format</span>
+          <div style="display:inline-flex;gap:6px;background:var(--surface);padding:4px;border-radius:10px;border:1px solid var(--border);">
+            <button type="button" id="bf-idea-fmt-all"      onclick="setBfIdeaFormat('all', this)"      class="bf-idea-fmt-btn active" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;transition:all .15s;">All</button>
+            <button type="button" id="bf-idea-fmt-text"     onclick="setBfIdeaFormat('text', this)"     class="bf-idea-fmt-btn"        style="background:transparent;color:var(--muted);border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;transition:all .15s;">Text post</button>
+            <button type="button" id="bf-idea-fmt-carousel" onclick="setBfIdeaFormat('carousel', this)" class="bf-idea-fmt-btn"        style="background:transparent;color:var(--muted);border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;transition:all .15s;">Carousel</button>
+            <button type="button" id="bf-idea-fmt-video"    onclick="setBfIdeaFormat('video', this)"    class="bf-idea-fmt-btn"        style="background:transparent;color:var(--muted);border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;transition:all .15s;">Video</button>
+          </div>
+        </div>
+
         <div id="bf-post-ideas-grid">
 
         <div class="card">
@@ -1789,6 +1801,25 @@ Return ONLY a valid JSON object. No markdown, no backticks.
 }
 
 // ── POST IDEAS REFRESH ───────────────────────────────────────
+// ── POST IDEAS FORMAT FILTER ──────────────────────────────────
+// Tracks which post format the user wants the AI to suggest.
+// 'all' = mix of text, carousel, video. Otherwise constrains to one.
+let bfIdeaFormat = 'all';
+
+function setBfIdeaFormat(fmt, btn) {
+  bfIdeaFormat = fmt;
+  document.querySelectorAll('.bf-idea-fmt-btn').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--muted)';
+    b.classList.remove('active');
+  });
+  if (btn) {
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#000';
+    btn.classList.add('active');
+  }
+}
+
 async function refreshBfPostIdeas() {
   const btn = document.getElementById('bf-ideas-refresh-btn');
   const grid = document.getElementById('bf-post-ideas-grid');
@@ -1798,7 +1829,17 @@ async function refreshBfPostIdeas() {
   grid.style.display = 'none';
   loading.style.display = 'block';
 
+  // Format-specific instruction injected into the prompt
+  const fmtInstructions = {
+    all:      `Mix formats: include text posts, carousels, and short videos. Set "badge1" to "Text post", "Carousel", or "Short video" to match the concept.`,
+    text:     `EVERY idea must be a Text post — no carousels, no videos. Long-form LinkedIn text posts only. Set "badge1" to "Text post" for all 5 ideas. Tailor each "prompt" field to ask for a written post under 280 words with a strong hook line.`,
+    carousel: `EVERY idea must be a Carousel — no text posts, no videos. LinkedIn carousels of 6 to 10 slides. Set "badge1" to "Carousel" for all 5 ideas. Tailor each "prompt" field to ask for a hook slide, content slides (each with a slide headline and 2-3 line body), and a CTA closing slide.`,
+    video:    `EVERY idea must be a Short video — no text posts, no carousels. LinkedIn short-form video concepts under 90 seconds. Set "badge1" to "Short video" for all 5 ideas. Tailor each "prompt" field to ask for a video script with a 3-second hook, the main content broken into shots, and a closing CTA.`
+  };
+
   const prompt = `Generate 5 fresh LinkedIn post ideas for Briskfil (briskfil.com), a Portuguese B2B industrial gas consultancy in Esposende. Services: compressed air quality, nitrogen generation (PSA and membrane), oxygen generation, energy efficiency audits ISO 11011, industrial gas consulting. Independent and manufacturer-agnostic.
+
+FORMAT CONSTRAINT: ${fmtInstructions[bfIdeaFormat] || fmtInstructions.all}
 
 Return ONLY a valid JSON array of 5 objects. No markdown, no backticks, no explanation.
 
@@ -1827,16 +1868,25 @@ Make the ideas fresh, specific to Briskfil's positioning, and commercially relev
     const s = raw.indexOf('['), e = raw.lastIndexOf(']');
     if (s === -1) throw new Error('No JSON');
     const ideas = JSON.parse(raw.slice(s, e + 1));
-    grid.innerHTML = ideas.map(idea => `
+    grid.innerHTML = ideas.map(idea => {
+      // Pick pill colour by format and a button label that matches
+      const fmtLower = (idea.badge1 || '').toLowerCase();
+      let pillClass = 'pill-blue';
+      let actionLabel = 'Write this post';
+      if (fmtLower.includes('carousel')) { pillClass = 'pill-blue'; actionLabel = 'Write full carousel'; }
+      else if (fmtLower.includes('video')) { pillClass = 'pill-coral'; actionLabel = 'Write video script'; }
+      else { pillClass = 'pill-amber'; actionLabel = 'Write this post'; }
+      return `
       <div class="card">
         <div class="card-badges" style="margin-bottom:10px;">
-          <span class="pill pill-blue">${idea.badge1 || 'Post'}</span>
+          <span class="pill ${pillClass}">${idea.badge1 || 'Post'}</span>
           <span class="pill pill-green">${idea.badge2 || 'Content'}</span>
         </div>
         <div class="card-title">${idea.title}</div>
         <div class="card-body">${idea.body}</div>
-        <button class="action-btn" onclick="triggerGen(${JSON.stringify(idea.prompt)})">Write this post ↗</button>
-      </div>`).join('');
+        <button class="action-btn" onclick="triggerGen(${JSON.stringify(idea.prompt)})">${actionLabel} ↗</button>
+      </div>`;
+    }).join('');
     grid.style.display = 'block';
   } catch(e) {
     grid.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">Could not generate new ideas. Please try again.</div>';
@@ -2056,13 +2106,30 @@ async function refreshCompSuggestion() {
 }
 
 function triggerGen(prompt) {
+  // Switch to the generator panel first — without this, the output is written
+  // into a hidden panel when triggerGen is called from any other tab.
+  const genNav = document.querySelector('.nav-item[onclick*="generator"]');
+  if (genNav) nav('generator', genNav);
+  // Pre-fill the brief textarea so the user can see what was sent and tweak it
+  const briefEl = document.getElementById('gen-brief');
+  if (briefEl) briefEl.value = prompt;
   callClaude(prompt, 'gen-text', 'gen-spinner', 'gen-output');
-  document.getElementById('gen-output').scrollIntoView({ behavior:'smooth', block:'start' });
+  // Slight delay so the panel switch completes before we scroll
+  setTimeout(() => {
+    const out = document.getElementById('gen-output');
+    if (out) out.scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 50);
 }
 
 function genEventPost(prompt) {
+  // Same fix as triggerGen — switch to the events panel before firing.
+  const eventsNav = document.querySelector('.nav-item[onclick*="events"]');
+  if (eventsNav) nav('events', eventsNav);
   callClaude(prompt, 'event-post-text', null, 'event-post-output');
-  document.getElementById('event-post-output').scrollIntoView({ behavior:'smooth', block:'start' });
+  setTimeout(() => {
+    const out = document.getElementById('event-post-output');
+    if (out) out.scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 50);
 }
 
 // -- POST GENERATOR --
