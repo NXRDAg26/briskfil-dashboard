@@ -588,6 +588,7 @@
             <button type="button" id="bf-idea-fmt-carousel" onclick="setBfIdeaFormat('carousel', this)" class="bf-idea-fmt-btn"        style="background:transparent;color:var(--muted);border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;transition:all .15s;">Carousel</button>
             <button type="button" id="bf-idea-fmt-video"    onclick="setBfIdeaFormat('video', this)"    class="bf-idea-fmt-btn"        style="background:transparent;color:var(--muted);border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;transition:all .15s;">Video</button>
           </div>
+          <button type="button" id="bf-idea-fmt-apply" onclick="applyBfIdeaFormat()" disabled style="background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:7px 16px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:not-allowed;text-transform:uppercase;letter-spacing:0.06em;transition:all .15s;">Apply</button>
         </div>
 
         <div id="bf-post-ideas-grid">
@@ -1788,10 +1789,14 @@ Return ONLY a valid JSON object. No markdown, no backticks.
     const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
     if (s === -1) throw new Error('No JSON');
     const sug = JSON.parse(raw.slice(s, e + 1));
+    // Same defensive pattern as the post ideas grid: stash the prompt in a
+    // module variable rather than inlining into onclick, so quote characters
+    // in the model's output do not break attribute parsing.
+    bfLatestSuggestionPrompt = sug.prompt || '';
     body.innerHTML = `
       <p style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;">"${sug.headline}"</p>
       <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px;">${sug.rationale}</p>
-      <button class="action-btn" onclick="document.getElementById('gen-brief').value=${JSON.stringify(sug.prompt)};nav('generator',document.querySelector('.nav-item[onclick*=generator]'))">Load this brief into the generator ↗</button>`;
+      <button class="action-btn" onclick="loadBfSuggestionIntoGenerator()">Load this brief into the generator ↗</button>`;
   } catch(e) {
     body.innerHTML = '<div style="font-size:13px;color:var(--muted);">Could not generate suggestion. Please try again.</div>';
   } finally {
@@ -1802,9 +1807,36 @@ Return ONLY a valid JSON object. No markdown, no backticks.
 
 // ── POST IDEAS REFRESH ───────────────────────────────────────
 // ── POST IDEAS FORMAT FILTER ──────────────────────────────────
-// Tracks which post format the user wants the AI to suggest.
-// 'all' = mix of text, carousel, video. Otherwise constrains to one.
+// Two states:
+//   bfIdeaFormat        — what the user has selected in the toggle
+//   bfIdeaFormatApplied — what the current grid actually reflects
+// Apply button lights up only when these diverge, so the user has a
+// clear visual cue that the grid is stale and a regen is needed.
 let bfIdeaFormat = 'all';
+let bfIdeaFormatApplied = 'all';
+
+// Storage for the prompts behind each card's action button. Each refresh
+// replaces this array so card N always maps to ideas[N].prompt. Reading the
+// prompt from here instead of inlining it into onclick="" avoids the HTML
+// attribute escaping bug that broke every refresh after the first.
+let bfIdeaPrompts = [];
+
+// Same pattern for the single "today's suggestion" card on the home view.
+let bfLatestSuggestionPrompt = '';
+
+function triggerGenFromIdea(idx) {
+  const p = bfIdeaPrompts[idx];
+  if (!p) { toast('Could not load this idea. Please refresh.'); return; }
+  triggerGen(p);
+}
+
+function loadBfSuggestionIntoGenerator() {
+  if (!bfLatestSuggestionPrompt) { toast('No suggestion loaded.'); return; }
+  const briefEl = document.getElementById('gen-brief');
+  if (briefEl) briefEl.value = bfLatestSuggestionPrompt;
+  const genNav = document.querySelector('.nav-item[onclick*="generator"]');
+  if (genNav) nav('generator', genNav);
+}
 
 function setBfIdeaFormat(fmt, btn) {
   bfIdeaFormat = fmt;
@@ -1818,14 +1850,45 @@ function setBfIdeaFormat(fmt, btn) {
     btn.style.color = '#000';
     btn.classList.add('active');
   }
+  updateApplyBtnState();
+}
+
+function updateApplyBtnState() {
+  const apply = document.getElementById('bf-idea-fmt-apply');
+  if (!apply) return;
+  const stale = bfIdeaFormat !== bfIdeaFormatApplied;
+  if (stale) {
+    apply.disabled = false;
+    apply.style.background = 'var(--accent)';
+    apply.style.color = '#000';
+    apply.style.borderColor = 'var(--accent)';
+    apply.style.cursor = 'pointer';
+  } else {
+    apply.disabled = true;
+    apply.style.background = 'var(--surface)';
+    apply.style.color = 'var(--muted)';
+    apply.style.borderColor = 'var(--border)';
+    apply.style.cursor = 'not-allowed';
+  }
+}
+
+function applyBfIdeaFormat() {
+  if (bfIdeaFormat === bfIdeaFormatApplied) return;
+  refreshBfPostIdeas();
 }
 
 async function refreshBfPostIdeas() {
   const btn = document.getElementById('bf-ideas-refresh-btn');
+  const apply = document.getElementById('bf-idea-fmt-apply');
   const grid = document.getElementById('bf-post-ideas-grid');
   const loading = document.getElementById('bf-ideas-loading');
   btn.textContent = '...';
   btn.disabled = true;
+  if (apply) {
+    apply.disabled = true;
+    apply.textContent = 'Applying...';
+    apply.style.cursor = 'wait';
+  }
   grid.style.display = 'none';
   loading.style.display = 'block';
 
@@ -1868,7 +1931,13 @@ Make the ideas fresh, specific to Briskfil's positioning, and commercially relev
     const s = raw.indexOf('['), e = raw.lastIndexOf(']');
     if (s === -1) throw new Error('No JSON');
     const ideas = JSON.parse(raw.slice(s, e + 1));
-    grid.innerHTML = ideas.map(idea => {
+    // Stash prompts in a JS array rather than inlining into onclick=""
+    // attributes. Inlining means any quote, apostrophe, or HTML special
+    // character in the prompt breaks the onclick attribute parsing and the
+    // button silently does nothing. The model produces those characters
+    // freely, so we route every action through a lookup by index instead.
+    bfIdeaPrompts = ideas.map(i => i.prompt || '');
+    grid.innerHTML = ideas.map((idea, i) => {
       // Pick pill colour by format and a button label that matches
       const fmtLower = (idea.badge1 || '').toLowerCase();
       let pillClass = 'pill-blue';
@@ -1884,10 +1953,12 @@ Make the ideas fresh, specific to Briskfil's positioning, and commercially relev
         </div>
         <div class="card-title">${idea.title}</div>
         <div class="card-body">${idea.body}</div>
-        <button class="action-btn" onclick="triggerGen(${JSON.stringify(idea.prompt)})">${actionLabel} ↗</button>
+        <button class="action-btn" onclick="triggerGenFromIdea(${i})">${actionLabel} ↗</button>
       </div>`;
     }).join('');
     grid.style.display = 'block';
+    // Grid now reflects the selected format — record it and dim the Apply button
+    bfIdeaFormatApplied = bfIdeaFormat;
   } catch(e) {
     grid.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">Could not generate new ideas. Please try again.</div>';
     grid.style.display = 'block';
@@ -1895,6 +1966,8 @@ Make the ideas fresh, specific to Briskfil's positioning, and commercially relev
     loading.style.display = 'none';
     btn.textContent = '⟳ Refresh ideas';
     btn.disabled = false;
+    if (apply) apply.textContent = 'Apply';
+    updateApplyBtnState();
   }
 }
 
